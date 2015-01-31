@@ -298,6 +298,7 @@ namespace ManagedNativeWifi
         private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES = 0x00000002;
 
         private const uint ERROR_SUCCESS = 0U;
+        private const uint ERROR_INVALID_STATE = 5023U;
 
         #endregion
 
