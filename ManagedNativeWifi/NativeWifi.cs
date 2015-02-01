@@ -73,11 +73,11 @@ namespace ManagedNativeWifi
 
             public WLAN_INTERFACE_INFO_LIST(IntPtr ppInterfaceList)
             {
-                dwNumberOfItems = (uint)Marshal.ReadInt32(ppInterfaceList, 0); // 4 bytes
-                dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, 4); // 4 bytes
+                dwNumberOfItems = (uint)Marshal.ReadInt32(ppInterfaceList, 0);
+                dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, 4);
                 InterfaceInfo = new WLAN_INTERFACE_INFO[dwNumberOfItems];
 
-                const int offset = 8; // 8 is bytes for dwNumberOfItems and dwIndex.
+                int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
 
                 for (int i = 0; i < dwNumberOfItems; i++)
                 {
@@ -121,11 +121,11 @@ namespace ManagedNativeWifi
 
             public WLAN_AVAILABLE_NETWORK_LIST(IntPtr ppAvailableNetworkList)
             {
-                dwNumberOfItems = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 0); // 4 bytes
-                dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 4); // 4 bytes
+                dwNumberOfItems = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 0);
+                dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 4);
                 Network = new WLAN_AVAILABLE_NETWORK[dwNumberOfItems];
 
-                const int offset = 8; // 8 is bytes for dwNumberOfItems and dwIndex.
+                int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
 
                 for (int i = 0; i < dwNumberOfItems; i++)
                 {
@@ -312,7 +312,7 @@ namespace ManagedNativeWifi
 
 
         /// <summary>
-        /// Get SSIDs of available WiFi networks.
+        /// Get SSIDs of available Wi-Fi networks.
         /// </summary>
         /// <returns>SSIDs</returns>
         public static IEnumerable<string> GetAvailableNetworkSsid()
@@ -382,7 +382,7 @@ namespace ManagedNativeWifi
         }
 
         /// <summary>
-        /// Get SSIDs of connected WiFi networks.
+        /// Get SSIDs of connected Wi-Fi networks.
         /// </summary>
         /// <returns>SSIDs</returns>
         public static IEnumerable<string> GetConnectedNetworkSsid()
