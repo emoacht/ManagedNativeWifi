@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ManagedNativeWifi
 {
@@ -138,15 +140,21 @@ namespace ManagedNativeWifi
         {
             public uint uSSIDLength;
 
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            public string ucSSID;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+            public byte[] ucSSID;
+
+            public byte[] ToSsidBytes()
+            {
+                return (ucSSID != null)
+                    ? ucSSID.Take((int)uSSIDLength).ToArray()
+                    : null;
+            }
 
             public string ToSsidString()
             {
-                if ((ucSSID == null) || (ucSSID.Length < (int)uSSIDLength))
-                    return null;
-
-                return ucSSID.Substring(0, (int)uSSIDLength);
+                return (ucSSID != null)
+                    ? Encoding.UTF8.GetString(ToSsidBytes())
+                    : null;
             }
         }
 
