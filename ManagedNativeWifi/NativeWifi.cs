@@ -616,21 +616,7 @@ namespace ManagedNativeWifi
 							interfaceInfo.strInterfaceDescription,
 							profileInfo.strProfileName);
 
-						IntPtr profileXml;
-						uint flags;
-						uint grantedAccess;
-						var result = WlanGetProfile(
-							client.Handle,
-							interfaceInfo.InterfaceGuid,
-							profileInfo.strProfileName,
-							IntPtr.Zero,
-							out profileXml,
-							out flags,
-							out grantedAccess);
-						if (result != ERROR_SUCCESS)
-							throw new Win32Exception((int)result);
-
-						ShowProfileContent(profileXml); // For debug
+						ShowProfileContents(client.Handle, interfaceInfo.InterfaceGuid, profileInfo.strProfileName); // For debug
 
 						yield return profileInfo.strProfileName;
 					}
@@ -802,13 +788,37 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Show profile contents.
+		/// </summary>
+		/// <param name="clientHandle">Client handle</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="profileName">Profile name</param>
+		/// <remarks>
+		/// For profile elements, see
+		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx
+		/// </remarks>
 		[Conditional("DEBUG")]
-		private static void ShowProfileContent(IntPtr profileXml)
+		private static void ShowProfileContents(IntPtr clientHandle, Guid interfaceGuid, string profileName)
 		{
+			IntPtr profileXml;
+			uint flags;
+			uint grantedAccess;
+			var result = WlanGetProfile(
+				clientHandle,
+				interfaceGuid,
+				profileName,
+				IntPtr.Zero,
+				out profileXml,
+				out flags,
+				out grantedAccess);
+			if (result != ERROR_SUCCESS)
+				throw new Win32Exception((int)result);
+
 			using (var sr = new StringReader(Marshal.PtrToStringUni(profileXml)))
 			{
 				var xmlTree = XElement.Load(sr);
-
+				
 				XNamespace ns = "http://www.microsoft.com/networking/WLAN/profile/v1";
 
 				Debug.WriteLine("authentication: {0}", xmlTree.Descendants(ns + "authentication").FirstOrDefault());
