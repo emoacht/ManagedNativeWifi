@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ManagedNativeWifi
 {
@@ -38,7 +41,7 @@ namespace ManagedNativeWifi
 		[DllImport("Wlanapi.dll", SetLastError = true)]
 		private static extern uint WlanGetAvailableNetworkList(
 			IntPtr hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid interfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			uint dwFlags,
 			IntPtr pReserved,
 			out IntPtr ppAvailableNetworkList);
@@ -46,12 +49,47 @@ namespace ManagedNativeWifi
 		[DllImport("Wlanapi.dll", SetLastError = true)]
 		private static extern uint WlanQueryInterface(
 			IntPtr hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid interfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			WLAN_INTF_OPCODE OpCode,
 			IntPtr pReserved,
 			out uint pdwDataSize,
 			ref IntPtr ppData,
 			IntPtr pWlanOpcodeValueType);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanGetProfileList(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			IntPtr pReserved,
+			out IntPtr ppProfileList);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanGetProfile(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
+			IntPtr pReserved,
+			out IntPtr pstrProfileXml,
+			out uint pdwFlags,
+			out uint pdwGrantedAccess);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanSetProfile(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			uint dwFlags,
+			[MarshalAs(UnmanagedType.LPWStr)] string strProfileXml,
+			[MarshalAs(UnmanagedType.LPWStr)] string strAllUserProfileSecurity,
+			[MarshalAs(UnmanagedType.Bool)] bool bOverwrite,
+			IntPtr pReserved,
+			out uint pdwReasonCode);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanDeleteProfile(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
+			IntPtr pReserved);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		private struct WLAN_INTERFACE_INFO
@@ -200,6 +238,38 @@ namespace ManagedNativeWifi
 			public DOT11_CIPHER_ALGORITHM dot11CipherAlgorithm;
 		}
 
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		private struct WLAN_PROFILE_INFO
+		{
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+			public string strProfileName;
+
+			public uint dwFlags;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct WLAN_PROFILE_INFO_LIST
+		{
+			public uint dwNumberOfItems;
+			public uint dwIndex;
+			public WLAN_PROFILE_INFO[] ProfileInfo;
+
+			public WLAN_PROFILE_INFO_LIST(IntPtr ppProfileList)
+			{
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppProfileList, 0);
+				dwIndex = (uint)Marshal.ReadInt32(ppProfileList, 4);
+				ProfileInfo = new WLAN_PROFILE_INFO[dwNumberOfItems];
+
+				int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+
+				for (int i = 0; i < dwNumberOfItems; i++)
+				{
+					var profileInfo = new IntPtr(ppProfileList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_PROFILE_INFO)) * i) + offset);
+					ProfileInfo[i] = (WLAN_PROFILE_INFO)Marshal.PtrToStructure(profileInfo, typeof(WLAN_PROFILE_INFO));
+				}
+			}
+		}
+
 		private enum WLAN_INTERFACE_STATE
 		{
 			wlan_interface_state_not_ready = 0,
@@ -308,14 +378,20 @@ namespace ManagedNativeWifi
 		private const uint ERROR_SUCCESS = 0U;
 		private const uint ERROR_INVALID_STATE = 5023U;
 
+		private const uint WLAN_PROFILE_GROUP_POLICY = 0x00000001;
+		private const uint WLAN_PROFILE_USER = 0x00000002;
+		private const uint WLAN_PROFILE_GET_PLAINTEXT_KEY = 0x00000004;
+
 		#endregion
 
+
+		#region Original method
 
 		/// <summary>
 		/// Get SSIDs of available Wi-Fi networks.
 		/// </summary>
 		/// <returns>SSIDs</returns>
-		public static IEnumerable<string> GetAvailableNetworkSsid()
+		public static IEnumerable<string> GetAvailableNetworkSsids()
 		{
 			var clientHandle = IntPtr.Zero;
 			var interfaceList = IntPtr.Zero;
@@ -385,7 +461,7 @@ namespace ManagedNativeWifi
 		/// Get SSIDs of connected Wi-Fi networks.
 		/// </summary>
 		/// <returns>SSIDs</returns>
-		public static IEnumerable<string> GetConnectedNetworkSsid()
+		public static IEnumerable<string> GetConnectedNetworkSsids()
 		{
 			var clientHandle = IntPtr.Zero;
 			var interfaceList = IntPtr.Zero;
@@ -452,5 +528,280 @@ namespace ManagedNativeWifi
 					WlanCloseHandle(clientHandle, IntPtr.Zero);
 			}
 		}
+
+		#endregion
+
+
+		#region Revised method
+
+		public static IEnumerable<string> EnumerateAvailableNetworkSsids()
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
+
+				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var availableNetworkList = GetWlanAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					foreach (var availableNetwork in availableNetworkList)
+					{
+						Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+							interfaceInfo.strInterfaceDescription,
+							availableNetwork.dot11Ssid.ToSsidString(),
+							availableNetwork.wlanSignalQuality);
+
+						yield return availableNetwork.dot11Ssid.ToSsidString();
+					}
+				}
+			}
+		}
+
+		public static IEnumerable<string> EnumerateConnectedNetworkSsids()
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
+
+				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var connection = GetWlanConnectionAttributes(client.Handle, interfaceInfo.InterfaceGuid);
+					if (connection.Equals(default(WLAN_CONNECTION_ATTRIBUTES)) ||
+						connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
+						continue;
+
+					var association = connection.wlanAssociationAttributes;
+
+					Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+						interfaceInfo.strInterfaceDescription,
+						association.dot11Ssid.ToSsidString(),
+						association.wlanSignalQuality);
+
+					yield return association.dot11Ssid.ToSsidString();
+				}
+			}
+		}
+
+		public static IEnumerable<string> EnumerateProfileNames()
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
+
+				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var profileInfoList = GetWlanProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					foreach (var profileInfo in profileInfoList)
+					{
+						Debug.WriteLine("Interface: {0}, Profile: {1}",
+							interfaceInfo.strInterfaceDescription,
+							profileInfo.strProfileName);
+
+						IntPtr profileXml;
+						uint flags;
+						uint grantedAccess;
+						var result = WlanGetProfile(
+							client.Handle,
+							interfaceInfo.InterfaceGuid,
+							profileInfo.strProfileName,
+							IntPtr.Zero,
+							out profileXml,
+							out flags,
+							out grantedAccess);
+						if (result != ERROR_SUCCESS)
+							throw new Win32Exception((int)result);
+
+						ShowProfileContent(profileXml); // For debug
+
+						yield return profileInfo.strProfileName;
+					}
+				}
+			}
+		}
+
+		public static void DeleteProfile(params string[] profileNames)
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
+
+				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var profileInfoList = GetWlanProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+					var existingProfileNames = profileInfoList.Select(x => x.strProfileName).ToList();
+
+					foreach (var profileName in profileNames)
+					{
+						if (!existingProfileNames.Contains(profileName))
+							continue;
+
+						Debug.WriteLine("Existing profile: " + profileName);
+
+						existingProfileNames.Remove(profileName);
+
+						var result = WlanDeleteProfile(
+							client.Handle,
+							interfaceInfo.InterfaceGuid,
+							profileName,
+							IntPtr.Zero);
+						if (result != ERROR_SUCCESS)
+							throw new Win32Exception((int)result);
+					}
+				}
+			}
+		}
+
+
+		#region Helper
+
+		private sealed class WlanClient : IDisposable
+		{
+			private IntPtr _clientHandle = IntPtr.Zero;
+
+			public IntPtr Handle { get { return _clientHandle; } }
+
+			public WlanClient()
+			{
+				uint negotiatedVersion;
+				var result = WlanOpenHandle(
+					2, // Client version for Windows Vista and Windows Server 2008
+					IntPtr.Zero,
+					out negotiatedVersion,
+					out _clientHandle);
+				if (result != ERROR_SUCCESS)
+					throw new Win32Exception((int)result);
+			}
+
+			public void Dispose()
+			{
+				if (_clientHandle != IntPtr.Zero)
+					WlanCloseHandle(_clientHandle, IntPtr.Zero);
+			}
+		}
+
+		private static WLAN_INTERFACE_INFO[] GetWlanInterfaceInfoList(IntPtr clientHandle)
+		{
+			var interfaceList = IntPtr.Zero;
+			try
+			{
+				var result = WlanEnumInterfaces(
+					clientHandle,
+					IntPtr.Zero,
+					out interfaceList);
+				if (result != ERROR_SUCCESS)
+					throw new Win32Exception((int)result);
+
+				return new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo;
+			}
+			finally
+			{
+				if (interfaceList != IntPtr.Zero)
+					WlanFreeMemory(interfaceList);
+			}
+		}
+
+		private static WLAN_AVAILABLE_NETWORK[] GetWlanAvailableNetworkList(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var availableNetworkList = IntPtr.Zero;
+			try
+			{
+				var result = WlanGetAvailableNetworkList(
+					clientHandle,
+					interfaceGuid,
+					WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES,
+					IntPtr.Zero,
+					out availableNetworkList);
+				if (result != ERROR_SUCCESS)
+					throw new Win32Exception((int)result);
+
+				return new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network;
+			}
+			finally
+			{
+				if (availableNetworkList != IntPtr.Zero)
+					WlanFreeMemory(availableNetworkList);
+			}
+		}
+
+		private static WLAN_CONNECTION_ATTRIBUTES GetWlanConnectionAttributes(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var queryData = IntPtr.Zero;
+			try
+			{
+				uint dataSize;
+				var result = WlanQueryInterface(
+					clientHandle,
+					interfaceGuid,
+					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
+					IntPtr.Zero,
+					out dataSize,
+					ref queryData,
+					IntPtr.Zero);
+
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						return (WLAN_CONNECTION_ATTRIBUTES)Marshal.PtrToStructure(queryData, typeof(WLAN_CONNECTION_ATTRIBUTES));
+					case ERROR_INVALID_STATE: // If not connected to a network, this value will be returned.
+						return default(WLAN_CONNECTION_ATTRIBUTES);
+					default:
+						throw new Win32Exception((int)result);
+				}
+			}
+			finally
+			{
+				if (queryData != IntPtr.Zero)
+					WlanFreeMemory(queryData);
+			}
+		}
+
+		private static WLAN_PROFILE_INFO[] GetWlanProfileInfoList(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var profileList = IntPtr.Zero;
+			try
+			{
+				var result = WlanGetProfileList(
+					clientHandle,
+					interfaceGuid,
+					IntPtr.Zero,
+					out profileList);
+				if (result != ERROR_SUCCESS)
+					throw new Win32Exception((int)result);
+
+				return new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo;
+			}
+			finally
+			{
+				if (profileList != IntPtr.Zero)
+					WlanFreeMemory(profileList);
+			}
+		}
+
+		[Conditional("DEBUG")]
+		private static void ShowProfileContent(IntPtr profileXml)
+		{
+			using (var sr = new StringReader(Marshal.PtrToStringUni(profileXml)))
+			{
+				var xmlTree = XElement.Load(sr);
+
+				XNamespace ns = "http://www.microsoft.com/networking/WLAN/profile/v1";
+
+				Debug.WriteLine("authentication: {0}", xmlTree.Descendants(ns + "authentication").FirstOrDefault());
+				Debug.WriteLine("encryption: {0}", xmlTree.Descendants(ns + "encryption").FirstOrDefault());
+			}
+		}
+
+		#endregion
+
+		#endregion
 	}
 }

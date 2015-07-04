@@ -15,10 +15,15 @@ namespace ManagedNativeWifi
 				Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
 			Debug.WriteLine("[Available Networks]");
-			NativeWifi.GetAvailableNetworkSsid().ToArray();
+			NativeWifi.GetAvailableNetworkSsids().ToArray();
+			NativeWifi.EnumerateAvailableNetworkSsids().ToArray();
 
 			Debug.WriteLine("[Connected Networks]");
-			NativeWifi.GetConnectedNetworkSsid().ToArray();
+			NativeWifi.GetConnectedNetworkSsids().ToArray();
+			NativeWifi.EnumerateConnectedNetworkSsids().ToArray();
+
+			Debug.WriteLine("[Network Profiles]");
+			NativeWifi.EnumerateProfileNames().ToArray();
 		}
 	}
 }
