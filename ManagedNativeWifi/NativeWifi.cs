@@ -534,6 +534,10 @@ namespace ManagedNativeWifi
 
 		#region Revised method
 
+		/// <summary>
+		/// Enumerate SSIDs of available wireless networks.
+		/// </summary>
+		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> EnumerateAvailableNetworkSsids()
 		{
 			using (var client = new WlanClient())
@@ -559,6 +563,10 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Enumerate SSIDs of connected wireless networks.
+		/// </summary>
+		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> EnumerateConnectedNetworkSsids()
 		{
 			using (var client = new WlanClient())
@@ -586,6 +594,10 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Enumerate profile names of wireless networks.
+		/// </summary>
+		/// <returns>Profile names</returns>
 		public static IEnumerable<string> EnumerateProfileNames()
 		{
 			using (var client = new WlanClient())
@@ -626,6 +638,10 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Delete profiles of wireless networks.
+		/// </summary>
+		/// <param name="profileNames">Profile names</param>
 		public static void DeleteProfile(params string[] profileNames)
 		{
 			using (var client = new WlanClient())
