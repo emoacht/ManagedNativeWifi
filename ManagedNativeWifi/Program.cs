@@ -24,6 +24,7 @@ namespace ManagedNativeWifi
 
 			Debug.WriteLine("[Network Profiles]");
 			NativeWifi.EnumerateProfileNames().ToArray();
+			NativeWifi.EnumerateProfiles().ToArray();
 		}
 	}
 }

@@ -70,7 +70,7 @@ namespace ManagedNativeWifi
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved,
 			out IntPtr pstrProfileXml,
-			out uint pdwFlags,
+			ref uint pdwFlags,
 			out uint pdwGrantedAccess);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
@@ -89,6 +89,19 @@ namespace ManagedNativeWifi
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
+			IntPtr pReserved);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanConnect(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[In] ref WLAN_CONNECTION_PARAMETERS pConnectionParameters,
+			IntPtr pReserved);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanDisconnect(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -115,7 +128,7 @@ namespace ManagedNativeWifi
 				dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, 4);
 				InterfaceInfo = new WLAN_INTERFACE_INFO[dwNumberOfItems];
 
-				int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
@@ -163,7 +176,7 @@ namespace ManagedNativeWifi
 				dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 4);
 				Network = new WLAN_AVAILABLE_NETWORK[dwNumberOfItems];
 
-				int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
@@ -215,8 +228,8 @@ namespace ManagedNativeWifi
 			public DOT11_SSID dot11Ssid;
 			public DOT11_BSS_TYPE dot11BssType;
 
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 6)]
-			public string dot11Bssid; // DOT11_MAC_ADDRESS
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
 
 			public DOT11_PHY_TYPE dot11PhyType;
 			public uint uDot11PhyIndex;
@@ -260,7 +273,7 @@ namespace ManagedNativeWifi
 				dwIndex = (uint)Marshal.ReadInt32(ppProfileList, 4);
 				ProfileInfo = new WLAN_PROFILE_INFO[dwNumberOfItems];
 
-				int offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
@@ -268,6 +281,37 @@ namespace ManagedNativeWifi
 					ProfileInfo[i] = (WLAN_PROFILE_INFO)Marshal.PtrToStructure(profileInfo, typeof(WLAN_PROFILE_INFO));
 				}
 			}
+		}
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		private struct WLAN_CONNECTION_PARAMETERS
+		{
+			public WLAN_CONNECTION_MODE wlanConnectionMode;
+			[MarshalAs(UnmanagedType.LPWStr)]
+			public string strProfile;
+			public IntPtr pDot11Ssid; // DOT11_SSID[]
+			public IntPtr pDesiredBssidList; // DOT11_BSSID_LIST[]
+			public DOT11_BSS_TYPE dot11BssType;
+			public uint dwFlags;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct DOT11_BSSID_LIST
+		{
+			public NDIS_OBJECT_HEADER Header;
+			public uint uNumOfEntries;
+			public uint uTotalNumOfEntries;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+			public byte[] BSSIDs; // DOT11_MAC_ADDRESS
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct NDIS_OBJECT_HEADER
+		{
+			public byte Type;
+			public byte Revision;
+			public ushort Size;
 		}
 
 		private enum WLAN_INTERFACE_STATE
@@ -294,8 +338,19 @@ namespace ManagedNativeWifi
 
 		private enum DOT11_BSS_TYPE
 		{
+			/// <summary>
+			/// Infrastructure BSS network
+			/// </summary>
 			dot11_BSS_type_infrastructure = 1,
+
+			/// <summary>
+			/// Independent BSS (IBSS) network
+			/// </summary>
 			dot11_BSS_type_independent = 2,
+
+			/// <summary>
+			/// Either infrastructure or IBSS network
+			/// </summary>
 			dot11_BSS_type_any = 3,
 		}
 
@@ -377,13 +432,16 @@ namespace ManagedNativeWifi
 
 		private const uint ERROR_SUCCESS = 0U;
 		private const uint ERROR_INVALID_STATE = 5023U;
+		private const uint ERROR_INVALID_PARAMETER = 87U;
+		private const uint ERROR_ACCESS_DENIED = 5U;
+		private const uint ERROR_INVALID_HANDLE = 6U;
+		private const uint ERROR_NOT_FOUND = 1168U;
 
+		private const uint WLAN_PROFILE_GET_PLAINTEXT_KEY = 0x00000004;
 		private const uint WLAN_PROFILE_GROUP_POLICY = 0x00000001;
 		private const uint WLAN_PROFILE_USER = 0x00000002;
-		private const uint WLAN_PROFILE_GET_PLAINTEXT_KEY = 0x00000004;
 
 		#endregion
-
 
 		#region Original method
 
@@ -415,7 +473,7 @@ namespace ManagedNativeWifi
 
 				var interfaceInfoList = new WLAN_INTERFACE_INFO_LIST(interfaceList);
 
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.dwNumberOfItems);
+				Debug.WriteLine("Interface count: {0}", interfaceInfoList.dwNumberOfItems);
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
@@ -485,7 +543,7 @@ namespace ManagedNativeWifi
 
 				var interfaceInfoList = new WLAN_INTERFACE_INFO_LIST(interfaceList);
 
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.dwNumberOfItems);
+				Debug.WriteLine("Interface count: {0}", interfaceInfoList.dwNumberOfItems);
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
@@ -531,31 +589,92 @@ namespace ManagedNativeWifi
 
 		#endregion
 
-
 		#region Revised method
 
+		#region Type
+
+		public enum BssType
+		{
+			None = 0,
+			Infrastructure,
+			Independent,
+			Any
+		}
+
+		public class ProfilePack
+		{
+			public string Name { get; private set; }
+			public Guid InterfaceGuid { get; private set; }
+			public string InterfaceDescription { get; private set; }
+			public string Ssid { get; private set; }
+			public BssType BssType { get; private set; }
+			public string Authentication { get; private set; }
+			public string Encryption { get; private set; }
+			public int Signal { get; private set; }
+			public bool IsConnected { get; private set; }
+
+			public ProfilePack(
+				string name,
+				Guid interfaceGuid,
+				string interfaceDescription,
+				string ssid,
+				BssType bssType,
+				string authentication,
+				string encryption,
+				int signal,
+				bool isConnected)
+			{
+				this.Name = name;
+				this.InterfaceGuid = interfaceGuid;
+				this.InterfaceDescription = interfaceDescription;
+				this.Ssid = ssid;
+				this.BssType = bssType;
+				this.Authentication = authentication;
+				this.Encryption = encryption;
+				this.Signal = signal;
+				this.IsConnected = isConnected;
+			}
+		}
+
+		public class NetworkPack
+		{
+			public Guid InterfaceGuid { get; private set; }
+			public string Ssid { get; private set; }
+			public BssType BssType { get; private set; }
+			public int Signal { get; private set; }
+			public string ProfileName { get; private set; }
+
+			public NetworkPack(Guid interfaceGuid, string ssid, BssType bssType, int signal, string profileName)
+			{
+				this.InterfaceGuid = interfaceGuid;
+				this.Ssid = ssid;
+				this.BssType = bssType;
+				this.Signal = signal;
+				this.ProfileName = profileName;
+			}
+		}
+
+		#endregion
+
 		/// <summary>
-		/// Enumerate SSIDs of available wireless networks.
+		/// Enumerate SSIDs of available wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> EnumerateAvailableNetworkSsids()
 		{
 			using (var client = new WlanClient())
 			{
-				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
-
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
 
 				foreach (var interfaceInfo in interfaceInfoList)
 				{
-					var availableNetworkList = GetWlanAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid);
+					var availableNetworkList = GetAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid);
 
 					foreach (var availableNetwork in availableNetworkList)
 					{
-						Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+						Debug.WriteLine("Interface: {0}, SSID: {1}",
 							interfaceInfo.strInterfaceDescription,
-							availableNetwork.dot11Ssid.ToSsidString(),
-							availableNetwork.wlanSignalQuality);
+							availableNetwork.dot11Ssid.ToSsidString());
 
 						yield return availableNetwork.dot11Ssid.ToSsidString();
 					}
@@ -564,30 +683,60 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate SSIDs of connected wireless networks.
+		/// Enumerate available wireless LANs.
+		/// </summary>
+		/// <returns>Wireless LANs</returns>
+		/// <remarks>If multiple profiles are associated with the network, there will be multiple entries with
+		/// the same SSID.</remarks>
+		public static IEnumerable<NetworkPack> EnumerateAvailableNetworks()
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var availableNetworkList = GetAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					foreach (var availableNetwork in availableNetworkList)
+					{
+						Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
+							interfaceInfo.strInterfaceDescription,
+							availableNetwork.dot11Ssid.ToSsidString(),
+							availableNetwork.wlanSignalQuality);
+
+						yield return new NetworkPack(
+							interfaceInfo.InterfaceGuid,
+							availableNetwork.dot11Ssid.ToSsidString(),
+							ConvertToBssType(availableNetwork.dot11BssType),
+							(int)availableNetwork.wlanSignalQuality,
+							availableNetwork.strProfileName);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Enumerate SSIDs of connected wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> EnumerateConnectedNetworkSsids()
 		{
 			using (var client = new WlanClient())
 			{
-				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
-
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
 
 				foreach (var interfaceInfo in interfaceInfoList)
 				{
-					var connection = GetWlanConnectionAttributes(client.Handle, interfaceInfo.InterfaceGuid);
-					if (connection.Equals(default(WLAN_CONNECTION_ATTRIBUTES)) ||
-						connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
+					var connection = GetConnectionAttributes(client.Handle, interfaceInfo.InterfaceGuid);
+					if (connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 						continue;
 
 					var association = connection.wlanAssociationAttributes;
 
-					Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+					Debug.WriteLine("Interface: {0}, SSID: {1}",
 						interfaceInfo.strInterfaceDescription,
-						association.dot11Ssid.ToSsidString(),
-						association.wlanSignalQuality);
+						association.dot11Ssid.ToSsidString());
 
 					yield return association.dot11Ssid.ToSsidString();
 				}
@@ -595,28 +744,24 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate profile names of wireless networks.
+		/// Enumerate wireless profile names.
 		/// </summary>
-		/// <returns>Profile names</returns>
+		/// <returns>Wireless profile names</returns>
 		public static IEnumerable<string> EnumerateProfileNames()
 		{
 			using (var client = new WlanClient())
 			{
-				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
-
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
 
 				foreach (var interfaceInfo in interfaceInfoList)
 				{
-					var profileInfoList = GetWlanProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+					var profileInfoList = GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
 
 					foreach (var profileInfo in profileInfoList)
 					{
 						Debug.WriteLine("Interface: {0}, Profile: {1}",
 							interfaceInfo.strInterfaceDescription,
 							profileInfo.strProfileName);
-
-						ShowProfileContents(client.Handle, interfaceInfo.InterfaceGuid, profileInfo.strProfileName); // For debug
 
 						yield return profileInfo.strProfileName;
 					}
@@ -625,47 +770,230 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Delete profiles of wireless networks.
+		/// Enumerate wireless profiles.
 		/// </summary>
-		/// <param name="profileNames">Profile names</param>
-		public static void DeleteProfile(params string[] profileNames)
+		/// <returns>Wireless profiles</returns>
+		public static IEnumerable<ProfilePack> EnumerateProfiles()
 		{
 			using (var client = new WlanClient())
 			{
-				var interfaceInfoList = GetWlanInterfaceInfoList(client.Handle);
-
-				Debug.WriteLine("Interface info count: {0}", interfaceInfoList.Length);
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
 
 				foreach (var interfaceInfo in interfaceInfoList)
 				{
-					var profileInfoList = GetWlanProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
-					var existingProfileNames = profileInfoList.Select(x => x.strProfileName).ToList();
+					var availableNetworkList = GetAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid)
+						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
+						.ToArray();
 
-					foreach (var profileName in profileNames)
+					var connection = GetConnectionAttributes(client.Handle, interfaceInfo.InterfaceGuid);
+					var interfaceIsConnected = (connection.isState == WLAN_INTERFACE_STATE.wlan_interface_state_connected);
+
+					var profileInfoList = GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					foreach (var profileInfo in profileInfoList)
 					{
-						if (!existingProfileNames.Contains(profileName))
-							continue;
+						var availableNetwork = availableNetworkList.FirstOrDefault(x => x.strProfileName.Equals(profileInfo.strProfileName, StringComparison.Ordinal));
+						var signal = (int)availableNetwork.wlanSignalQuality;
 
-						Debug.WriteLine("Existing profile: " + profileName);
+						var profileIsConnected = interfaceIsConnected && profileInfo.strProfileName.Equals(connection.strProfileName, StringComparison.Ordinal);
 
-						existingProfileNames.Remove(profileName);
+						Debug.WriteLine("Interface: {0}, Profile: {1}, Signal {2}, IsConnected {3}",
+							interfaceInfo.strInterfaceDescription,
+							profileInfo.strProfileName,
+							signal,
+							profileIsConnected);
 
-						var result = WlanDeleteProfile(
+						yield return GetProfile(
 							client.Handle,
+							profileInfo.strProfileName,
 							interfaceInfo.InterfaceGuid,
-							profileName,
-							IntPtr.Zero);
-						if (result != ERROR_SUCCESS)
-							throw new Win32Exception((int)result);
+							interfaceInfo.strInterfaceDescription,
+							signal,
+							profileIsConnected);
 					}
 				}
 			}
 		}
 
+		/// <summary>
+		/// Get a wireless profile.
+		/// </summary>
+		/// <param name="clientHandle">Client handle</param>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceDescription">Interface description</param>
+		/// <param name="isConnected">Whether this profile is connected to a wireless network</param>
+		/// <returns>Wireless profile</returns>
+		/// <remarks>
+		/// For profile elements, see
+		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx 
+		/// </remarks>
+		private static ProfilePack GetProfile(IntPtr clientHandle, string profileName, Guid interfaceGuid, string interfaceDescription, int signal, bool isConnected)
+		{
+			XElement rootXml;
+			using (var sr = new StringReader(GetProfileXml(clientHandle, interfaceGuid, profileName)))
+				rootXml = XElement.Load(sr);
+
+			var ns = rootXml.Name.Namespace;
+
+			var ssidXml = rootXml.Descendants(ns + "SSID").FirstOrDefault();
+			var ssid = (ssidXml != null) ? ssidXml.Descendants(ns + "name").First().Value : null;
+
+			var connectionTypeXml = rootXml.Descendants(ns + "connectionType").FirstOrDefault();
+			var bssType = (connectionTypeXml != null) ? ConvertToBssType(connectionTypeXml.Value) : default(BssType);
+
+			var authenticationXml = rootXml.Descendants(ns + "authentication").FirstOrDefault();
+			var authentication = (authenticationXml != null) ? authenticationXml.Value : null;
+
+			var encryptionXml = rootXml.Descendants(ns + "encryption").FirstOrDefault();
+			var encryption = (encryptionXml != null) ? encryptionXml.Value : null;
+
+			Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}",
+				ssid,
+				bssType,
+				authentication,
+				encryption);
+
+			return new ProfilePack(profileName, interfaceGuid, interfaceDescription, ssid, bssType, authentication, encryption, signal, isConnected);
+		}
+
+		/// <summary>
+		/// Delete a wireless profile.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <returns>True if deleted. False if could not delete.</returns>
+		public static bool DeleteProfile(string profileName)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var profileInfoList = GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					if (!profileInfoList.Any(x => x.strProfileName.Equals(profileName, StringComparison.Ordinal)))
+						continue;
+
+					Debug.WriteLine("Existing profile: " + profileName);
+
+					return DeleteProfile(client.Handle, interfaceInfo.InterfaceGuid, profileName);
+				}
+
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Delete a wireless profile.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <returns>True if deleted. False if could not delete.</returns>
+		public static bool DeleteProfile(string profileName, Guid interfaceGuid)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return false;
+
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				return DeleteProfile(client.Handle, interfaceGuid, profileName);
+			}
+		}
+
+		/// <summary>
+		/// Attempt to connect to a wireless LAN.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="bssType">BSS type</param>
+		/// <returns>True if the function succeeded.</returns>
+		public static bool Connect(string profileName, Guid interfaceGuid, BssType bssType = BssType.Any)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return false;
+
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				return Connect(client.Handle, interfaceGuid, profileName, ConvertFromBssType(bssType));
+			};
+		}
+
+		/// <summary>
+		/// Disconnect from a wireless LAN.
+		/// </summary>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <returns>True if the function succeeded.</returns>
+		public static bool Disconnect(Guid interfaceGuid)
+		{
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				return Disconnect(client.Handle, interfaceGuid);
+			};
+		}
 
 		#region Helper
 
-		private sealed class WlanClient : IDisposable
+		private static DOT11_BSS_TYPE ConvertFromBssType(BssType source)
+		{
+			switch (source)
+			{
+				case BssType.Infrastructure:
+					return DOT11_BSS_TYPE.dot11_BSS_type_infrastructure;
+				case BssType.Independent:
+					return DOT11_BSS_TYPE.dot11_BSS_type_independent;
+				default:
+					return DOT11_BSS_TYPE.dot11_BSS_type_any;
+			}
+		}
+
+		private static BssType ConvertToBssType(DOT11_BSS_TYPE source)
+		{
+			switch (source)
+			{
+				case DOT11_BSS_TYPE.dot11_BSS_type_infrastructure:
+					return BssType.Infrastructure;
+				case DOT11_BSS_TYPE.dot11_BSS_type_independent:
+					return BssType.Independent;
+				default:
+					return BssType.Any;
+			}
+		}
+
+		private static BssType ConvertToBssType(string source)
+		{
+			if (string.IsNullOrWhiteSpace(source))
+			{
+				return default(BssType);
+			}
+			if (source.Equals("ESS", StringComparison.OrdinalIgnoreCase))
+			{
+				return BssType.Infrastructure;
+			}
+			if (source.Equals("IBSS", StringComparison.OrdinalIgnoreCase))
+			{
+				return BssType.Independent;
+			}
+			return BssType.Any;
+		}
+
+		#endregion
+
+		#region Base
+
+		private class WlanClient : IDisposable
 		{
 			private IntPtr _clientHandle = IntPtr.Zero;
 
@@ -683,14 +1011,36 @@ namespace ManagedNativeWifi
 					throw new Win32Exception((int)result);
 			}
 
+			#region Dispose
+
+			private bool _disposed = false;
+
 			public void Dispose()
 			{
+				Dispose(true);
+				GC.SuppressFinalize(this);
+			}
+
+			protected virtual void Dispose(bool disposing)
+			{
+				if (_disposed)
+					return;
+
 				if (_clientHandle != IntPtr.Zero)
 					WlanCloseHandle(_clientHandle, IntPtr.Zero);
+
+				_disposed = true;
 			}
+
+			~WlanClient()
+			{
+				Dispose(false);
+			}
+
+			#endregion
 		}
 
-		private static WLAN_INTERFACE_INFO[] GetWlanInterfaceInfoList(IntPtr clientHandle)
+		private static WLAN_INTERFACE_INFO[] GetInterfaceInfoList(IntPtr clientHandle)
 		{
 			var interfaceList = IntPtr.Zero;
 			try
@@ -711,7 +1061,7 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		private static WLAN_AVAILABLE_NETWORK[] GetWlanAvailableNetworkList(IntPtr clientHandle, Guid interfaceGuid)
+		private static WLAN_AVAILABLE_NETWORK[] GetAvailableNetworkList(IntPtr clientHandle, Guid interfaceGuid)
 		{
 			var availableNetworkList = IntPtr.Zero;
 			try
@@ -734,7 +1084,7 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		private static WLAN_CONNECTION_ATTRIBUTES GetWlanConnectionAttributes(IntPtr clientHandle, Guid interfaceGuid)
+		private static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(IntPtr clientHandle, Guid interfaceGuid)
 		{
 			var queryData = IntPtr.Zero;
 			try
@@ -766,7 +1116,7 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		private static WLAN_PROFILE_INFO[] GetWlanProfileInfoList(IntPtr clientHandle, Guid interfaceGuid)
+		private static WLAN_PROFILE_INFO[] GetProfileInfoList(IntPtr clientHandle, Guid interfaceGuid)
 		{
 			var profileList = IntPtr.Zero;
 			try
@@ -788,41 +1138,101 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		/// <summary>
-		/// Show profile contents.
-		/// </summary>
-		/// <param name="clientHandle">Client handle</param>
-		/// <param name="interfaceGuid">Interface GUID</param>
-		/// <param name="profileName">Profile name</param>
-		/// <remarks>
-		/// For profile elements, see
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx
-		/// </remarks>
-		[Conditional("DEBUG")]
-		private static void ShowProfileContents(IntPtr clientHandle, Guid interfaceGuid, string profileName)
+		private static string GetProfileXml(IntPtr clientHandle, Guid interfaceGuid, string profileName)
 		{
-			IntPtr profileXml;
-			uint flags;
-			uint grantedAccess;
-			var result = WlanGetProfile(
+			var profileXml = IntPtr.Zero;
+			try
+			{
+				uint flags = 0U;
+				uint grantedAccess;
+				var result = WlanGetProfile(
+					clientHandle,
+					interfaceGuid,
+					profileName,
+					IntPtr.Zero,
+					out profileXml,
+					ref flags,
+					out grantedAccess);
+				if (result != ERROR_SUCCESS)
+					throw new Win32Exception((int)result);
+
+				return Marshal.PtrToStringUni(profileXml);
+			}
+			finally
+			{
+				if (profileXml != IntPtr.Zero)
+					WlanFreeMemory(profileXml);
+			}
+		}
+
+		private static bool DeleteProfile(IntPtr clientHandle, Guid interfaceGuid, string profileName)
+		{
+			var result = WlanDeleteProfile(
 				clientHandle,
 				interfaceGuid,
 				profileName,
-				IntPtr.Zero,
-				out profileXml,
-				out flags,
-				out grantedAccess);
-			if (result != ERROR_SUCCESS)
-				throw new Win32Exception((int)result);
+				IntPtr.Zero);
 
-			using (var sr = new StringReader(Marshal.PtrToStringUni(profileXml)))
+			switch (result)
 			{
-				var xmlTree = XElement.Load(sr);
-				
-				XNamespace ns = "http://www.microsoft.com/networking/WLAN/profile/v1";
+				case ERROR_SUCCESS:
+					return true;
+				case ERROR_INVALID_PARAMETER: // If the specified interface has been removed, this value will be returned.
+				case ERROR_NOT_FOUND: // If the specified profile was not found, this value will be returned.
+				case ERROR_ACCESS_DENIED:
+					return false;
+				case ERROR_INVALID_HANDLE:
+				default:
+					throw new Win32Exception((int)result);
+			}
+		}
 
-				Debug.WriteLine("authentication: {0}", xmlTree.Descendants(ns + "authentication").FirstOrDefault());
-				Debug.WriteLine("encryption: {0}", xmlTree.Descendants(ns + "encryption").FirstOrDefault());
+		private static bool Connect(IntPtr clientHandle, Guid interfaceGuid, string profileName, DOT11_BSS_TYPE bssType)
+		{
+			var connectionParameters = new WLAN_CONNECTION_PARAMETERS
+			{
+				wlanConnectionMode = WLAN_CONNECTION_MODE.wlan_connection_mode_profile,
+				strProfile = profileName,
+				dot11BssType = bssType,
+				dwFlags = 0U
+			};
+
+			var result = WlanConnect(
+				clientHandle,
+				interfaceGuid,
+				ref connectionParameters,
+				IntPtr.Zero);
+
+			switch (result)
+			{
+				case ERROR_SUCCESS:
+					return true;
+				case ERROR_INVALID_PARAMETER:
+				case ERROR_ACCESS_DENIED:
+					return false;
+				case ERROR_INVALID_HANDLE:
+				default:
+					throw new Win32Exception((int)result);
+			}
+		}
+
+		private static bool Disconnect(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var result = WlanDisconnect(
+				clientHandle,
+				interfaceGuid,
+				IntPtr.Zero);
+
+			switch (result)
+			{
+				case ERROR_SUCCESS:
+					return true;
+				case ERROR_INVALID_PARAMETER:
+				case ERROR_ACCESS_DENIED:
+					return false;
+				case ERROR_INVALID_HANDLE:
+				default:
+					throw new Win32Exception((int)result);
 			}
 		}
 
