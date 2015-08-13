@@ -85,6 +85,14 @@ namespace ManagedNativeWifi
 			out uint pdwReasonCode);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanSetProfilePosition(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
+			uint dwPosition,
+			IntPtr pReserved);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
 		private static extern uint WlanDeleteProfile(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -103,6 +111,16 @@ namespace ManagedNativeWifi
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved);
+
+		[DllImport("Kernel32.dll", SetLastError = true)]
+		private static extern uint FormatMessage(
+			uint dwFlags,
+			IntPtr lpSource,
+			uint dwMessageId,
+			uint dwLanguageId,
+			StringBuilder lpBuffer,
+			int nSize,
+			IntPtr Arguments);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		private struct WLAN_INTERFACE_INFO
@@ -430,16 +448,22 @@ namespace ManagedNativeWifi
 		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
 		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES = 0x00000002;
 
-		private const uint ERROR_SUCCESS = 0U;
-		private const uint ERROR_INVALID_STATE = 5023U;
-		private const uint ERROR_INVALID_PARAMETER = 87U;
-		private const uint ERROR_ACCESS_DENIED = 5U;
-		private const uint ERROR_INVALID_HANDLE = 6U;
-		private const uint ERROR_NOT_FOUND = 1168U;
+		private const uint ERROR_SUCCESS = 0;
+		private const uint ERROR_INVALID_PARAMETER = 87;
+		private const uint ERROR_INVALID_HANDLE = 6;
+		private const uint ERROR_NOT_ENOUGH_MEMORY = 8;
+		private const uint ERROR_ACCESS_DENIED = 5;
+		private const uint ERROR_NOT_FOUND = 1168;
+		private const uint ERROR_REMOTE_SESSION_LIMIT_EXCEEDED = 1220;
+		private const uint ERROR_INVALID_STATE = 5023;
+		private const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
+		private const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
 
 		private const uint WLAN_PROFILE_GET_PLAINTEXT_KEY = 0x00000004;
 		private const uint WLAN_PROFILE_GROUP_POLICY = 0x00000001;
 		private const uint WLAN_PROFILE_USER = 0x00000002;
+
+		private const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 
 		#endregion
 
@@ -610,6 +634,8 @@ namespace ManagedNativeWifi
 			public BssType BssType { get; private set; }
 			public string Authentication { get; private set; }
 			public string Encryption { get; private set; }
+			public int Position { get; private set; }
+			public bool IsAutomatic { get; private set; }
 			public int Signal { get; private set; }
 			public bool IsConnected { get; private set; }
 
@@ -621,6 +647,8 @@ namespace ManagedNativeWifi
 				BssType bssType,
 				string authentication,
 				string encryption,
+				int position,
+				bool isAutomatic,
 				int signal,
 				bool isConnected)
 			{
@@ -631,6 +659,8 @@ namespace ManagedNativeWifi
 				this.BssType = bssType;
 				this.Authentication = authentication;
 				this.Encryption = encryption;
+				this.Position = position;
+				this.IsAutomatic = isAutomatic;
 				this.Signal = signal;
 				this.IsConnected = isConnected;
 			}
@@ -686,8 +716,8 @@ namespace ManagedNativeWifi
 		/// Enumerate available wireless LANs.
 		/// </summary>
 		/// <returns>Wireless LANs</returns>
-		/// <remarks>If multiple profiles are associated with the network, there will be multiple entries with
-		/// the same SSID.</remarks>
+		/// <remarks>If multiple profiles are associated with a same network, there will be multiple entries
+		/// with the same SSID.</remarks>
 		public static IEnumerable<NetworkPack> EnumerateAvailableNetworks()
 		{
 			using (var client = new WlanClient())
@@ -744,7 +774,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate wireless profile names.
+		/// Enumerate wireless profile names in preference order.
 		/// </summary>
 		/// <returns>Wireless profile names</returns>
 		public static IEnumerable<string> EnumerateProfileNames()
@@ -770,7 +800,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate wireless profiles.
+		/// Enumerate wireless profiles in preference order.
 		/// </summary>
 		/// <returns>Wireless profiles</returns>
 		public static IEnumerable<ProfilePack> EnumerateProfiles()
@@ -790,6 +820,8 @@ namespace ManagedNativeWifi
 
 					var profileInfoList = GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
 
+					int position = 0;
+
 					foreach (var profileInfo in profileInfoList)
 					{
 						var availableNetwork = availableNetworkList.FirstOrDefault(x => x.strProfileName.Equals(profileInfo.strProfileName, StringComparison.Ordinal));
@@ -797,19 +829,24 @@ namespace ManagedNativeWifi
 
 						var profileIsConnected = interfaceIsConnected && profileInfo.strProfileName.Equals(connection.strProfileName, StringComparison.Ordinal);
 
-						Debug.WriteLine("Interface: {0}, Profile: {1}, Signal {2}, IsConnected {3}",
+						Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, Signal {3}, IsConnected {4}",
 							interfaceInfo.strInterfaceDescription,
 							profileInfo.strProfileName,
+							position,
 							signal,
 							profileIsConnected);
 
-						yield return GetProfile(
+						var profile = GetProfile(
 							client.Handle,
 							profileInfo.strProfileName,
 							interfaceInfo.InterfaceGuid,
 							interfaceInfo.strInterfaceDescription,
+							position++,
 							signal,
 							profileIsConnected);
+
+						if (profile != null)
+							yield return profile;
 					}
 				}
 			}
@@ -822,16 +859,20 @@ namespace ManagedNativeWifi
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
 		/// <param name="interfaceDescription">Interface description</param>
-		/// <param name="isConnected">Whether this profile is connected to a wireless network</param>
+		/// <param name="isConnected">Whether this profile is connected to a wireless LAN</param>
 		/// <returns>Wireless profile</returns>
 		/// <remarks>
 		/// For profile elements, see
 		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx 
 		/// </remarks>
-		private static ProfilePack GetProfile(IntPtr clientHandle, string profileName, Guid interfaceGuid, string interfaceDescription, int signal, bool isConnected)
+		private static ProfilePack GetProfile(IntPtr clientHandle, string profileName, Guid interfaceGuid, string interfaceDescription, int position, int signal, bool isConnected)
 		{
+			var source = GetProfileXml(clientHandle, interfaceGuid, profileName);
+			if (string.IsNullOrWhiteSpace(source))
+				return null;
+
 			XElement rootXml;
-			using (var sr = new StringReader(GetProfileXml(clientHandle, interfaceGuid, profileName)))
+			using (var sr = new StringReader(source))
 				rootXml = XElement.Load(sr);
 
 			var ns = rootXml.Name.Namespace;
@@ -842,19 +883,58 @@ namespace ManagedNativeWifi
 			var connectionTypeXml = rootXml.Descendants(ns + "connectionType").FirstOrDefault();
 			var bssType = (connectionTypeXml != null) ? ConvertToBssType(connectionTypeXml.Value) : default(BssType);
 
+			var connectionModeXml = rootXml.Descendants(ns + "connectionMode").FirstOrDefault();
+			var isAutomatic = (connectionModeXml != null) && connectionModeXml.Value.Equals("auto", StringComparison.OrdinalIgnoreCase);
+
 			var authenticationXml = rootXml.Descendants(ns + "authentication").FirstOrDefault();
 			var authentication = (authenticationXml != null) ? authenticationXml.Value : null;
 
 			var encryptionXml = rootXml.Descendants(ns + "encryption").FirstOrDefault();
 			var encryption = (encryptionXml != null) ? encryptionXml.Value : null;
 
-			Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}",
+			Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}, IsAutomatic: {4}",
 				ssid,
 				bssType,
 				authentication,
-				encryption);
+				encryption,
+				isAutomatic);
 
-			return new ProfilePack(profileName, interfaceGuid, interfaceDescription, ssid, bssType, authentication, encryption, signal, isConnected);
+			return new ProfilePack(
+				profileName,
+				interfaceGuid,
+				interfaceDescription,
+				ssid,
+				bssType,
+				authentication,
+				encryption,
+				position,
+				isAutomatic,
+				signal,
+				isConnected);
+		}
+
+		/// <summary>
+		/// Set the position of a wireless profile in preference order.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="position">Position (starting from 0)</param>
+		/// <returns>True if set.</returns>
+		public static bool SetProfilePosition(string profileName, Guid interfaceGuid, int position)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return false;
+
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			if (position < 0)
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				return SetProfilePosition(client.Handle, interfaceGuid, profileName, (uint)position);
+			}
 		}
 
 		/// <summary>
@@ -925,7 +1005,7 @@ namespace ManagedNativeWifi
 			using (var client = new WlanClient())
 			{
 				return Connect(client.Handle, interfaceGuid, profileName, ConvertFromBssType(bssType));
-			};
+			}
 		}
 
 		/// <summary>
@@ -941,7 +1021,7 @@ namespace ManagedNativeWifi
 			using (var client = new WlanClient())
 			{
 				return Disconnect(client.Handle, interfaceGuid);
-			};
+			}
 		}
 
 		#region Helper
@@ -1007,8 +1087,17 @@ namespace ManagedNativeWifi
 					IntPtr.Zero,
 					out negotiatedVersion,
 					out _clientHandle);
-				if (result != ERROR_SUCCESS)
-					throw new Win32Exception((int)result);
+
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						break;
+					case ERROR_INVALID_PARAMETER:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					case ERROR_REMOTE_SESSION_LIMIT_EXCEEDED:
+					default:
+						throw CreateWin32Exception(result, "WlanOpenHandle");
+				}
 			}
 
 			#region Dispose
@@ -1049,10 +1138,17 @@ namespace ManagedNativeWifi
 					clientHandle,
 					IntPtr.Zero,
 					out interfaceList);
-				if (result != ERROR_SUCCESS)
-					throw new Win32Exception((int)result);
 
-				return new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo;
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						return new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo;
+					case ERROR_INVALID_PARAMETER:
+					case ERROR_INVALID_HANDLE:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					default:
+						throw CreateWin32Exception(result, "WlanEnumInterfaces");
+				}
 			}
 			finally
 			{
@@ -1072,10 +1168,19 @@ namespace ManagedNativeWifi
 					WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES,
 					IntPtr.Zero,
 					out availableNetworkList);
-				if (result != ERROR_SUCCESS)
-					throw new Win32Exception((int)result);
 
-				return new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network;
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						return new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network;
+					case ERROR_NDIS_DOT11_POWER_STATE_INVALID: // If the interface is turned off, this value will be returned. 
+					case ERROR_INVALID_PARAMETER:
+						return new WLAN_AVAILABLE_NETWORK[] { };
+					case ERROR_INVALID_HANDLE:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					default:
+						throw CreateWin32Exception(result, "WlanGetAvailableNetworkList");
+				}
 			}
 			finally
 			{
@@ -1104,9 +1209,13 @@ namespace ManagedNativeWifi
 					case ERROR_SUCCESS:
 						return (WLAN_CONNECTION_ATTRIBUTES)Marshal.PtrToStructure(queryData, typeof(WLAN_CONNECTION_ATTRIBUTES));
 					case ERROR_INVALID_STATE: // If not connected to a network, this value will be returned.
+					case ERROR_INVALID_PARAMETER:
+					case ERROR_ACCESS_DENIED:
 						return default(WLAN_CONNECTION_ATTRIBUTES);
+					case ERROR_INVALID_HANDLE:
+					case ERROR_NOT_ENOUGH_MEMORY:
 					default:
-						throw new Win32Exception((int)result);
+						throw CreateWin32Exception(result, "WlanQueryInterface");
 				}
 			}
 			finally
@@ -1126,10 +1235,18 @@ namespace ManagedNativeWifi
 					interfaceGuid,
 					IntPtr.Zero,
 					out profileList);
-				if (result != ERROR_SUCCESS)
-					throw new Win32Exception((int)result);
 
-				return new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo;
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						return new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo;
+					case ERROR_INVALID_PARAMETER:
+						return new WLAN_PROFILE_INFO[] { };
+					case ERROR_INVALID_HANDLE:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					default:
+						throw CreateWin32Exception(result, "WlanGetProfileList");
+				}
 			}
 			finally
 			{
@@ -1153,15 +1270,48 @@ namespace ManagedNativeWifi
 					out profileXml,
 					ref flags,
 					out grantedAccess);
-				if (result != ERROR_SUCCESS)
-					throw new Win32Exception((int)result);
 
-				return Marshal.PtrToStringUni(profileXml);
+				switch (result)
+				{
+					case ERROR_SUCCESS:
+						return Marshal.PtrToStringUni(profileXml);
+					case ERROR_NOT_FOUND: // If the profile is not found, this value will be returned.
+					case ERROR_INVALID_PARAMETER:
+					case ERROR_ACCESS_DENIED:
+						return null;
+					case ERROR_INVALID_HANDLE:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					default:
+						throw CreateWin32Exception(result, "WlanGetProfile");
+				}
 			}
 			finally
 			{
 				if (profileXml != IntPtr.Zero)
 					WlanFreeMemory(profileXml);
+			}
+		}
+
+		private static bool SetProfilePosition(IntPtr clientHandle, Guid interfaceGuid, string profileName, uint position)
+		{
+			var result = WlanSetProfilePosition(
+				clientHandle,
+				interfaceGuid,
+				profileName,
+				position,
+				IntPtr.Zero);
+
+			switch (result)
+			{
+				case ERROR_SUCCESS:
+					return true;
+				case ERROR_NOT_FOUND: // If the position is invalid, this value will be returned.
+				case ERROR_INVALID_PARAMETER: // If the interface has been removed, this value will be returned.
+				case ERROR_ACCESS_DENIED:
+					return false;
+				case ERROR_INVALID_HANDLE:
+				default:
+					throw CreateWin32Exception(result, "WlanSetProfilePosition");
 			}
 		}
 
@@ -1177,13 +1327,13 @@ namespace ManagedNativeWifi
 			{
 				case ERROR_SUCCESS:
 					return true;
-				case ERROR_INVALID_PARAMETER: // If the specified interface has been removed, this value will be returned.
-				case ERROR_NOT_FOUND: // If the specified profile was not found, this value will be returned.
+				case ERROR_NOT_FOUND: // If the profile is not found, this value will be returned.
+				case ERROR_INVALID_PARAMETER: // If the interface has been removed, this value will be returned.
 				case ERROR_ACCESS_DENIED:
 					return false;
 				case ERROR_INVALID_HANDLE:
 				default:
-					throw new Win32Exception((int)result);
+					throw CreateWin32Exception(result, "WlanDeleteProfile");
 			}
 		}
 
@@ -1212,7 +1362,7 @@ namespace ManagedNativeWifi
 					return false;
 				case ERROR_INVALID_HANDLE:
 				default:
-					throw new Win32Exception((int)result);
+					throw CreateWin32Exception(result, "WlanConnect");
 			}
 		}
 
@@ -1231,9 +1381,30 @@ namespace ManagedNativeWifi
 				case ERROR_ACCESS_DENIED:
 					return false;
 				case ERROR_INVALID_HANDLE:
+				case ERROR_NOT_ENOUGH_MEMORY:
 				default:
-					throw new Win32Exception((int)result);
+					throw CreateWin32Exception(result, "WlanDisconnect");
 			}
+		}
+
+		private static Win32Exception CreateWin32Exception(uint errorCode, string methodName)
+		{
+			var sb = new StringBuilder(512);
+
+			var result = FormatMessage(
+			  FORMAT_MESSAGE_FROM_SYSTEM,
+			  IntPtr.Zero,
+			  errorCode,
+			  0x0409, // US (English)
+			  sb,
+			  sb.Capacity,
+			  IntPtr.Zero);
+
+			var message = string.Format("Method: {0}, Code: {1}", methodName, errorCode);
+			if (0 < result)
+				message += string.Format(", Message: {0}", sb.ToString());
+
+			return new Win32Exception((int)errorCode, message);
 		}
 
 		#endregion
