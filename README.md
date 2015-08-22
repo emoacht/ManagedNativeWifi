@@ -5,7 +5,7 @@ A managed implementation of Native Wifi API
 
 ##Requirements
 
- * .NET Framework 4.0
+ * .NET Framework 4.5.2
 
 ##License
 
