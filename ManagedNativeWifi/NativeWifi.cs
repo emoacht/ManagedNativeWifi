@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ManagedNativeWifi
@@ -37,6 +39,14 @@ namespace ManagedNativeWifi
 			IntPtr hClientHandle,
 			IntPtr pReserved,
 			out IntPtr ppInterfaceList);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanScan(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			IntPtr pDot11Ssid,
+			IntPtr pIeData,
+			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
 		private static extern uint WlanGetAvailableNetworkList(
@@ -112,6 +122,20 @@ namespace ManagedNativeWifi
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved);
 
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		private static extern uint WlanRegisterNotification(
+			IntPtr hClientHandle,
+			uint dwNotifSource,
+			[MarshalAs(UnmanagedType.Bool)] bool bIgnoreDuplicate,
+			WLAN_NOTIFICATION_CALLBACK funcCallback,
+			IntPtr pCallbackContext,
+			IntPtr pReserved,
+			uint pdwPrevNotifSource);
+
+		private delegate void WLAN_NOTIFICATION_CALLBACK(
+			IntPtr data, // Pointer to WLAN_NOTIFICATION_DATA
+			IntPtr context);
+
 		[DllImport("Kernel32.dll", SetLastError = true)]
 		private static extern uint FormatMessage(
 			uint dwFlags,
@@ -151,7 +175,7 @@ namespace ManagedNativeWifi
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
 					var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_INTERFACE_INFO)) * i) + offset);
-					InterfaceInfo[i] = (WLAN_INTERFACE_INFO)Marshal.PtrToStructure(interfaceInfo, typeof(WLAN_INTERFACE_INFO));
+					InterfaceInfo[i] = Marshal.PtrToStructure<WLAN_INTERFACE_INFO>(interfaceInfo);
 				}
 			}
 		}
@@ -199,7 +223,7 @@ namespace ManagedNativeWifi
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
 					var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_AVAILABLE_NETWORK)) * i) + offset);
-					Network[i] = (WLAN_AVAILABLE_NETWORK)Marshal.PtrToStructure(availableNetwork, typeof(WLAN_AVAILABLE_NETWORK));
+					Network[i] = Marshal.PtrToStructure<WLAN_AVAILABLE_NETWORK>(availableNetwork);
 				}
 			}
 		}
@@ -296,7 +320,7 @@ namespace ManagedNativeWifi
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
 					var profileInfo = new IntPtr(ppProfileList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_PROFILE_INFO)) * i) + offset);
-					ProfileInfo[i] = (WLAN_PROFILE_INFO)Marshal.PtrToStructure(profileInfo, typeof(WLAN_PROFILE_INFO));
+					ProfileInfo[i] = Marshal.PtrToStructure<WLAN_PROFILE_INFO>(profileInfo);
 				}
 			}
 		}
@@ -330,6 +354,16 @@ namespace ManagedNativeWifi
 			public byte Type;
 			public byte Revision;
 			public ushort Size;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct WLAN_NOTIFICATION_DATA
+		{
+			public uint NotificationSource;
+			public uint NotificationCode;
+			public Guid InterfaceGuid;
+			public uint dwDataSize;
+			public IntPtr pData;
 		}
 
 		private enum WLAN_INTERFACE_STATE
@@ -445,23 +479,60 @@ namespace ManagedNativeWifi
 			wlan_intf_opcode_ihv_end = 0x3fffffff
 		}
 
+		private enum WLAN_NOTIFICATION_ACM : uint
+		{
+			wlan_notification_acm_start = 0,
+			wlan_notification_acm_autoconf_enabled,
+			wlan_notification_acm_autoconf_disabled,
+			wlan_notification_acm_background_scan_enabled,
+			wlan_notification_acm_background_scan_disabled,
+			wlan_notification_acm_bss_type_change,
+			wlan_notification_acm_power_setting_change,
+			wlan_notification_acm_scan_complete,
+			wlan_notification_acm_scan_fail,
+			wlan_notification_acm_connection_start,
+			wlan_notification_acm_connection_complete,
+			wlan_notification_acm_connection_attempt_fail,
+			wlan_notification_acm_filter_list_change,
+			wlan_notification_acm_interface_arrival,
+			wlan_notification_acm_interface_removal,
+			wlan_notification_acm_profile_change,
+			wlan_notification_acm_profile_name_change,
+			wlan_notification_acm_profiles_exhausted,
+			wlan_notification_acm_network_not_available,
+			wlan_notification_acm_network_available,
+			wlan_notification_acm_disconnecting,
+			wlan_notification_acm_disconnected,
+			wlan_notification_acm_adhoc_network_state_change,
+			wlan_notification_acm_profile_unblocked,
+			wlan_notification_acm_screen_power_change,
+			wlan_notification_acm_profile_blocked,
+			wlan_notification_acm_scan_list_refresh,
+			wlan_notification_acm_end
+		}
+
 		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
 		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES = 0x00000002;
 
 		private const uint ERROR_SUCCESS = 0;
 		private const uint ERROR_INVALID_PARAMETER = 87;
 		private const uint ERROR_INVALID_HANDLE = 6;
+		private const uint ERROR_INVALID_STATE = 5023;
+		private const uint ERROR_NOT_FOUND = 1168;
 		private const uint ERROR_NOT_ENOUGH_MEMORY = 8;
 		private const uint ERROR_ACCESS_DENIED = 5;
-		private const uint ERROR_NOT_FOUND = 1168;
-		private const uint ERROR_REMOTE_SESSION_LIMIT_EXCEEDED = 1220;
-		private const uint ERROR_INVALID_STATE = 5023;
+		private const uint ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED = 0x80342000;
 		private const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
 		private const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
 
-		private const uint WLAN_PROFILE_GET_PLAINTEXT_KEY = 0x00000004;
-		private const uint WLAN_PROFILE_GROUP_POLICY = 0x00000001;
-		private const uint WLAN_PROFILE_USER = 0x00000002;
+		private const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
+		private const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;
+		private const uint WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008;
+		private const uint WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080;
+		private const uint WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004;
+		private const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
+		private const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
+		private const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
 
 		private const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 
@@ -584,7 +655,7 @@ namespace ManagedNativeWifi
 						IntPtr.Zero) != ERROR_SUCCESS) // If not connected to a network, ERROR_INVALID_STATE will be returned.
 						continue;
 
-					var connection = (WLAN_CONNECTION_ATTRIBUTES)Marshal.PtrToStructure(queryData, typeof(WLAN_CONNECTION_ATTRIBUTES));
+					var connection = Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData);
 					if (connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 						continue;
 
@@ -686,6 +757,68 @@ namespace ManagedNativeWifi
 
 		#endregion
 
+		#region Scan networks
+
+		/// <summary>
+		/// Request wireless interfaces to scan available wireless LANs.
+		/// </summary>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		public static async Task ScanAsync(TimeSpan timeoutDuration)
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
+				var interfaceCount = interfaceInfoList.Length;
+
+				var tcs = new TaskCompletionSource<bool>();
+
+				Action<IntPtr, IntPtr> callback = (data, context) =>
+				{
+					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
+					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+						return;
+
+					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
+
+					switch (notificationData.NotificationCode)
+					{
+						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_complete:
+							Debug.WriteLine("Scan succeeded.");
+							CheckScanCount(tcs, ref interfaceCount);
+							break;
+						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_fail:
+							Debug.WriteLine("Scan failed.");
+							CheckScanCount(tcs, ref interfaceCount);
+							break;
+					}
+				};
+
+				RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var result = Scan(client.Handle, interfaceInfo.InterfaceGuid);
+					if (!result)
+						CheckScanCount(tcs, ref interfaceCount);
+				}
+
+				var scanTask = tcs.Task;
+				await Task.WhenAny(scanTask, Task.Delay(timeoutDuration));
+			}
+		}
+
+		private static void CheckScanCount(TaskCompletionSource<bool> tcs, ref int count)
+		{
+			Interlocked.Decrement(ref count);
+
+			if (count <= 0)
+				Task.Run(() => tcs.SetResult(true));
+		}
+
+		#endregion
+
+		#region Enumerate networks
+
 		/// <summary>
 		/// Enumerate SSIDs of available wireless LANs.
 		/// </summary>
@@ -772,6 +905,10 @@ namespace ManagedNativeWifi
 				}
 			}
 		}
+
+		#endregion
+
+		#region Enumerate profiles
 
 		/// <summary>
 		/// Enumerate wireless profile names in preference order.
@@ -913,6 +1050,10 @@ namespace ManagedNativeWifi
 				isConnected);
 		}
 
+		#endregion
+
+		#region Set profile position
+
 		/// <summary>
 		/// Set the position of a wireless profile in preference order.
 		/// </summary>
@@ -936,6 +1077,10 @@ namespace ManagedNativeWifi
 				return SetProfilePosition(client.Handle, interfaceGuid, profileName, (uint)position);
 			}
 		}
+
+		#endregion
+
+		#region Delete profile
 
 		/// <summary>
 		/// Delete a wireless profile.
@@ -987,13 +1132,17 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		#endregion
+
+		#region Connect/Disconnect
+
 		/// <summary>
 		/// Attempt to connect to a wireless LAN.
 		/// </summary>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
 		/// <param name="bssType">BSS type</param>
-		/// <returns>True if the function succeeded.</returns>
+		/// <returns>True if succeeded.</returns>
 		public static bool Connect(string profileName, Guid interfaceGuid, BssType bssType = BssType.Any)
 		{
 			if (string.IsNullOrWhiteSpace(profileName))
@@ -1009,10 +1158,62 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
+		/// Attempt to connect to a wireless LAN.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="bssType">BSS type</param>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		/// <returns>True if succeeded. False if failed or timed out.</returns>
+		public static async Task<bool> ConnectAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration)
+		{
+			if (string.IsNullOrWhiteSpace(profileName))
+				return false;
+
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				var tcs = new TaskCompletionSource<bool>();
+
+				Action<IntPtr, IntPtr> callback = (data, context) =>
+				{
+					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
+					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+						return;
+
+					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
+
+					switch (notificationData.NotificationCode)
+					{
+						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+							Task.Run(() => tcs.SetResult(true));
+							break;
+						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+							Task.Run(() => tcs.SetResult(false));
+							break;
+					}
+				};
+
+				RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
+
+				var result = Connect(client.Handle, interfaceGuid, profileName, ConvertFromBssType(bssType));
+				if (!result)
+					tcs.SetResult(false);
+
+				var connectTask = tcs.Task;
+				var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeoutDuration));
+
+				return (completedTask == connectTask) ? connectTask.Result : false;
+			}
+		}
+
+		/// <summary>
 		/// Disconnect from a wireless LAN.
 		/// </summary>
 		/// <param name="interfaceGuid">Interface GUID</param>
-		/// <returns>True if the function succeeded.</returns>
+		/// <returns>True if succeeded.</returns>
 		public static bool Disconnect(Guid interfaceGuid)
 		{
 			if (interfaceGuid == default(Guid))
@@ -1023,6 +1224,52 @@ namespace ManagedNativeWifi
 				return Disconnect(client.Handle, interfaceGuid);
 			}
 		}
+
+		/// <summary>
+		/// Disconnect from a wireless LAN.
+		/// </summary>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		/// <returns>True if succeeded. False if failed or timed out.</returns>
+		public static async Task<bool> DisconnectAsync(Guid interfaceGuid, TimeSpan timeoutDuration)
+		{
+			if (interfaceGuid == default(Guid))
+				return false;
+
+			using (var client = new WlanClient())
+			{
+				var tcs = new TaskCompletionSource<bool>();
+
+				Action<IntPtr, IntPtr> callback = (data, context) =>
+				{
+					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
+					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+						return;
+
+					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
+
+					switch (notificationData.NotificationCode)
+					{
+						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
+							Task.Run(() => tcs.SetResult(true));
+							break;
+					}
+				};
+
+				RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
+
+				var result = Disconnect(client.Handle, interfaceGuid);
+				if (!result)
+					tcs.SetResult(false);
+
+				var disconnectTask = tcs.Task;
+				var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeoutDuration));
+
+				return (completedTask == disconnectTask) ? disconnectTask.Result : false;
+			}
+		}
+
+		#endregion
 
 		#region Helper
 
@@ -1088,16 +1335,7 @@ namespace ManagedNativeWifi
 					out negotiatedVersion,
 					out _clientHandle);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						break;
-					case ERROR_INVALID_PARAMETER:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					case ERROR_REMOTE_SESSION_LIMIT_EXCEEDED:
-					default:
-						throw CreateWin32Exception(result, "WlanOpenHandle");
-				}
+				CheckResult(result, "WlanOpenHandle", true);
 			}
 
 			#region Dispose
@@ -1139,22 +1377,28 @@ namespace ManagedNativeWifi
 					IntPtr.Zero,
 					out interfaceList);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						return new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo;
-					case ERROR_INVALID_PARAMETER:
-					case ERROR_INVALID_HANDLE:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					default:
-						throw CreateWin32Exception(result, "WlanEnumInterfaces");
-				}
+				return CheckResult(result, "WlanEnumInterfaces", true)
+					? new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo
+					: null; // Not to be used
 			}
 			finally
 			{
 				if (interfaceList != IntPtr.Zero)
 					WlanFreeMemory(interfaceList);
 			}
+		}
+
+		private static bool Scan(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var result = WlanScan(
+				clientHandle,
+				interfaceGuid,
+				IntPtr.Zero,
+				IntPtr.Zero,
+				IntPtr.Zero);
+
+			// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+			return CheckResult(result, "WlanScan", false);
 		}
 
 		private static WLAN_AVAILABLE_NETWORK[] GetAvailableNetworkList(IntPtr clientHandle, Guid interfaceGuid)
@@ -1169,18 +1413,10 @@ namespace ManagedNativeWifi
 					IntPtr.Zero,
 					out availableNetworkList);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						return new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network;
-					case ERROR_NDIS_DOT11_POWER_STATE_INVALID: // If the interface is turned off, this value will be returned. 
-					case ERROR_INVALID_PARAMETER:
-						return new WLAN_AVAILABLE_NETWORK[] { };
-					case ERROR_INVALID_HANDLE:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					default:
-						throw CreateWin32Exception(result, "WlanGetAvailableNetworkList");
-				}
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				return CheckResult(result, "WlanGetAvailableNetworkList", false)
+					? new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network
+					: new WLAN_AVAILABLE_NETWORK[] { };
 			}
 			finally
 			{
@@ -1204,19 +1440,10 @@ namespace ManagedNativeWifi
 					ref queryData,
 					IntPtr.Zero);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						return (WLAN_CONNECTION_ATTRIBUTES)Marshal.PtrToStructure(queryData, typeof(WLAN_CONNECTION_ATTRIBUTES));
-					case ERROR_INVALID_STATE: // If not connected to a network, this value will be returned.
-					case ERROR_INVALID_PARAMETER:
-					case ERROR_ACCESS_DENIED:
-						return default(WLAN_CONNECTION_ATTRIBUTES);
-					case ERROR_INVALID_HANDLE:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					default:
-						throw CreateWin32Exception(result, "WlanQueryInterface");
-				}
+				// ERROR_INVALID_STATE will be returned if the client is not connected to a network.
+				return CheckResult(result, "WlanQueryInterface", false)
+					? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
+					: default(WLAN_CONNECTION_ATTRIBUTES);
 			}
 			finally
 			{
@@ -1236,17 +1463,9 @@ namespace ManagedNativeWifi
 					IntPtr.Zero,
 					out profileList);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						return new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo;
-					case ERROR_INVALID_PARAMETER:
-						return new WLAN_PROFILE_INFO[] { };
-					case ERROR_INVALID_HANDLE:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					default:
-						throw CreateWin32Exception(result, "WlanGetProfileList");
-				}
+				return CheckResult(result, "WlanGetProfileList", false)
+					? new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo
+					: new WLAN_PROFILE_INFO[] { };
 			}
 			finally
 			{
@@ -1271,19 +1490,10 @@ namespace ManagedNativeWifi
 					ref flags,
 					out grantedAccess);
 
-				switch (result)
-				{
-					case ERROR_SUCCESS:
-						return Marshal.PtrToStringUni(profileXml);
-					case ERROR_NOT_FOUND: // If the profile is not found, this value will be returned.
-					case ERROR_INVALID_PARAMETER:
-					case ERROR_ACCESS_DENIED:
-						return null;
-					case ERROR_INVALID_HANDLE:
-					case ERROR_NOT_ENOUGH_MEMORY:
-					default:
-						throw CreateWin32Exception(result, "WlanGetProfile");
-				}
+				// ERROR_NOT_FOUND will be returned if the profile is not found.
+				return CheckResult(result, "WlanGetProfile", false)
+					? Marshal.PtrToStringUni(profileXml)
+					: null; // To be used
 			}
 			finally
 			{
@@ -1301,18 +1511,9 @@ namespace ManagedNativeWifi
 				position,
 				IntPtr.Zero);
 
-			switch (result)
-			{
-				case ERROR_SUCCESS:
-					return true;
-				case ERROR_NOT_FOUND: // If the position is invalid, this value will be returned.
-				case ERROR_INVALID_PARAMETER: // If the interface has been removed, this value will be returned.
-				case ERROR_ACCESS_DENIED:
-					return false;
-				case ERROR_INVALID_HANDLE:
-				default:
-					throw CreateWin32Exception(result, "WlanSetProfilePosition");
-			}
+			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
+			// ERROR_NOT_FOUND will be returned if the position of a profile is invalid.
+			return CheckResult(result, "WlanSetProfilePosition", false);
 		}
 
 		private static bool DeleteProfile(IntPtr clientHandle, Guid interfaceGuid, string profileName)
@@ -1323,18 +1524,9 @@ namespace ManagedNativeWifi
 				profileName,
 				IntPtr.Zero);
 
-			switch (result)
-			{
-				case ERROR_SUCCESS:
-					return true;
-				case ERROR_NOT_FOUND: // If the profile is not found, this value will be returned.
-				case ERROR_INVALID_PARAMETER: // If the interface has been removed, this value will be returned.
-				case ERROR_ACCESS_DENIED:
-					return false;
-				case ERROR_INVALID_HANDLE:
-				default:
-					throw CreateWin32Exception(result, "WlanDeleteProfile");
-			}
+			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
+			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			return CheckResult(result, "WlanDeleteProfile", false);
 		}
 
 		private static bool Connect(IntPtr clientHandle, Guid interfaceGuid, string profileName, DOT11_BSS_TYPE bssType)
@@ -1353,17 +1545,8 @@ namespace ManagedNativeWifi
 				ref connectionParameters,
 				IntPtr.Zero);
 
-			switch (result)
-			{
-				case ERROR_SUCCESS:
-					return true;
-				case ERROR_INVALID_PARAMETER:
-				case ERROR_ACCESS_DENIED:
-					return false;
-				case ERROR_INVALID_HANDLE:
-				default:
-					throw CreateWin32Exception(result, "WlanConnect");
-			}
+			// ERROR_NOT_FOUND will be returned if the interface is removed.
+			return CheckResult(result, "WlanConnect", false);
 		}
 
 		private static bool Disconnect(IntPtr clientHandle, Guid interfaceGuid)
@@ -1373,23 +1556,58 @@ namespace ManagedNativeWifi
 				interfaceGuid,
 				IntPtr.Zero);
 
-			switch (result)
+			// ERROR_NOT_FOUND will be returned if the interface is removed.
+			return CheckResult(result, "WlanDisconnect", false);
+		}
+
+		private static void RegisterNotification(IntPtr clientHandle, uint notificationSource, Action<IntPtr, IntPtr> callback)
+		{
+			// Storing a delegate in class field is necessary to prevent garbage collector from collecting it
+			// before the delegate is called. Otherwise, CallbackOnCollectedDelegate may occur.
+			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK(callback);
+
+			var result = WlanRegisterNotification(clientHandle,
+				notificationSource,
+				false,
+				_notificationCallback,
+				IntPtr.Zero,
+				IntPtr.Zero,
+				0);
+
+			CheckResult(result, "WlanRegisterNotification", true);
+		}
+
+		private static WLAN_NOTIFICATION_CALLBACK _notificationCallback;
+
+		private static bool CheckResult(uint result, string methodName, bool willThrowOnFailure)
+		{
+			if (result == ERROR_SUCCESS)
+				return true;
+
+			if (!willThrowOnFailure)
 			{
-				case ERROR_SUCCESS:
-					return true;
-				case ERROR_INVALID_PARAMETER:
-				case ERROR_ACCESS_DENIED:
-					return false;
-				case ERROR_INVALID_HANDLE:
-				case ERROR_NOT_ENOUGH_MEMORY:
-				default:
-					throw CreateWin32Exception(result, "WlanDisconnect");
+				switch (result)
+				{
+					case ERROR_INVALID_PARAMETER:
+					case ERROR_INVALID_STATE:
+					case ERROR_NOT_FOUND:
+					case ERROR_NOT_ENOUGH_MEMORY:
+					case ERROR_ACCESS_DENIED:
+					case ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED:
+					case ERROR_NDIS_DOT11_MEDIA_IN_USE:
+					case ERROR_NDIS_DOT11_POWER_STATE_INVALID:
+						return false;
+
+					case ERROR_INVALID_HANDLE:
+						break;
+				}
 			}
+			throw CreateWin32Exception(result, methodName);
 		}
 
 		private static Win32Exception CreateWin32Exception(uint errorCode, string methodName)
 		{
-			var sb = new StringBuilder(512);
+			var sb = new StringBuilder(512); // This 512 capacity is arbitrary.
 
 			var result = FormatMessage(
 			  FORMAT_MESSAGE_FROM_SYSTEM,
