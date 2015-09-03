@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -20,28 +19,28 @@ namespace ManagedNativeWifi
 		#region Win32
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanOpenHandle(
+		public static extern uint WlanOpenHandle(
 			uint dwClientVersion,
 			IntPtr pReserved,
 			out uint pdwNegotiatedVersion,
 			out IntPtr phClientHandle);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanCloseHandle(
+		public static extern uint WlanCloseHandle(
 			IntPtr hClientHandle,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern void WlanFreeMemory(IntPtr pMemory);
+		public static extern void WlanFreeMemory(IntPtr pMemory);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanEnumInterfaces(
+		public static extern uint WlanEnumInterfaces(
 			IntPtr hClientHandle,
 			IntPtr pReserved,
 			out IntPtr ppInterfaceList);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanScan(
+		public static extern uint WlanScan(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pDot11Ssid,
@@ -49,7 +48,7 @@ namespace ManagedNativeWifi
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanGetAvailableNetworkList(
+		public static extern uint WlanGetAvailableNetworkList(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			uint dwFlags,
@@ -57,7 +56,17 @@ namespace ManagedNativeWifi
 			out IntPtr ppAvailableNetworkList);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanQueryInterface(
+		public static extern uint WlanGetNetworkBssList(
+			IntPtr hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			IntPtr pDot11Ssid,
+			DOT11_BSS_TYPE dot11BssType,
+			[MarshalAs(UnmanagedType.Bool)] bool bSecurityEnabled,
+			IntPtr pReserved,
+			out IntPtr ppWlanBssList);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		public static extern uint WlanQueryInterface(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			WLAN_INTF_OPCODE OpCode,
@@ -67,14 +76,14 @@ namespace ManagedNativeWifi
 			IntPtr pWlanOpcodeValueType);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanGetProfileList(
+		public static extern uint WlanGetProfileList(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved,
 			out IntPtr ppProfileList);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanGetProfile(
+		public static extern uint WlanGetProfile(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
@@ -84,7 +93,7 @@ namespace ManagedNativeWifi
 			out uint pdwGrantedAccess);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanSetProfile(
+		public static extern uint WlanSetProfile(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			uint dwFlags,
@@ -95,7 +104,7 @@ namespace ManagedNativeWifi
 			out uint pdwReasonCode);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanSetProfilePosition(
+		public static extern uint WlanSetProfilePosition(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
@@ -103,27 +112,27 @@ namespace ManagedNativeWifi
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanDeleteProfile(
+		public static extern uint WlanDeleteProfile(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanConnect(
+		public static extern uint WlanConnect(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[In] ref WLAN_CONNECTION_PARAMETERS pConnectionParameters,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanDisconnect(
+		public static extern uint WlanDisconnect(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
-		private static extern uint WlanRegisterNotification(
+		public static extern uint WlanRegisterNotification(
 			IntPtr hClientHandle,
 			uint dwNotifSource,
 			[MarshalAs(UnmanagedType.Bool)] bool bIgnoreDuplicate,
@@ -132,12 +141,12 @@ namespace ManagedNativeWifi
 			IntPtr pReserved,
 			uint pdwPrevNotifSource);
 
-		private delegate void WLAN_NOTIFICATION_CALLBACK(
+		public delegate void WLAN_NOTIFICATION_CALLBACK(
 			IntPtr data, // Pointer to WLAN_NOTIFICATION_DATA
 			IntPtr context);
 
 		[DllImport("Kernel32.dll", SetLastError = true)]
-		private static extern uint FormatMessage(
+		public static extern uint FormatMessage(
 			uint dwFlags,
 			IntPtr lpSource,
 			uint dwMessageId,
@@ -147,7 +156,7 @@ namespace ManagedNativeWifi
 			IntPtr Arguments);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		private struct WLAN_INTERFACE_INFO
+		public struct WLAN_INTERFACE_INFO
 		{
 			public Guid InterfaceGuid;
 
@@ -158,7 +167,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_INTERFACE_INFO_LIST
+		public struct WLAN_INTERFACE_INFO_LIST
 		{
 			public uint dwNumberOfItems;
 			public uint dwIndex;
@@ -181,7 +190,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		private struct WLAN_AVAILABLE_NETWORK
+		public struct WLAN_AVAILABLE_NETWORK
 		{
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
 			public string strProfileName;
@@ -206,7 +215,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_AVAILABLE_NETWORK_LIST
+		public struct WLAN_AVAILABLE_NETWORK_LIST
 		{
 			public uint dwNumberOfItems;
 			public uint dwIndex;
@@ -229,7 +238,57 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct DOT11_SSID
+		public struct WLAN_BSS_ENTRY
+		{
+			public DOT11_SSID dot11Ssid;
+			public uint uPhyId;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
+
+			public DOT11_BSS_TYPE dot11BssType;
+			public DOT11_PHY_TYPE dot11BssPhyType;
+			public int lRssi;
+			public uint uLinkQuality;
+
+			[MarshalAs(UnmanagedType.U1)]
+			public bool bInRegDomain;
+
+			public ushort usBeaconPeriod;
+			public ulong ullTimestamp;
+			public ulong ullHostTimestamp;
+			public ushort usCapabilityInformation;
+			public uint ulChCenterFrequency;
+			public WLAN_RATE_SET wlanRateSet;
+			public uint ulIeOffset;
+			public uint ulIeSize;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct WLAN_BSS_LIST
+		{
+			public uint dwTotalSize;
+			public uint dwNumberOfItems;
+			public WLAN_BSS_ENTRY[] wlanBssEntries;
+
+			public WLAN_BSS_LIST(IntPtr ppWlanBssList)
+			{
+				dwTotalSize = (uint)Marshal.ReadInt32(ppWlanBssList, 0);
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppWlanBssList, 4);
+				wlanBssEntries = new WLAN_BSS_ENTRY[dwNumberOfItems];
+
+				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwTotalSize and dwNumberOfItems
+
+				for (int i = 0; i < dwNumberOfItems; i++)
+				{
+					var wlanBssEntry = new IntPtr(ppWlanBssList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_BSS_ENTRY)) * i) + offset);
+					wlanBssEntries[i] = Marshal.PtrToStructure<WLAN_BSS_ENTRY>(wlanBssEntry);
+				}
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct DOT11_SSID
 		{
 			public uint uSSIDLength;
 
@@ -251,8 +310,17 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		[StructLayout(LayoutKind.Sequential)]
+		public struct WLAN_RATE_SET
+		{
+			public uint uRateSetLength;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 126)]
+			public ushort[] usRateSet;
+		}
+
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		private struct WLAN_CONNECTION_ATTRIBUTES
+		public struct WLAN_CONNECTION_ATTRIBUTES
 		{
 			public WLAN_INTERFACE_STATE isState;
 			public WLAN_CONNECTION_MODE wlanConnectionMode;
@@ -265,7 +333,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_ASSOCIATION_ATTRIBUTES
+		public struct WLAN_ASSOCIATION_ATTRIBUTES
 		{
 			public DOT11_SSID dot11Ssid;
 			public DOT11_BSS_TYPE dot11BssType;
@@ -281,7 +349,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_SECURITY_ATTRIBUTES
+		public struct WLAN_SECURITY_ATTRIBUTES
 		{
 			[MarshalAs(UnmanagedType.Bool)]
 			public bool bSecurityEnabled;
@@ -294,7 +362,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		private struct WLAN_PROFILE_INFO
+		public struct WLAN_PROFILE_INFO
 		{
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
 			public string strProfileName;
@@ -303,7 +371,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_PROFILE_INFO_LIST
+		public struct WLAN_PROFILE_INFO_LIST
 		{
 			public uint dwNumberOfItems;
 			public uint dwIndex;
@@ -326,7 +394,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		private struct WLAN_CONNECTION_PARAMETERS
+		public struct WLAN_CONNECTION_PARAMETERS
 		{
 			public WLAN_CONNECTION_MODE wlanConnectionMode;
 			[MarshalAs(UnmanagedType.LPWStr)]
@@ -357,7 +425,7 @@ namespace ManagedNativeWifi
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		private struct WLAN_NOTIFICATION_DATA
+		public struct WLAN_NOTIFICATION_DATA
 		{
 			public uint NotificationSource;
 			public uint NotificationCode;
@@ -366,7 +434,7 @@ namespace ManagedNativeWifi
 			public IntPtr pData;
 		}
 
-		private enum WLAN_INTERFACE_STATE
+		public enum WLAN_INTERFACE_STATE
 		{
 			wlan_interface_state_not_ready = 0,
 			wlan_interface_state_connected = 1,
@@ -378,7 +446,7 @@ namespace ManagedNativeWifi
 			wlan_interface_state_authenticating = 7
 		}
 
-		private enum WLAN_CONNECTION_MODE
+		public enum WLAN_CONNECTION_MODE
 		{
 			wlan_connection_mode_profile,
 			wlan_connection_mode_temporary_profile,
@@ -388,7 +456,7 @@ namespace ManagedNativeWifi
 			wlan_connection_mode_invalid
 		}
 
-		private enum DOT11_BSS_TYPE
+		public enum DOT11_BSS_TYPE
 		{
 			/// <summary>
 			/// Infrastructure BSS network
@@ -406,7 +474,7 @@ namespace ManagedNativeWifi
 			dot11_BSS_type_any = 3,
 		}
 
-		private enum DOT11_PHY_TYPE : uint
+		public enum DOT11_PHY_TYPE : uint
 		{
 			dot11_phy_type_unknown = 0,
 			dot11_phy_type_any = 0,
@@ -422,7 +490,7 @@ namespace ManagedNativeWifi
 			dot11_phy_type_IHV_end = 0xffffffff
 		}
 
-		private enum DOT11_AUTH_ALGORITHM : uint
+		public enum DOT11_AUTH_ALGORITHM : uint
 		{
 			DOT11_AUTH_ALGO_80211_OPEN = 1,
 			DOT11_AUTH_ALGO_80211_SHARED_KEY = 2,
@@ -435,7 +503,7 @@ namespace ManagedNativeWifi
 			DOT11_AUTH_ALGO_IHV_END = 0xffffffff
 		}
 
-		private enum DOT11_CIPHER_ALGORITHM : uint
+		public enum DOT11_CIPHER_ALGORITHM : uint
 		{
 			DOT11_CIPHER_ALGO_NONE = 0x00,
 			DOT11_CIPHER_ALGO_WEP40 = 0x01,
@@ -449,7 +517,7 @@ namespace ManagedNativeWifi
 			DOT11_CIPHER_ALGO_IHV_END = 0xffffffff
 		}
 
-		private enum WLAN_INTF_OPCODE : uint
+		public enum WLAN_INTF_OPCODE : uint
 		{
 			wlan_intf_opcode_autoconf_start = 0x000000000,
 			wlan_intf_opcode_autoconf_enabled,
@@ -479,7 +547,7 @@ namespace ManagedNativeWifi
 			wlan_intf_opcode_ihv_end = 0x3fffffff
 		}
 
-		private enum WLAN_NOTIFICATION_ACM : uint
+		public enum WLAN_NOTIFICATION_ACM : uint
 		{
 			wlan_notification_acm_start = 0,
 			wlan_notification_acm_autoconf_enabled,
@@ -511,30 +579,32 @@ namespace ManagedNativeWifi
 			wlan_notification_acm_end
 		}
 
-		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
-		private const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES = 0x00000002;
+		public const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
+		public const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES = 0x00000002;
 
-		private const uint ERROR_SUCCESS = 0;
-		private const uint ERROR_INVALID_PARAMETER = 87;
-		private const uint ERROR_INVALID_HANDLE = 6;
-		private const uint ERROR_INVALID_STATE = 5023;
-		private const uint ERROR_NOT_FOUND = 1168;
-		private const uint ERROR_NOT_ENOUGH_MEMORY = 8;
-		private const uint ERROR_ACCESS_DENIED = 5;
-		private const uint ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED = 0x80342000;
-		private const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
-		private const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
+		public const uint ERROR_SUCCESS = 0;
+		public const uint ERROR_INVALID_PARAMETER = 87;
+		public const uint ERROR_INVALID_HANDLE = 6;
+		public const uint ERROR_INVALID_STATE = 5023;
+		public const uint ERROR_NOT_FOUND = 1168;
+		public const uint ERROR_NOT_ENOUGH_MEMORY = 8;
+		public const uint ERROR_ACCESS_DENIED = 5;
+		public const uint ERROR_NOT_SUPPORTED = 50;
+		public const uint ERROR_SERVICE_NOT_ACTIVE = 1062;
+		public const uint ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED = 0x80342000;
+		public const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
+		public const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
 
-		private const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
-		private const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;
-		private const uint WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008;
-		private const uint WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080;
-		private const uint WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004;
-		private const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
-		private const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
-		private const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
+		public const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
+		public const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;
+		public const uint WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008;
+		public const uint WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080;
+		public const uint WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004;
+		public const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
+		public const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
+		public const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
 
-		private const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
+		public const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 
 		#endregion
 
@@ -688,26 +758,90 @@ namespace ManagedNativeWifi
 
 		#region Type
 
+		/// <summary>
+		/// BSS type
+		/// </summary>
 		public enum BssType
 		{
+			/// <summary>
+			/// None
+			/// </summary>
 			None = 0,
+
+			/// <summary>
+			/// Infrastructure BSS network
+			/// </summary>
 			Infrastructure,
+
+			/// <summary>
+			/// Independent BSS (IBSS) network (Ad hoc network)
+			/// </summary>
 			Independent,
+
+			/// <summary>
+			/// Any BSS network
+			/// </summary>
 			Any
 		}
 
+		/// <summary>
+		/// Wireless profile information
+		/// </summary>
 		public class ProfilePack
 		{
+			/// <summary>
+			/// Profile name
+			/// </summary>
 			public string Name { get; private set; }
+
+			/// <summary>
+			/// GUID of associated wireless LAN interface
+			/// </summary>
 			public Guid InterfaceGuid { get; private set; }
+
+			/// <summary>
+			/// Description of associated wireless LAN interface
+			/// </summary>
 			public string InterfaceDescription { get; private set; }
+
+			/// <summary>
+			/// SSID of associated wireless LAN
+			/// </summary>
 			public string Ssid { get; private set; }
+
+			/// <summary>
+			/// BSS type of associated wireless LAN
+			/// </summary>
 			public BssType BssType { get; private set; }
+
+			/// <summary>
+			/// Authentication type of associated wireless LAN
+			/// </summary>
 			public string Authentication { get; private set; }
+
+			/// <summary>
+			/// Encryption type of associated wireless LAN
+			/// </summary>
 			public string Encryption { get; private set; }
+
+			/// <summary>
+			/// Position in preference order of associated wireless LAN interface
+			/// </summary>
 			public int Position { get; private set; }
+
+			/// <summary>
+			/// Whether this profile is set to be automatically connected
+			/// </summary>
 			public bool IsAutomatic { get; private set; }
+
+			/// <summary>
+			/// Signal level of associated wireless LAN
+			/// </summary>
 			public int Signal { get; private set; }
+
+			/// <summary>
+			/// Whether this profile is currently connected
+			/// </summary>
 			public bool IsConnected { get; private set; }
 
 			public ProfilePack(
@@ -737,12 +871,34 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Wireless LAN information
+		/// </summary>
 		public class NetworkPack
 		{
+			/// <summary>
+			/// GUID of associated wireless LAN interface
+			/// </summary>
 			public Guid InterfaceGuid { get; private set; }
+
+			/// <summary>
+			/// SSID
+			/// </summary>
 			public string Ssid { get; private set; }
+
+			/// <summary>
+			/// BSS type
+			/// </summary>
 			public BssType BssType { get; private set; }
+
+			/// <summary>
+			/// Signal level
+			/// </summary>
 			public int Signal { get; private set; }
+
+			/// <summary>
+			/// Name of associated wireless profile
+			/// </summary>
 			public string ProfileName { get; private set; }
 
 			public NetworkPack(Guid interfaceGuid, string ssid, BssType bssType, int signal, string profileName)
@@ -914,6 +1070,35 @@ namespace ManagedNativeWifi
 							ConvertToBssType(availableNetwork.dot11BssType),
 							(int)availableNetwork.wlanSignalQuality,
 							availableNetwork.strProfileName);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Enumerate BSSIDs of wireless LANs.
+		/// </summary>
+		/// <returns>BSSIDs</returns>
+		public static IEnumerable<string> EnumerateNetworkBssids()
+		{
+			using (var client = new WlanClient())
+			{
+				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
+
+				foreach (var interfaceInfo in interfaceInfoList)
+				{
+					var networkBssEntryList = GetNetworkBssEntryList(client.Handle, interfaceInfo.InterfaceGuid);
+
+					foreach (var networkBssEntry in networkBssEntryList)
+					{
+						var bssid = string.Join(":", networkBssEntry.dot11Bssid.Select(x => x.ToString("X2")));
+
+						Debug.WriteLine("Interface: {0}, SSID: {1} BSSID: {2}",
+							interfaceInfo.strInterfaceDescription,
+							networkBssEntry.dot11Ssid.ToSsidString(),
+							bssid);
+
+						yield return bssid;
 					}
 				}
 			}
@@ -1456,12 +1641,38 @@ namespace ManagedNativeWifi
 				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
 				return CheckResult(result, "WlanGetAvailableNetworkList", false)
 					? new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network
-					: new WLAN_AVAILABLE_NETWORK[] { };
+					: new WLAN_AVAILABLE_NETWORK[0];
 			}
 			finally
 			{
 				if (availableNetworkList != IntPtr.Zero)
 					WlanFreeMemory(availableNetworkList);
+			}
+		}
+
+		private static WLAN_BSS_ENTRY[] GetNetworkBssEntryList(IntPtr clientHandle, Guid interfaceGuid)
+		{
+			var wlanBssList = IntPtr.Zero;
+			try
+			{
+				var result = WlanGetNetworkBssList(
+					clientHandle,
+					interfaceGuid,
+					IntPtr.Zero,
+					DOT11_BSS_TYPE.dot11_BSS_type_any,
+					false,
+					IntPtr.Zero,
+					out wlanBssList);
+
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				return CheckResult(result, "WlanGetNetworkBssList", false)
+					? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+					: new WLAN_BSS_ENTRY[0];
+			}
+			finally
+			{
+				if (wlanBssList != IntPtr.Zero)
+					WlanFreeMemory(wlanBssList);
 			}
 		}
 
@@ -1505,7 +1716,7 @@ namespace ManagedNativeWifi
 
 				return CheckResult(result, "WlanGetProfileList", false)
 					? new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo
-					: new WLAN_PROFILE_INFO[] { };
+					: new WLAN_PROFILE_INFO[0];
 			}
 			finally
 			{
@@ -1633,6 +1844,8 @@ namespace ManagedNativeWifi
 					case ERROR_NOT_FOUND:
 					case ERROR_NOT_ENOUGH_MEMORY:
 					case ERROR_ACCESS_DENIED:
+					case ERROR_NOT_SUPPORTED:
+					case ERROR_SERVICE_NOT_ACTIVE:
 					case ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED:
 					case ERROR_NDIS_DOT11_MEDIA_IN_USE:
 					case ERROR_NDIS_DOT11_POWER_STATE_INVALID:
