@@ -1,7 +1,7 @@
 ﻿Managed Native Wifi
 ===================
 
-A managed implementation of Native Wifi API
+A managed implementation of [Native Wifi][1] API
 
 ##Requirements
 
@@ -10,3 +10,5 @@ A managed implementation of Native Wifi API
 ##License
 
  - MIT License
+
+[1]: https://msdn.microsoft.com/en-us/library/windows/desktop/ms706556.aspx
