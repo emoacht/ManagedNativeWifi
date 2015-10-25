@@ -67,6 +67,11 @@ namespace ManagedNativeWifi
 		public bool IsConnected { get; }
 
 		/// <summary>
+		/// XML representation of this profile
+		/// </summary>
+		public string Xml { get; }
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		public ProfilePack(
@@ -80,7 +85,8 @@ namespace ManagedNativeWifi
 			int signalQuality,
 			int position,
 			bool isAutomatic,
-			bool isConnected)
+			bool isConnected,
+			string xml)
 		{
 			this.Name = name;
 			this.InterfaceGuid = interfaceGuid;
@@ -93,6 +99,7 @@ namespace ManagedNativeWifi
 			this.Position = position;
 			this.IsAutomatic = isAutomatic;
 			this.IsConnected = isConnected;
+			this.Xml = xml;
 		}
 	}
 }

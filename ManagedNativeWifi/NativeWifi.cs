@@ -402,7 +402,8 @@ namespace ManagedNativeWifi
 				signalQuality: signalQuality,
 				position: position,
 				isAutomatic: isAutomatic,
-				isConnected: isConnected);
+				isConnected: isConnected,
+				xml: source);
 		}
 
 		#endregion
