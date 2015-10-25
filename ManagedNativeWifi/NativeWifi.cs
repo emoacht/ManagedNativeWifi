@@ -438,37 +438,7 @@ namespace ManagedNativeWifi
 		#region Delete profile
 
 		/// <summary>
-		/// Delete specified wireless profiles associated to all wireless interfaces.
-		/// </summary>
-		/// <param name="profileName">Profile name</param>
-		/// <returns>True if deleted. False if could not delete.</returns>
-		public static bool DeleteProfile(string profileName)
-		{
-			if (string.IsNullOrWhiteSpace(profileName))
-				throw new ArgumentNullException(nameof(profileName));
-
-			using (var client = new WlanClient())
-			{
-				var interfaceInfoList = GetInterfaceInfoList(client.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
-				{
-					var profileInfoList = GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
-
-					if (!profileInfoList.Any(x => x.strProfileName.Equals(profileName, StringComparison.Ordinal)))
-						continue;
-
-					Debug.WriteLine("Existing profile: " + profileName);
-
-					return DeleteProfile(client.Handle, interfaceInfo.InterfaceGuid, profileName);
-				}
-
-				return false;
-			}
-		}
-
-		/// <summary>
-		/// Delete a specified wireless profile associated to a specified wireless interface.
+		/// Delete a specified wireless profile.
 		/// </summary>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
@@ -492,7 +462,7 @@ namespace ManagedNativeWifi
 		#region Connect/Disconnect
 
 		/// <summary>
-		/// Attempt to connect to the wireless LAN associated to a specified wireless profile and interface.
+		/// Attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
@@ -513,8 +483,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile
-		/// and wireless interface.
+		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
@@ -527,8 +496,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile
-		/// and wireless interface.
+		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceGuid">Interface GUID</param>
