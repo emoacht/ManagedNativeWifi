@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using ManagedNativeWifi.Win32;
@@ -21,11 +22,22 @@ namespace ManagedNativeWifi
 		#region Scan networks
 
 		/// <summary>
-		/// Asynchronously request wireless interfaces to scan available wireless LANs.
+		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
 		/// </summary>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>Interface GUIDs that the requests succeeded</returns>
 		public static async Task<IEnumerable<Guid>> ScanAsync(TimeSpan timeoutDuration)
+		{
+			return await ScanAsync(timeoutDuration, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
+		/// </summary>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>Interface GUIDs that the requests succeeded</returns>
+		public static async Task<IEnumerable<Guid>> ScanAsync(TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			using (var client = new WlanClient())
 			{
@@ -66,7 +78,7 @@ namespace ManagedNativeWifi
 				}
 
 				var scanTask = tcs.Task;
-				await Task.WhenAny(scanTask, Task.Delay(timeoutDuration));
+				await Task.WhenAny(scanTask, Task.Delay(timeoutDuration, cancellationToken));
 
 				return handler.Results;
 			}
@@ -78,7 +90,7 @@ namespace ManagedNativeWifi
 			private readonly List<Guid> _targets = new List<Guid>();
 			private readonly List<Guid> _results = new List<Guid>();
 
-			public IEnumerable<Guid> Results { get { return _results.ToArray(); } }
+			public IEnumerable<Guid> Results => _results.ToArray();
 
 			public ScanHandler(TaskCompletionSource<bool> tcs, IEnumerable<Guid> targets)
 			{
@@ -511,6 +523,21 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
 		public static async Task<bool> ConnectAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration)
 		{
+			return await ConnectAsync(profileName, interfaceGuid, bssType, timeoutDuration, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile
+		/// and wireless interface.
+		/// </summary>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="bssType">BSS type</param>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>True if successfully connected. False if failed or timed out.</returns>
+		public static async Task<bool> ConnectAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		{
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
 
@@ -550,9 +577,9 @@ namespace ManagedNativeWifi
 					tcs.SetResult(false);
 
 				var connectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeoutDuration));
+				var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeoutDuration, cancellationToken));
 
-				return (completedTask == connectTask) ? connectTask.Result : false;
+				return (completedTask == connectTask) && connectTask.Result;
 			}
 		}
 
@@ -579,6 +606,18 @@ namespace ManagedNativeWifi
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
 		public static async Task<bool> DisconnectAsync(Guid interfaceGuid, TimeSpan timeoutDuration)
+		{
+			return await DisconnectAsync(interfaceGuid, timeoutDuration, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.
+		/// </summary>
+		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="timeoutDuration">Timeout duration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
+		public static async Task<bool> DisconnectAsync(Guid interfaceGuid, TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			if (interfaceGuid == default(Guid))
 				throw new ArgumentException(nameof(interfaceGuid));
@@ -613,9 +652,9 @@ namespace ManagedNativeWifi
 					tcs.SetResult(false);
 
 				var disconnectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeoutDuration));
+				var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeoutDuration, cancellationToken));
 
-				return (completedTask == disconnectTask) ? disconnectTask.Result : false;
+				return (completedTask == disconnectTask) && disconnectTask.Result;
 			}
 		}
 
