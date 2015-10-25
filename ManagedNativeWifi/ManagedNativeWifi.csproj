@@ -40,7 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BssType.cs" />
     <Compile Include="NativeWifi.cs" />
+    <Compile Include="AvailableNetworkPack.cs" />
+    <Compile Include="BssNetworkPack.cs" />
+    <Compile Include="NetworkIdentifier.cs" />
+    <Compile Include="ProfilePack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />

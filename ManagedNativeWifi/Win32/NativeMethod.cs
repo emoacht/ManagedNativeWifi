@@ -236,10 +236,7 @@ namespace ManagedNativeWifi.Win32
 		{
 			public DOT11_SSID dot11Ssid;
 			public uint uPhyId;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
-
+			public DOT11_MAC_ADDRESS dot11Bssid;
 			public DOT11_BSS_TYPE dot11BssType;
 			public DOT11_PHY_TYPE dot11BssPhyType;
 			public int lRssi;
@@ -289,17 +286,30 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 			public byte[] ucSSID;
 
-			public byte[] ToSsidBytes()
+			public byte[] ToBytes()
+				=> ucSSID?.Take((int)uSSIDLength).ToArray();
+
+			public override string ToString()
 			{
 				return (ucSSID != null)
-					? ucSSID.Take((int)uSSIDLength).ToArray()
+					? Encoding.UTF8.GetString(ToBytes())
 					: null;
 			}
+		}
 
-			public string ToSsidString()
+		[StructLayout(LayoutKind.Sequential)]
+		public struct DOT11_MAC_ADDRESS
+		{
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+			public byte[] ucDot11MacAddress;
+
+			public byte[] ToBytes()
+				=> ucDot11MacAddress?.ToArray();
+
+			public override string ToString()
 			{
-				return (ucSSID != null)
-					? Encoding.UTF8.GetString(ToSsidBytes())
+				return (ucDot11MacAddress != null)
+					? BitConverter.ToString(ucDot11MacAddress).Replace('-', ':')
 					: null;
 			}
 		}
@@ -331,10 +341,7 @@ namespace ManagedNativeWifi.Win32
 		{
 			public DOT11_SSID dot11Ssid;
 			public DOT11_BSS_TYPE dot11BssType;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
-
+			public DOT11_MAC_ADDRESS dot11Bssid;
 			public DOT11_PHY_TYPE dot11PhyType;
 			public uint uDot11PhyIndex;
 			public uint wlanSignalQuality;
@@ -405,9 +412,7 @@ namespace ManagedNativeWifi.Win32
 			public NDIS_OBJECT_HEADER Header;
 			public uint uNumOfEntries;
 			public uint uTotalNumOfEntries;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] BSSIDs; // DOT11_MAC_ADDRESS
+			public DOT11_MAC_ADDRESS BSSIDs;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
