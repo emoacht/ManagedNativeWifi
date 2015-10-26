@@ -26,9 +26,9 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>Interface GUIDs that the requests succeeded</returns>
-		public static async Task<IEnumerable<Guid>> ScanAsync(TimeSpan timeoutDuration)
+		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeoutDuration)
 		{
-			return await ScanAsync(timeoutDuration, CancellationToken.None);
+			return await ScanNetworksAsync(timeoutDuration, CancellationToken.None);
 		}
 
 		/// <summary>
@@ -37,7 +37,7 @@ namespace ManagedNativeWifi
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>Interface GUIDs that the requests succeeded</returns>
-		public static async Task<IEnumerable<Guid>> ScanAsync(TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			using (var client = new WlanClient())
 			{
@@ -469,7 +469,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceGuid">Interface GUID</param>
 		/// <param name="bssType">BSS type</param>
 		/// <returns>True if successfully requested the connection. False if failed.</returns>
-		public static bool Connect(string profileName, Guid interfaceGuid, BssType bssType = BssType.Any)
+		public static bool ConnectNetwork(string profileName, Guid interfaceGuid, BssType bssType = BssType.Any)
 		{
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -491,9 +491,9 @@ namespace ManagedNativeWifi
 		/// <param name="bssType">BSS type</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
-		public static async Task<bool> ConnectAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration)
+		public static async Task<bool> ConnectNetworkAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration)
 		{
-			return await ConnectAsync(profileName, interfaceGuid, bssType, timeoutDuration, CancellationToken.None);
+			return await ConnectNetworkAsync(profileName, interfaceGuid, bssType, timeoutDuration, CancellationToken.None);
 		}
 
 		/// <summary>
@@ -505,7 +505,7 @@ namespace ManagedNativeWifi
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
-		public static async Task<bool> ConnectAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		public static async Task<bool> ConnectNetworkAsync(string profileName, Guid interfaceGuid, BssType bssType, TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -557,7 +557,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceGuid">Interface GUID</param>
 		/// <returns>True if successfully requested the disconnection. False if failed.</returns>
-		public static bool Disconnect(Guid interfaceGuid)
+		public static bool DisconnectNetwork(Guid interfaceGuid)
 		{
 			if (interfaceGuid == default(Guid))
 				throw new ArgumentException(nameof(interfaceGuid));
@@ -574,9 +574,9 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceGuid">Interface GUID</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
-		public static async Task<bool> DisconnectAsync(Guid interfaceGuid, TimeSpan timeoutDuration)
+		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceGuid, TimeSpan timeoutDuration)
 		{
-			return await DisconnectAsync(interfaceGuid, timeoutDuration, CancellationToken.None);
+			return await DisconnectNetworkAsync(interfaceGuid, timeoutDuration, CancellationToken.None);
 		}
 
 		/// <summary>
@@ -586,7 +586,7 @@ namespace ManagedNativeWifi
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
-		public static async Task<bool> DisconnectAsync(Guid interfaceGuid, TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceGuid, TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			if (interfaceGuid == default(Guid))
 				throw new ArgumentException(nameof(interfaceGuid));
