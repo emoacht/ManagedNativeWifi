@@ -12,7 +12,7 @@ A managed implementation of [Native Wifi][1] API
 
 Available methods including asynchronous ones based on TAP.
 
-| Methods                        | Description                                                                                       |
+| Method                         | Description                                                                                       |
 |--------------------------------|---------------------------------------------------------------------------------------------------|
 | ScanNetworksAsync              | Asynchronously request wireless interfaces to scan (rescan) wireless LANs.                        |
 | EnumerateAvailableNetworkSsids | Enumerate SSIDs of available wireless LANs.                                                       |

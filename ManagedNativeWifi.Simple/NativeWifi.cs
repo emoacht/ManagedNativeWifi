@@ -147,11 +147,24 @@ namespace ManagedNativeWifi.Simple
 			public byte[] ToBytes()
 				=> ucSSID?.Take((int)uSSIDLength).ToArray();
 
+			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
+				Encoding.GetEncoding(65001, // UTF-8 code page
+					EncoderFallback.ReplacementFallback,
+					DecoderFallback.ExceptionFallback));
+
 			public override string ToString()
 			{
-				return (ucSSID != null)
-					? Encoding.UTF8.GetString(ToBytes())
-					: null;
+				if (ucSSID == null)
+					return null;
+
+				try
+				{
+					return _encoding.Value.GetString(ToBytes());
+				}
+				catch (DecoderFallbackException)
+				{
+					return null;
+				}
 			}
 		}
 
