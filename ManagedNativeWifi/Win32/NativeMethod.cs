@@ -95,7 +95,7 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.LPWStr)] string strAllUserProfileSecurity,
 			[MarshalAs(UnmanagedType.Bool)] bool bOverwrite,
 			IntPtr pReserved,
-			out uint pdwReasonCode);
+			out uint pdwReasonCode); // WLAN_REASON_CODE
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
 		public static extern uint WlanSetProfilePosition(
@@ -138,6 +138,13 @@ namespace ManagedNativeWifi.Win32
 		public delegate void WLAN_NOTIFICATION_CALLBACK(
 			IntPtr data, // Pointer to WLAN_NOTIFICATION_DATA
 			IntPtr context);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		public static extern uint WlanReasonCodeToString(
+			uint dwReasonCode,
+			int dwBufferSize,
+			[MarshalAs(UnmanagedType.LPWStr)] StringBuilder pStringBuffer,
+			IntPtr pReserved);
 
 		[DllImport("Kernel32.dll", SetLastError = true)]
 		public static extern uint FormatMessage(
@@ -288,7 +295,7 @@ namespace ManagedNativeWifi.Win32
 
 			public byte[] ToBytes()
 				=> ucSSID?.Take((int)uSSIDLength).ToArray();
-			
+
 			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
 				Encoding.GetEncoding(65001, // UTF-8 code page
 					EncoderFallback.ReplacementFallback,
@@ -298,7 +305,7 @@ namespace ManagedNativeWifi.Win32
 			{
 				if (ucSSID == null)
 					return null;
-				
+
 				try
 				{
 					return _encoding.Value.GetString(ToBytes());
@@ -606,6 +613,9 @@ namespace ManagedNativeWifi.Win32
 		public const uint ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED = 0x80342000;
 		public const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
 		public const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
+		public const uint ERROR_ALREADY_EXISTS = 183;
+		public const uint ERROR_BAD_PROFILE = 1206;
+		public const uint ERROR_NO_MATCH = 1169;
 
 		public const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
 		public const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;

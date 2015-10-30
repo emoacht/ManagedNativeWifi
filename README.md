@@ -21,6 +21,7 @@ Available methods including asynchronous ones based on TAP.
 | EnumerateBssNetworks           | Enumerate wireless LAN information on BSS networks.                                               |
 | EnumerateProfileNames          | Enumerate wireless profile names in preference order.                                             |
 | EnumerateProfiles              | Enumerate wireless profile information in preference order.                                       |
+| SetProfile                     | Set (add or overwrite) the content of a specified profile.                                        |
 | SetProfilePosition             | Set the position of a specified wireless profile in preference order.                             |
 | DeleteProfile                  | Delete a specified wireless profile.                                                              |
 | ConnectNetwork                 | Attempt to connect to the wireless LAN associated to a specified wireless profile.                |
