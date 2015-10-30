@@ -357,7 +357,8 @@ namespace ManagedNativeWifi
 		/// </remarks>
 		private static ProfilePack GetProfile(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, string interfaceDescription, int signalQuality, int position, bool isConnected)
 		{
-			var source = GetProfileXml(clientHandle, interfaceGuid, profileName);
+			ProfileType profileType;
+			var source = GetProfile(clientHandle, interfaceGuid, profileName, out profileType);
 			if (string.IsNullOrWhiteSpace(source))
 				return null;
 
@@ -395,6 +396,8 @@ namespace ManagedNativeWifi
 				name: profileName,
 				interfaceGuid: interfaceGuid,
 				interfaceDescription: interfaceDescription,
+				profileType: profileType,
+				profileXml: source,
 				ssid: new NetworkIdentifier(ssidBytes, ssidString),
 				bssType: bssType,
 				authentication: authentication,
@@ -402,8 +405,7 @@ namespace ManagedNativeWifi
 				signalQuality: signalQuality,
 				position: position,
 				isAutomatic: isAutomatic,
-				isConnected: isConnected,
-				xml: source);
+				isConnected: isConnected);
 		}
 
 		#endregion
@@ -906,7 +908,7 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		private static string GetProfileXml(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName)
+		private static string GetProfile(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, out ProfileType profileType)
 		{
 			var profileXml = IntPtr.Zero;
 			try
@@ -921,6 +923,10 @@ namespace ManagedNativeWifi
 					out profileXml,
 					ref flags,
 					out grantedAccess);
+
+				profileType = Enum.IsDefined(typeof(ProfileType), (int)flags)
+					? (ProfileType)(int)flags
+					: default(ProfileType);
 
 				// ERROR_NOT_FOUND will be returned if the profile is not found.
 				return CheckResult(nameof(WlanGetProfile), result, false)
