@@ -48,9 +48,9 @@
     <Compile Include="ProfilePack.cs" />
     <Compile Include="ProfileType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />
-    <Compile Include="Win32\SafeMemoryHandle.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
