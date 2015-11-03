@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BssType.cs" />
+    <Compile Include="InterfaceInfo.cs" />
+    <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
     <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssNetworkPack.cs" />

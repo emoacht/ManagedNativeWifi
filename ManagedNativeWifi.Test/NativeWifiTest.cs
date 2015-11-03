@@ -8,25 +8,26 @@ namespace ManagedNativeWifi.Test
 	[TestClass]
 	public class NativeWifiTest
 	{
-		private static Guid _interfaceGuid;
+		private static Guid _interfaceId;
 		private const string _testProfileName = "TestProfile";
 		private const string _testSsidString = "TestSsid";
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
 		{
-			_interfaceGuid = NativeWifi.EnumerateInterfaceGuids()
+			_interfaceId = NativeWifi.EnumerateInterfaces()
+				.Select(x => x.Id)
 				.FirstOrDefault();
 		}
 
 		[TestMethod]
 		public void SetProfileTest()
 		{
-			Assert.IsTrue(_interfaceGuid != null, "No wireless interface is connected.");
+			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
 
 			var profileXml = CreateProfileXml(_testProfileName, _testSsidString);
 
-			var result = NativeWifi.SetProfile(_interfaceGuid, ProfileType.AllUser, profileXml, null, true);
+			var result = NativeWifi.SetProfile(_interfaceId, ProfileType.AllUser, profileXml, null, true);
 			Assert.IsTrue(result, "Failed to set the wireless profile for test.");
 
 			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),
@@ -36,12 +37,12 @@ namespace ManagedNativeWifi.Test
 		[TestMethod]
 		public void DeletProfileTest()
 		{
-			Assert.IsTrue(_interfaceGuid != null, "No wireless interface is connected.");
+			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
 
 			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),
 				"The wireless profile for test doesn't exist.");
 
-			var result = NativeWifi.DeleteProfile(_interfaceGuid, _testProfileName);
+			var result = NativeWifi.DeleteProfile(_interfaceId, _testProfileName);
 			Assert.IsTrue(result, "Failed to delete the wireless profile for test.");
 
 			Assert.IsFalse(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),

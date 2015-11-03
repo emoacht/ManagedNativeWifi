@@ -22,15 +22,15 @@ namespace ManagedNativeWifi
 		#region Enumerate interfaces
 
 		/// <summary>
-		/// Enumerate GUIDs of wireless interfaces.
+		/// Enumerate wireless interface information.
 		/// </summary>
-		/// <returns>GUIDs of wireless interfaces</returns>
-		public static IEnumerable<Guid> EnumerateInterfaceGuids()
+		/// <returns>Wireless interface information</returns>
+		public static IEnumerable<InterfaceInfo> EnumerateInterfaces()
 		{
 			using (var client = new Base.WlanClient())
 			{
 				return Base.GetInterfaceInfoList(client.Handle)
-					.Select(x => x.InterfaceGuid);
+					.Select(x => ConvertToInterfaceInfo(x));
 			}
 		}
 
@@ -42,7 +42,7 @@ namespace ManagedNativeWifi
 		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
 		/// </summary>
 		/// <param name="timeoutDuration">Timeout duration</param>
-		/// <returns>Interface GUIDs that the requests succeeded</returns>
+		/// <returns>Interface IDs that the requests succeeded</returns>
 		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeoutDuration)
 		{
 			return await ScanNetworksAsync(timeoutDuration, CancellationToken.None);
@@ -53,16 +53,16 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
-		/// <returns>Interface GUIDs that the requests succeeded</returns>
+		/// <returns>Interface IDs that the requests succeeded</returns>
 		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
 			using (var client = new Base.WlanClient())
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
-				var interfaceGuids = interfaceInfoList.Select(x => x.InterfaceGuid).ToArray();
+				var interfaceIds = interfaceInfoList.Select(x => x.InterfaceGuid).ToArray();
 
 				var tcs = new TaskCompletionSource<bool>();
-				var handler = new ScanHandler(tcs, interfaceGuids);
+				var handler = new ScanHandler(tcs, interfaceIds);
 
 				Action<IntPtr, IntPtr> callback = (data, context) =>
 				{
@@ -87,11 +87,11 @@ namespace ManagedNativeWifi
 
 				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
-				foreach (var interfaceGuid in interfaceGuids)
+				foreach (var interfaceId in interfaceIds)
 				{
-					var result = Base.Scan(client.Handle, interfaceGuid);
+					var result = Base.Scan(client.Handle, interfaceId);
 					if (!result)
-						handler.SetFailure(interfaceGuid);
+						handler.SetFailure(interfaceId);
 				}
 
 				var scanTask = tcs.Task;
@@ -217,20 +217,19 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid);
+					var availableNetworkList = Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id);
 
 					foreach (var availableNetwork in availableNetworkList)
 					{
 						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
-						//	interfaceInfo.strInterfaceDescription,
+						//	interfaceInfo.Description,
 						//	availableNetwork.dot11Ssid,
 						//	availableNetwork.wlanSignalQuality);
 
 						yield return new AvailableNetworkPack(
-							interfaceGuid: interfaceInfo.InterfaceGuid,
-							interfaceDescription: interfaceInfo.strInterfaceDescription,
+							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
 							bssType: ConvertToBssType(availableNetwork.dot11BssType),
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
@@ -250,21 +249,20 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
 				{
-					var networkBssEntryList = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.InterfaceGuid);
+					var networkBssEntryList = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id);
 
 					foreach (var networkBssEntry in networkBssEntryList)
 					{
 						//Debug.WriteLine("Interface: {0}, SSID: {1} BSSID: {2} Link: {3}",
-						//	interfaceInfo.strInterfaceDescription,
+						//	interfaceInfo.Description,
 						//	networkBssEntry.dot11Ssid,
 						//	networkBssEntry.dot11Bssid,
 						//	networkBssEntry.uLinkQuality);
 
 						yield return new BssNetworkPack(
-							interfaceGuid: interfaceInfo.InterfaceGuid,
-							interfaceDescription: interfaceInfo.strInterfaceDescription,
+							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
 							bssType: ConvertToBssType(networkBssEntry.dot11BssType),
 							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
@@ -314,16 +312,17 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(client.Handle, interfaceInfo.InterfaceGuid)
+					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
+
+					var availableNetworkList = Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id)
 						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
 						.ToArray();
 
-					var connection = Base.GetConnectionAttributes(client.Handle, interfaceInfo.InterfaceGuid);
-					var interfaceIsConnected = (connection.isState == WLAN_INTERFACE_STATE.wlan_interface_state_connected);
+					var connection = Base.GetConnectionAttributes(client.Handle, interfaceInfo.Id);
 
-					var profileInfoList = Base.GetProfileInfoList(client.Handle, interfaceInfo.InterfaceGuid);
+					var profileInfoList = Base.GetProfileInfoList(client.Handle, interfaceInfo.Id);
 
 					int position = 0;
 
@@ -335,7 +334,7 @@ namespace ManagedNativeWifi
 						var profileIsConnected = interfaceIsConnected && profileInfo.strProfileName.Equals(connection.strProfileName, StringComparison.Ordinal);
 
 						//Debug.WriteLine("Interface: {0}, Profile: {1}, Signal {2}, Position: {3}, Connected {4}",
-						//	interfaceInfo.strInterfaceDescription,
+						//	interfaceInfo.Description,
 						//	profileInfo.strProfileName,
 						//	signalQuality,
 						//	position,
@@ -343,9 +342,8 @@ namespace ManagedNativeWifi
 
 						var profile = GetProfile(
 							client.Handle,
-							interfaceInfo.InterfaceGuid,
+							interfaceInfo,
 							profileInfo.strProfileName,
-							interfaceInfo.strInterfaceDescription,
 							signalQuality,
 							position++,
 							profileIsConnected);
@@ -361,7 +359,7 @@ namespace ManagedNativeWifi
 		/// Get a specified wireless profile information.
 		/// </summary>
 		/// <param name="clientHandle">Client handle</param>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="interfaceDescription">Interface description</param>
 		/// <param name="signalQuality">Signal quality</param>
@@ -372,10 +370,10 @@ namespace ManagedNativeWifi
 		/// For profile elements, see
 		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx 
 		/// </remarks>
-		private static ProfilePack GetProfile(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, string interfaceDescription, int signalQuality, int position, bool isConnected)
+		private static ProfilePack GetProfile(SafeClientHandle clientHandle, InterfaceInfo interfaceInfo, string profileName, int signalQuality, int position, bool isConnected)
 		{
 			ProfileType profileType;
-			var source = Base.GetProfile(clientHandle, interfaceGuid, profileName, out profileType);
+			var source = Base.GetProfile(clientHandle, interfaceInfo.Id, profileName, out profileType);
 			if (string.IsNullOrWhiteSpace(source))
 				return null;
 
@@ -411,8 +409,7 @@ namespace ManagedNativeWifi
 
 			return new ProfilePack(
 				name: profileName,
-				interfaceGuid: interfaceGuid,
-				interfaceDescription: interfaceDescription,
+				interfaceInfo: interfaceInfo,
 				profileType: profileType,
 				profileXml: source,
 				ssid: new NetworkIdentifier(ssidBytes, ssidString),
@@ -432,7 +429,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Set (add or overwrite) the content of a specific profile.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileType">Profile type</param>
 		/// <param name="profileXml">Profile XML</param>
 		/// <param name="profileSecurity">Security descriptor for all-user profile</param>
@@ -444,17 +441,17 @@ namespace ManagedNativeWifi
 		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707394.aspx
 		/// https://technet.microsoft.com/en-us/library/3ed3d027-5ae8-4cb0-ade5-0a7c446cd4f7#BKMK_AppndxE
 		/// </remarks>
-		public static bool SetProfile(Guid interfaceGuid, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
+		public static bool SetProfile(Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileXml))
 				throw new ArgumentNullException(nameof(profileXml));
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.SetProfile(client.Handle, interfaceGuid, profileType, profileXml, profileSecurity, overwrite);
+				return Base.SetProfile(client.Handle, interfaceId, profileType, profileXml, profileSecurity, overwrite);
 			}
 		}
 
@@ -465,14 +462,14 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Set the position of a specified wireless profile in preference order.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="position">Position (starting from 0)</param>
 		/// <returns>True if successfully set.</returns>
-		public static bool SetProfilePosition(Guid interfaceGuid, string profileName, int position)
+		public static bool SetProfilePosition(Guid interfaceId, string profileName, int position)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -482,7 +479,7 @@ namespace ManagedNativeWifi
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.SetProfilePosition(client.Handle, interfaceGuid, profileName, (uint)position);
+				return Base.SetProfilePosition(client.Handle, interfaceId, profileName, (uint)position);
 			}
 		}
 
@@ -493,20 +490,20 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Delete a specified wireless profile.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <returns>True if successfully deleted. False if could not delete.</returns>
-		public static bool DeleteProfile(Guid interfaceGuid, string profileName)
+		public static bool DeleteProfile(Guid interfaceId, string profileName)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.DeleteProfile(client.Handle, interfaceGuid, profileName);
+				return Base.DeleteProfile(client.Handle, interfaceId, profileName);
 			}
 		}
 
@@ -517,50 +514,50 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
-		/// <param name="bssType">BSS type</param>
+		/// <param name="bssType">BSS network type</param>
 		/// <returns>True if successfully requested the connection. False if failed.</returns>
-		public static bool ConnectNetwork(Guid interfaceGuid, string profileName, BssType bssType = BssType.Any)
+		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType = BssType.Any)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.Connect(client.Handle, interfaceGuid, profileName, ConvertFromBssType(bssType));
+				return Base.Connect(client.Handle, interfaceId, profileName, ConvertFromBssType(bssType));
 			}
 		}
 
 		/// <summary>
 		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
-		/// <param name="bssType">BSS type</param>
+		/// <param name="bssType">BSS network type</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
-		public static async Task<bool> ConnectNetworkAsync(Guid interfaceGuid, string profileName, BssType bssType, TimeSpan timeoutDuration)
+		public static async Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeoutDuration)
 		{
-			return await ConnectNetworkAsync(interfaceGuid, profileName, bssType, timeoutDuration, CancellationToken.None);
+			return await ConnectNetworkAsync(interfaceId, profileName, bssType, timeoutDuration, CancellationToken.None);
 		}
 
 		/// <summary>
 		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param> 
-		/// <param name="bssType">BSS type</param>
+		/// <param name="bssType">BSS network type</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
-		public static async Task<bool> ConnectNetworkAsync(Guid interfaceGuid, string profileName, BssType bssType, TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		public static async Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -593,7 +590,7 @@ namespace ManagedNativeWifi
 
 				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
-				var result = Base.Connect(client.Handle, interfaceGuid, profileName, ConvertFromBssType(bssType));
+				var result = Base.Connect(client.Handle, interfaceId, profileName, ConvertFromBssType(bssType));
 				if (!result)
 					tcs.SetResult(false);
 
@@ -607,41 +604,41 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Disconnect from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully requested the disconnection. False if failed.</returns>
-		public static bool DisconnectNetwork(Guid interfaceGuid)
+		public static bool DisconnectNetwork(Guid interfaceId)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.Disconnect(client.Handle, interfaceGuid);
+				return Base.Disconnect(client.Handle, interfaceId);
 			}
 		}
 
 		/// <summary>
 		/// Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
-		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceGuid, TimeSpan timeoutDuration)
+		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeoutDuration)
 		{
-			return await DisconnectNetworkAsync(interfaceGuid, timeoutDuration, CancellationToken.None);
+			return await DisconnectNetworkAsync(interfaceId, timeoutDuration, CancellationToken.None);
 		}
 
 		/// <summary>
 		/// Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
-		/// <param name="interfaceGuid">Interface GUID</param>
+		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="timeoutDuration">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
-		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceGuid, TimeSpan timeoutDuration, CancellationToken cancellationToken)
+		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeoutDuration, CancellationToken cancellationToken)
 		{
-			if (interfaceGuid == default(Guid))
-				throw new ArgumentException(nameof(interfaceGuid));
+			if (interfaceId == default(Guid))
+				throw new ArgumentException(nameof(interfaceId));
 
 			if (timeoutDuration < TimeSpan.Zero)
 				throw new ArgumentException(nameof(timeoutDuration));
@@ -668,7 +665,7 @@ namespace ManagedNativeWifi
 
 				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
-				var result = Base.Disconnect(client.Handle, interfaceGuid);
+				var result = Base.Disconnect(client.Handle, interfaceId);
 				if (!result)
 					tcs.SetResult(false);
 
@@ -682,6 +679,14 @@ namespace ManagedNativeWifi
 		#endregion
 
 		#region Helper
+
+		private static InterfaceInfo ConvertToInterfaceInfo(WLAN_INTERFACE_INFO info)
+		{
+			return new InterfaceInfo(
+				id: info.InterfaceGuid,
+				description: info.strInterfaceDescription,
+				state: (InterfaceState)info.isState);
+		}
 
 		private static DOT11_BSS_TYPE ConvertFromBssType(BssType source)
 		{

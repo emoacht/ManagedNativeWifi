@@ -12,14 +12,9 @@ namespace ManagedNativeWifi
 	public class BssNetworkPack
 	{
 		/// <summary>
-		/// GUID of associated wireless interface
+		/// Associated wireless interface
 		/// </summary>
-		public Guid InterfaceGuid { get; }
-
-		/// <summary>
-		/// Description of associated wireless interface
-		/// </summary>
-		public string InterfaceDescription { get; }
+		public InterfaceInfo Interface { get; }
 
 		/// <summary>
 		/// SSID (maximum 32 bytes)
@@ -27,7 +22,7 @@ namespace ManagedNativeWifi
 		public NetworkIdentifier Ssid { get; }
 
 		/// <summary>
-		/// BSS type
+		/// BSS network type
 		/// </summary>
 		public BssType BssType { get; }
 
@@ -45,15 +40,13 @@ namespace ManagedNativeWifi
 		/// Constructor
 		/// </summary>
 		public BssNetworkPack(
-			Guid interfaceGuid,
-			string interfaceDescription,
+			InterfaceInfo interfaceInfo,
 			NetworkIdentifier ssid,
 			BssType bssType,
 			NetworkIdentifier bssid,
 			int linkQuality)
 		{
-			this.InterfaceGuid = interfaceGuid;
-			this.InterfaceDescription = interfaceDescription;
+			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
 			this.BssType = bssType;
 			this.Bssid = bssid;

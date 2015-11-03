@@ -362,11 +362,11 @@ namespace ManagedNativeWifi.Simple
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
-					var interfaceGuid = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
+					var interfaceId = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
 
 					if (WlanGetAvailableNetworkList(
 						clientHandle,
-						interfaceGuid,
+						interfaceId,
 						WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES,
 						IntPtr.Zero,
 						out availableNetworkList) != ERROR_SUCCESS)
@@ -432,12 +432,12 @@ namespace ManagedNativeWifi.Simple
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
-					var interfaceGuid = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
+					var interfaceId = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
 
 					uint dataSize;
 					if (WlanQueryInterface(
 						clientHandle,
-						interfaceGuid,
+						interfaceId,
 						WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 						IntPtr.Zero,
 						out dataSize,

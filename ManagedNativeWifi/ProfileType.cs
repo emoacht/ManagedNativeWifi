@@ -1,6 +1,9 @@
 ﻿
 namespace ManagedNativeWifi
 {
+	/// <summary>
+	/// Wireless profile type
+	/// </summary>
 	public enum ProfileType
 	{
 		/// <summary>

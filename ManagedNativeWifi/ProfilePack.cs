@@ -17,14 +17,9 @@ namespace ManagedNativeWifi
 		public string Name { get; }
 
 		/// <summary>
-		/// GUID of associated wireless interface
+		/// Associated wireless interface
 		/// </summary>
-		public Guid InterfaceGuid { get; }
-
-		/// <summary>
-		/// Description of associated wireless interface
-		/// </summary>
-		public string InterfaceDescription { get; }
+		public InterfaceInfo Interface { get; }
 
 		/// <summary>
 		/// Profile type
@@ -42,7 +37,7 @@ namespace ManagedNativeWifi
 		public NetworkIdentifier Ssid { get; }
 
 		/// <summary>
-		/// BSS type of associated wireless LAN
+		/// BSS network type of associated wireless LAN
 		/// </summary>
 		public BssType BssType { get; }
 
@@ -81,8 +76,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public ProfilePack(
 			string name,
-			Guid interfaceGuid,
-			string interfaceDescription,
+			InterfaceInfo interfaceInfo,
 			ProfileType profileType,
 			string profileXml,
 			NetworkIdentifier ssid,
@@ -95,8 +89,7 @@ namespace ManagedNativeWifi
 			bool isConnected)
 		{
 			this.Name = name;
-			this.InterfaceGuid = interfaceGuid;
-			this.InterfaceDescription = interfaceDescription;
+			this.Interface = interfaceInfo;
 			this.ProfileType = profileType;
 			this.ProfileXml = profileXml;
 			this.Ssid = ssid;

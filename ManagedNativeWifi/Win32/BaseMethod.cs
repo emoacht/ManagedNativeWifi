@@ -73,11 +73,11 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static bool Scan(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static bool Scan(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var result = WlanScan(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				IntPtr.Zero,
 				IntPtr.Zero,
 				IntPtr.Zero);
@@ -86,14 +86,14 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanScan), result, false);
 		}
 
-		public static IEnumerable<WLAN_AVAILABLE_NETWORK> GetAvailableNetworkList(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static IEnumerable<WLAN_AVAILABLE_NETWORK> GetAvailableNetworkList(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var availableNetworkList = IntPtr.Zero;
 			try
 			{
 				var result = WlanGetAvailableNetworkList(
 					clientHandle,
-					interfaceGuid,
+					interfaceId,
 					WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES,
 					IntPtr.Zero,
 					out availableNetworkList);
@@ -110,14 +110,14 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var wlanBssList = IntPtr.Zero;
 			try
 			{
 				var result = WlanGetNetworkBssList(
 					clientHandle,
-					interfaceGuid,
+					interfaceId,
 					IntPtr.Zero,
 					DOT11_BSS_TYPE.dot11_BSS_type_any,
 					false,
@@ -136,7 +136,7 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var queryData = IntPtr.Zero;
 			try
@@ -144,7 +144,7 @@ namespace ManagedNativeWifi.Win32
 				uint dataSize;
 				var result = WlanQueryInterface(
 					clientHandle,
-					interfaceGuid,
+					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 					IntPtr.Zero,
 					out dataSize,
@@ -163,14 +163,14 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var profileList = IntPtr.Zero;
 			try
 			{
 				var result = WlanGetProfileList(
 					clientHandle,
-					interfaceGuid,
+					interfaceId,
 					IntPtr.Zero,
 					out profileList);
 
@@ -185,7 +185,7 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, out ProfileType profileType)
+		public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out ProfileType profileType)
 		{
 			var profileXml = IntPtr.Zero;
 			try
@@ -194,7 +194,7 @@ namespace ManagedNativeWifi.Win32
 				uint grantedAccess;
 				var result = WlanGetProfile(
 					clientHandle,
-					interfaceGuid,
+					interfaceId,
 					profileName,
 					IntPtr.Zero,
 					out profileXml,
@@ -217,12 +217,12 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceGuid, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
+		public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
 		{
 			uint pdwReasonCode;
 			var result = WlanSetProfile(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				(uint)profileType,
 				profileXml,
 				profileSecurity,
@@ -237,11 +237,11 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanSetProfile), result, false, pdwReasonCode);
 		}
 
-		public static bool SetProfilePosition(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, uint position)
+		public static bool SetProfilePosition(SafeClientHandle clientHandle, Guid interfaceId, string profileName, uint position)
 		{
 			var result = WlanSetProfilePosition(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				profileName,
 				position,
 				IntPtr.Zero);
@@ -251,11 +251,11 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanSetProfilePosition), result, false);
 		}
 
-		public static bool DeleteProfile(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName)
+		public static bool DeleteProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName)
 		{
 			var result = WlanDeleteProfile(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				profileName,
 				IntPtr.Zero);
 
@@ -264,7 +264,7 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanDeleteProfile), result, false);
 		}
 
-		public static bool Connect(SafeClientHandle clientHandle, Guid interfaceGuid, string profileName, DOT11_BSS_TYPE bssType)
+		public static bool Connect(SafeClientHandle clientHandle, Guid interfaceId, string profileName, DOT11_BSS_TYPE bssType)
 		{
 			var connectionParameters = new WLAN_CONNECTION_PARAMETERS
 			{
@@ -276,7 +276,7 @@ namespace ManagedNativeWifi.Win32
 
 			var result = WlanConnect(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				ref connectionParameters,
 				IntPtr.Zero);
 
@@ -284,11 +284,11 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanConnect), result, false);
 		}
 
-		public static bool Disconnect(SafeClientHandle clientHandle, Guid interfaceGuid)
+		public static bool Disconnect(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var result = WlanDisconnect(
 				clientHandle,
-				interfaceGuid,
+				interfaceId,
 				IntPtr.Zero);
 
 			// ERROR_NOT_FOUND will be returned if the interface is removed.
