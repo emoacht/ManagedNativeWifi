@@ -14,6 +14,13 @@ namespace ManagedNativeWifi.Demo
 			if (!Debugger.IsAttached)
 				Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
+			ShowInformation();
+
+			//PerformUsage().Wait();
+		}
+
+		private static void ShowInformation()
+		{
 			Trace.WriteLine("[Usable Interfaces]");
 			foreach (var interfaceInfo in NativeWifi.EnumerateInterfaces())
 			{
@@ -71,6 +78,17 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" Automatic: {profile.IsAutomatic}");
 				Trace.WriteLine($" Connected: {profile.IsConnected}}}");
 			}
+		}
+
+		private static async Task PerformUsage()
+		{
+			Usage.EnumerateNetworkSsids();
+
+			Trace.WriteLine($"Connect: {await Usage.ConnectAsync()}");
+
+			await Usage.RefreshAsync();
+
+			Trace.WriteLine($"Delete: {Usage.DeleteProfile("TestProfile")}");
 		}
 	}
 }
