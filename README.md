@@ -14,6 +14,7 @@ Available methods including asynchronous ones based on TAP.
 
 | Method                         | Description                                                                                       |
 |--------------------------------|---------------------------------------------------------------------------------------------------|
+| EnumerateInterfaces            | Enumerate wireless interface information.                                                         |
 | ScanNetworksAsync              | Asynchronously request wireless interfaces to scan (rescan) wireless LANs.                        |
 | EnumerateAvailableNetworkSsids | Enumerate SSIDs of available wireless LANs.                                                       |
 | EnumerateConnectedNetworkSsids | Enumerate SSIDs of connected wireless LANs.                                                       |
