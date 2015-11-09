@@ -26,6 +26,9 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public InterfaceState State { get; }
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public InterfaceInfo(Guid id, string description, InterfaceState state)
 		{
 			this.Id = id;

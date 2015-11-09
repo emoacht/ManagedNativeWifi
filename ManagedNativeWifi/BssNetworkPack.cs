@@ -12,7 +12,7 @@ namespace ManagedNativeWifi
 	public class BssNetworkPack
 	{
 		/// <summary>
-		/// Associated wireless interface
+		/// Associated wireless interface information
 		/// </summary>
 		public InterfaceInfo Interface { get; }
 

@@ -17,7 +17,7 @@ namespace ManagedNativeWifi
 		public string Name { get; }
 
 		/// <summary>
-		/// Associated wireless interface
+		/// Associated wireless interface information
 		/// </summary>
 		public InterfaceInfo Interface { get; }
 
@@ -27,7 +27,7 @@ namespace ManagedNativeWifi
 		public ProfileType ProfileType { get; }
 
 		/// <summary>
-		/// XML representation of this profile
+		/// Profile XML
 		/// </summary>
 		public string ProfileXml { get; }
 

@@ -12,7 +12,7 @@ namespace ManagedNativeWifi
 	public class AvailableNetworkPack
 	{
 		/// <summary>
-		/// Associated wireless interface
+		/// Associated wireless interface information
 		/// </summary>
 		public InterfaceInfo Interface { get; }
 
@@ -32,7 +32,7 @@ namespace ManagedNativeWifi
 		public int SignalQuality { get; }
 
 		/// <summary>
-		/// Name of associated wireless profile
+		/// Associated wireless profile name
 		/// </summary>
 		public string ProfileName { get; }
 
