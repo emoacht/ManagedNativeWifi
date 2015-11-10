@@ -78,7 +78,7 @@ public static async Task RefreshAsync()
 
 This method requests wireless interfaces to scan wireless LANs in parallel. It takes no more than 4 seconds.
 
-To delete an existing wireless profile, use DeleteProfile function. Please note that a profile name is case-sensitive.
+To delete an existing wireless profile, use DeleteProfile method. Please note that a profile name is case-sensitive.
 
 ```csharp
 public static bool DeleteProfile(string profileName)
@@ -93,6 +93,17 @@ public static bool DeleteProfile(string profileName)
     return NativeWifi.DeleteProfile(
         interfaceId: targetProfile.Interface.Id,
         profileName: profileName);
+}
+```
+
+To check wireless LAN channels that are already used by surrounding access points, call EnumerateBssNetworks method specifying a threshold of signal strength.
+
+```csharp
+public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
+{
+    return NativeWifi.EnumerateBssNetworks()
+        .Where(x => x.SignalStrength > signalStrengthThreshold)
+        .Select(x => x.Channel);
 }
 ```
 

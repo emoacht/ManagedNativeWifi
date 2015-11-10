@@ -86,13 +86,17 @@ namespace ManagedNativeWifi.Demo
 
 		private static async Task PerformUsage()
 		{
-			Usage.EnumerateNetworkSsids();
+			foreach (var ssid in Usage.EnumerateNetworkSsids())
+				Trace.WriteLine($"Ssid: {ssid}");
 
 			Trace.WriteLine($"Connect: {await Usage.ConnectAsync()}");
 
 			await Usage.RefreshAsync();
 
 			Trace.WriteLine($"Delete: {Usage.DeleteProfile("TestProfile")}");
+
+			foreach (var channel in Usage.EnumerateNetworkChannels(-60))
+				Trace.WriteLine($"Channel: {channel}");
 		}
 	}
 }

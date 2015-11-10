@@ -9,7 +9,7 @@ namespace ManagedNativeWifi.Demo
 	public static class Usage
 	{
 		/// <summary>
-		/// Enumerate SSID strings of available wireless LANs.
+		/// Enumerate SSIDs of available wireless LANs.
 		/// </summary>
 		/// <returns>SSID strings</returns>
 		public static IEnumerable<string> EnumerateNetworkSsids()
@@ -65,6 +65,18 @@ namespace ManagedNativeWifi.Demo
 			return NativeWifi.DeleteProfile(
 				interfaceId: targetProfile.Interface.Id,
 				profileName: profileName);
+		}
+
+		/// <summary>
+		/// Enumerate wireless LAN channels whose signal strength go beyond a specified threshold.
+		/// </summary>
+		/// <param name="signalStrengthThreshold">Threshold of signal strength</param>
+		/// <returns>Channel numbers</returns>
+		public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
+		{
+			return NativeWifi.EnumerateBssNetworks()
+				.Where(x => x.SignalStrength > signalStrengthThreshold)
+				.Select(x => x.Channel);
 		}
 	}
 }
