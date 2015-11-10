@@ -96,7 +96,7 @@ public static bool DeleteProfile(string profileName)
 }
 ```
 
-To check wireless LAN channels that are already used by surrounding access points, call EnumerateBssNetworks method specifying a threshold of signal strength.
+To check wireless LAN channels that are already used by surrounding access points, call EnumerateBssNetworks method and filter the results by signal strength.
 
 ```csharp
 public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
