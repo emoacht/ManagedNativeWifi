@@ -44,8 +44,9 @@ namespace ManagedNativeWifi.Demo
 			{
 				Trace.WriteLine($"{{Interface: {network.Interface.Description} ({network.Interface.Id})");
 				Trace.WriteLine($" SSID: {network.Ssid}");
-				Trace.WriteLine($" BSS network type: {network.BssType}");
-				Trace.WriteLine($" Signal quality: {network.SignalQuality}}}");
+				Trace.WriteLine($" BSS: {network.BssType}");
+				Trace.WriteLine($" Signal: {network.SignalQuality}");
+				Trace.WriteLine($" Security: {network.IsSecurityEnabled}}}");
 			}
 
 			Trace.WriteLine("[BSS Networks]");
@@ -53,9 +54,12 @@ namespace ManagedNativeWifi.Demo
 			{
 				Trace.WriteLine($"{{Interface: {network.Interface.Description} ({network.Interface.Id})");
 				Trace.WriteLine($" SSID: {network.Ssid}");
-				Trace.WriteLine($" BSS network type: {network.BssType}");
+				Trace.WriteLine($" BSS: {network.BssType}");
 				Trace.WriteLine($" BSSID: {network.Bssid}");
-				Trace.WriteLine($" Link quality: {network.LinkQuality}}}");
+				Trace.WriteLine($" Signal: {network.SignalStrength}");
+				Trace.WriteLine($" Link: {network.LinkQuality}");
+				Trace.WriteLine($" Frequency: {network.Frequency}");
+				Trace.WriteLine($" Channel: {network.Channel}}}");
 			}
 
 			Trace.WriteLine("[Network Profile Names]");
@@ -70,10 +74,10 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($"{{Name: {profile.Name}");
 				Trace.WriteLine($" Interface: {profile.Interface.Description} ({profile.Interface.Id})");
 				Trace.WriteLine($" SSID: {profile.Ssid}");
-				Trace.WriteLine($" BSS network type: {profile.BssType}");
+				Trace.WriteLine($" BSS: {profile.BssType}");
 				Trace.WriteLine($" Authentication: {profile.Authentication}");
 				Trace.WriteLine($" Encryption: {profile.Encryption}");
-				Trace.WriteLine($" Signal quality: {profile.SignalQuality}");
+				Trace.WriteLine($" Signal: {profile.SignalQuality}");
 				Trace.WriteLine($" Position: {profile.Position}");
 				Trace.WriteLine($" Automatic: {profile.IsAutomatic}");
 				Trace.WriteLine($" Connected: {profile.IsConnected}}}");

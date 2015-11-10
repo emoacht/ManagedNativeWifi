@@ -223,16 +223,18 @@ namespace ManagedNativeWifi
 
 					foreach (var availableNetwork in availableNetworkList)
 					{
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
+						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
 						//	interfaceInfo.Description,
 						//	availableNetwork.dot11Ssid,
-						//	availableNetwork.wlanSignalQuality);
+						//	availableNetwork.wlanSignalQuality,
+						//	availableNetwork.bSecurityEnabled);
 
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
 							bssType: ConvertToBssType(availableNetwork.dot11BssType),
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
+							isSecurityEnabled: availableNetwork.bSecurityEnabled,
 							profileName: availableNetwork.strProfileName);
 					}
 				}
@@ -255,18 +257,23 @@ namespace ManagedNativeWifi
 
 					foreach (var networkBssEntry in networkBssEntryList)
 					{
-						//Debug.WriteLine("Interface: {0}, SSID: {1} BSSID: {2} Link: {3}",
+						//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
 						//	interfaceInfo.Description,
 						//	networkBssEntry.dot11Ssid,
 						//	networkBssEntry.dot11Bssid,
-						//	networkBssEntry.uLinkQuality);
+						//	networkBssEntry.lRssi,
+						//	networkBssEntry.uLinkQuality,
+						//	networkBssEntry.ulChCenterFrequency);
 
 						yield return new BssNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
 							bssType: ConvertToBssType(networkBssEntry.dot11BssType),
 							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
-							linkQuality: (int)networkBssEntry.uLinkQuality);
+							signalStrength: networkBssEntry.lRssi,
+							linkQuality: (int)networkBssEntry.uLinkQuality,
+							frequency: (int)networkBssEntry.ulChCenterFrequency,
+							channel: DetectChannel(networkBssEntry.ulChCenterFrequency));
 					}
 				}
 			}
@@ -749,6 +756,53 @@ namespace ManagedNativeWifi
 				}
 			}
 			return buff;
+		}
+
+		/// <summary>
+		/// Detect wireless LAN channel from frequency.
+		/// </summary>
+		/// <param name="frequency">Frequency (KHz)</param>
+		/// <returns>Wireless LAN channel</returns>
+		/// <remarks>
+		/// This method is marked internal for unit test.
+		/// As for 5GHz, this method may produce a channel number which is not actually in use.
+		/// Also, some channel numbers of 5GHz overlap those of 2.4GHz and 3.6GHz. In such cases,
+		/// refer the frequency to distinguish them.
+		/// </remarks>
+		internal static int DetectChannel(uint frequency)
+		{
+			// 2.4GHz
+			if ((2412000 <= frequency) && (frequency < 2484000))
+			{
+				var gap = frequency / 1000M - 2412M; // MHz
+				var factor = gap / 5M;
+				if (factor - Math.Floor(factor) == 0)
+					return (int)factor + 1;
+			}
+			if (frequency == 2484000)
+				return 14;
+
+			// 3.6GHz
+			if ((3657500 <= frequency) && (frequency <= 3692500))
+			{
+				var gap = frequency / 1000M - 3655M; // MHz
+				if (gap % 2.5M == 0)
+				{
+					var factor = gap / 5M;
+					return (int)Math.Floor(factor) + 131;
+				}
+			}
+
+			// 5GHz
+			if ((5170000 <= frequency) && (frequency <= 5825000))
+			{
+				var gap = frequency / 1000M - 5170M; // MHz
+				var factor = gap / 5M;
+				if (factor - Math.Floor(factor) == 0)
+					return (int)factor + 34;
+			}
+
+			return 0;
 		}
 
 		#endregion

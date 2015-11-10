@@ -32,6 +32,11 @@ namespace ManagedNativeWifi
 		public int SignalQuality { get; }
 
 		/// <summary>
+		/// Whether security is enabled on this network
+		/// </summary>
+		public bool IsSecurityEnabled { get; }
+
+		/// <summary>
 		/// Associated wireless profile name
 		/// </summary>
 		public string ProfileName { get; }
@@ -44,12 +49,14 @@ namespace ManagedNativeWifi
 			NetworkIdentifier ssid,
 			BssType bssType,
 			int signalQuality,
+			bool isSecurityEnabled,
 			string profileName)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
 			this.BssType = bssType;
 			this.SignalQuality = signalQuality;
+			this.IsSecurityEnabled = isSecurityEnabled;
 			this.ProfileName = profileName;
 		}
 	}

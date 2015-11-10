@@ -32,9 +32,24 @@ namespace ManagedNativeWifi
 		public NetworkIdentifier Bssid { get; }
 
 		/// <summary>
+		/// Signal strength (RSSI)
+		/// </summary>
+		public int SignalStrength { get; }
+
+		/// <summary>
 		/// Link quality (0-100)
 		/// </summary>
 		public int LinkQuality { get; }
+
+		/// <summary>
+		/// Wireless LAN frequency (KHz)
+		/// </summary>
+		public int Frequency { get; }
+
+		/// <summary>
+		/// Wireless LAN channel
+		/// </summary>
+		public int Channel { get; }
 
 		/// <summary>
 		/// Constructor
@@ -44,13 +59,19 @@ namespace ManagedNativeWifi
 			NetworkIdentifier ssid,
 			BssType bssType,
 			NetworkIdentifier bssid,
-			int linkQuality)
+			int signalStrength,
+			int linkQuality,
+			int frequency,
+			int channel)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
 			this.BssType = bssType;
 			this.Bssid = bssid;
+			this.SignalStrength = signalStrength;
 			this.LinkQuality = linkQuality;
+			this.Frequency = frequency;
+			this.Channel = channel;
 		}
 	}
 }
