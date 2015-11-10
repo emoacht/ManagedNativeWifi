@@ -14,10 +14,10 @@ namespace ManagedNativeWifi.Simple
 			if (!Debugger.IsAttached)
 				Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-			Debug.WriteLine("[Available Networks]");
+			Debug.WriteLine("[Available Network SSIDs]");
 			NativeWifi.GetAvailableNetworkSsids().ToArray();
 
-			Debug.WriteLine("[Connected Networks]");
+			Debug.WriteLine("[Connected Network SSIDs]");
 			NativeWifi.GetConnectedNetworkSsids().ToArray();
 		}
 	}

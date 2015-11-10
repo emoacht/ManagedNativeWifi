@@ -95,7 +95,7 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.LPWStr)] string strAllUserProfileSecurity,
 			[MarshalAs(UnmanagedType.Bool)] bool bOverwrite,
 			IntPtr pReserved,
-			out uint pdwReasonCode);
+			out uint pdwReasonCode); // WLAN_REASON_CODE
 
 		[DllImport("Wlanapi.dll", SetLastError = true)]
 		public static extern uint WlanSetProfilePosition(
@@ -138,6 +138,13 @@ namespace ManagedNativeWifi.Win32
 		public delegate void WLAN_NOTIFICATION_CALLBACK(
 			IntPtr data, // Pointer to WLAN_NOTIFICATION_DATA
 			IntPtr context);
+
+		[DllImport("Wlanapi.dll", SetLastError = true)]
+		public static extern uint WlanReasonCodeToString(
+			uint dwReasonCode,
+			int dwBufferSize,
+			[MarshalAs(UnmanagedType.LPWStr)] StringBuilder pStringBuffer,
+			IntPtr pReserved);
 
 		[DllImport("Kernel32.dll", SetLastError = true)]
 		public static extern uint FormatMessage(
@@ -236,10 +243,7 @@ namespace ManagedNativeWifi.Win32
 		{
 			public DOT11_SSID dot11Ssid;
 			public uint uPhyId;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
-
+			public DOT11_MAC_ADDRESS dot11Bssid;
 			public DOT11_BSS_TYPE dot11BssType;
 			public DOT11_PHY_TYPE dot11BssPhyType;
 			public int lRssi;
@@ -289,17 +293,59 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 			public byte[] ucSSID;
 
-			public byte[] ToSsidBytes()
-			{
-				return (ucSSID != null)
-					? ucSSID.Take((int)uSSIDLength).ToArray()
-					: null;
-			}
+			/// <summary>
+			/// Return the byte array of SSID.
+			/// </summary>
+			/// <returns>Byte array</returns>
+			public byte[] ToBytes()
+				=> ucSSID?.Take((int)uSSIDLength).ToArray();
 
-			public string ToSsidString()
+			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
+				Encoding.GetEncoding(65001, // UTF-8 code page
+					EncoderFallback.ReplacementFallback,
+					DecoderFallback.ExceptionFallback));
+
+			/// <summary>
+			/// Return the UTF-8 string representation of SSID
+			/// </summary>
+			/// <returns>If successfully converted the byte array of SSID, UTF-8 string. If not, null.</returns>
+			public override string ToString()
 			{
-				return (ucSSID != null)
-					? Encoding.UTF8.GetString(ToSsidBytes())
+				if (ucSSID == null)
+					return null;
+
+				try
+				{
+					return _encoding.Value.GetString(ToBytes());
+				}
+				catch (DecoderFallbackException)
+				{
+					return null;
+				}
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct DOT11_MAC_ADDRESS
+		{
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+			public byte[] ucDot11MacAddress;
+
+			/// <summary>
+			/// Return the byte array of MAC address
+			/// </summary>
+			/// <returns></returns>
+			public byte[] ToBytes()
+				=> ucDot11MacAddress?.ToArray();
+
+			/// <summary>
+			/// Return the hexadecimal string representation of MAC address delimited by colon.
+			/// </summary>
+			/// <returns>Hexadecimal string</returns>
+			public override string ToString()
+			{
+				return (ucDot11MacAddress != null)
+					? BitConverter.ToString(ucDot11MacAddress).Replace('-', ':')
 					: null;
 			}
 		}
@@ -331,10 +377,7 @@ namespace ManagedNativeWifi.Win32
 		{
 			public DOT11_SSID dot11Ssid;
 			public DOT11_BSS_TYPE dot11BssType;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
-
+			public DOT11_MAC_ADDRESS dot11Bssid;
 			public DOT11_PHY_TYPE dot11PhyType;
 			public uint uDot11PhyIndex;
 			public uint wlanSignalQuality;
@@ -405,9 +448,7 @@ namespace ManagedNativeWifi.Win32
 			public NDIS_OBJECT_HEADER Header;
 			public uint uNumOfEntries;
 			public uint uTotalNumOfEntries;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] BSSIDs; // DOT11_MAC_ADDRESS
+			public DOT11_MAC_ADDRESS BSSIDs;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -588,6 +629,9 @@ namespace ManagedNativeWifi.Win32
 		public const uint ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED = 0x80342000;
 		public const uint ERROR_NDIS_DOT11_MEDIA_IN_USE = 0x80342001;
 		public const uint ERROR_NDIS_DOT11_POWER_STATE_INVALID = 0x80342002;
+		public const uint ERROR_ALREADY_EXISTS = 183;
+		public const uint ERROR_BAD_PROFILE = 1206;
+		public const uint ERROR_NO_MATCH = 1169;
 
 		public const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
 		public const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;

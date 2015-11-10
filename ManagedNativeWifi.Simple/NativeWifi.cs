@@ -137,33 +137,6 @@ namespace ManagedNativeWifi.Simple
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct WLAN_BSS_ENTRY
-		{
-			public DOT11_SSID dot11Ssid;
-			public uint uPhyId;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-			public byte[] dot11Bssid; // DOT11_MAC_ADDRESS
-
-			public DOT11_BSS_TYPE dot11BssType;
-			public DOT11_PHY_TYPE dot11BssPhyType;
-			public int lRssi;
-			public uint uLinkQuality;
-
-			[MarshalAs(UnmanagedType.U1)]
-			public bool bInRegDomain;
-
-			public ushort usBeaconPeriod;
-			public ulong ullTimestamp;
-			public ulong ullHostTimestamp;
-			public ushort usCapabilityInformation;
-			public uint ulChCenterFrequency;
-			public WLAN_RATE_SET wlanRateSet;
-			public uint ulIeOffset;
-			public uint ulIeSize;
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
 		public struct DOT11_SSID
 		{
 			public uint uSSIDLength;
@@ -171,28 +144,28 @@ namespace ManagedNativeWifi.Simple
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
 			public byte[] ucSSID;
 
-			public byte[] ToSsidBytes()
+			public byte[] ToBytes()
+				=> ucSSID?.Take((int)uSSIDLength).ToArray();
+
+			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
+				Encoding.GetEncoding(65001, // UTF-8 code page
+					EncoderFallback.ReplacementFallback,
+					DecoderFallback.ExceptionFallback));
+
+			public override string ToString()
 			{
-				return (ucSSID != null)
-					? ucSSID.Take((int)uSSIDLength).ToArray()
-					: null;
+				if (ucSSID == null)
+					return null;
+
+				try
+				{
+					return _encoding.Value.GetString(ToBytes());
+				}
+				catch (DecoderFallbackException)
+				{
+					return null;
+				}
 			}
-
-			public string ToSsidString()
-			{
-				return (ucSSID != null)
-					? Encoding.UTF8.GetString(ToSsidBytes())
-					: null;
-			}
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct WLAN_RATE_SET
-		{
-			public uint uRateSetLength;
-
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 126)]
-			public ushort[] usRateSet;
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -235,15 +208,6 @@ namespace ManagedNativeWifi.Simple
 
 			public DOT11_AUTH_ALGORITHM dot11AuthAlgorithm;
 			public DOT11_CIPHER_ALGORITHM dot11CipherAlgorithm;
-		}
-
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		public struct WLAN_PROFILE_INFO
-		{
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-			public string strProfileName;
-
-			public uint dwFlags;
 		}
 
 		public enum WLAN_INTERFACE_STATE
@@ -398,11 +362,11 @@ namespace ManagedNativeWifi.Simple
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
-					var interfaceGuid = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
+					var interfaceId = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
 
 					if (WlanGetAvailableNetworkList(
 						clientHandle,
-						interfaceGuid,
+						interfaceId,
 						WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_MANUAL_HIDDEN_PROFILES,
 						IntPtr.Zero,
 						out availableNetworkList) != ERROR_SUCCESS)
@@ -414,12 +378,12 @@ namespace ManagedNativeWifi.Simple
 					{
 						var network = networkList.Network[j];
 
-						Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+						Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
 							interfaceInfoList.InterfaceInfo[i].strInterfaceDescription,
-							network.dot11Ssid.ToSsidString(),
+							network.dot11Ssid,
 							network.wlanSignalQuality);
 
-						yield return network.dot11Ssid.ToSsidString();
+						yield return network.dot11Ssid.ToString();
 					}
 				}
 			}
@@ -468,12 +432,12 @@ namespace ManagedNativeWifi.Simple
 
 				for (int i = 0; i < interfaceInfoList.dwNumberOfItems; i++)
 				{
-					var interfaceGuid = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
+					var interfaceId = interfaceInfoList.InterfaceInfo[i].InterfaceGuid;
 
 					uint dataSize;
 					if (WlanQueryInterface(
 						clientHandle,
-						interfaceGuid,
+						interfaceId,
 						WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 						IntPtr.Zero,
 						out dataSize,
@@ -487,12 +451,13 @@ namespace ManagedNativeWifi.Simple
 
 					var association = connection.wlanAssociationAttributes;
 
-					Debug.WriteLine("Interface: {0}, SSID: {1}, Quality: {2}",
+					Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3}",
 						interfaceInfoList.InterfaceInfo[i].strInterfaceDescription,
-						association.dot11Ssid.ToSsidString(),
+						association.dot11Ssid,
+						BitConverter.ToString(association.dot11Bssid).Replace('-', ':'),
 						association.wlanSignalQuality);
 
-					yield return association.dot11Ssid.ToSsidString();
+					yield return association.dot11Ssid.ToString();
 				}
 			}
 			finally
