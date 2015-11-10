@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+
 using ManagedNativeWifi.Win32;
 using static ManagedNativeWifi.Win32.NativeMethod;
 using Base = ManagedNativeWifi.Win32.BaseMethod;
@@ -42,7 +43,7 @@ namespace ManagedNativeWifi
 		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
 		/// </summary>
 		/// <param name="timeout">Timeout duration</param>
-		/// <returns>Interface IDs that the requests succeeded</returns>
+		/// <returns>Interface IDs that successfully scanned</returns>
 		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout)
 		{
 			return await ScanNetworksAsync(timeout, CancellationToken.None);
@@ -53,7 +54,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="timeout">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
-		/// <returns>Interface IDs that the requests succeeded</returns>
+		/// <returns>Interface IDs that successfully scanned</returns>
 		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken)
 		{
 			using (var client = new Base.WlanClient())
@@ -75,11 +76,9 @@ namespace ManagedNativeWifi
 					switch (notificationData.NotificationCode)
 					{
 						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_complete:
-							Debug.WriteLine("Scan succeeded.");
 							handler.SetSuccess(notificationData.InterfaceGuid);
 							break;
 						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_fail:
-							Debug.WriteLine("Scan failed.");
 							handler.SetFailure(notificationData.InterfaceGuid);
 							break;
 					}
@@ -194,7 +193,7 @@ namespace ManagedNativeWifi
 
 					var association = connection.wlanAssociationAttributes;
 
-					//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID {2}, Signal: {3}",
+					//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3}",
 					//	interfaceInfo.strInterfaceDescription,
 					//	association.dot11Ssid,
 					//	association.dot11Bssid,
@@ -209,8 +208,8 @@ namespace ManagedNativeWifi
 		/// Enumerate wireless LAN information on available networks.
 		/// </summary>
 		/// <returns>Wireless LAN information</returns>
-		/// <remarks>If multiple profiles are associated with a same network, there will be multiple entries
-		/// with the same SSID.</remarks>
+		/// <remarks>If multiple profiles are associated with a same network, there will be multiple
+		/// entries with the same SSID.</remarks>
 		public static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks()
 		{
 			using (var client = new Base.WlanClient())
@@ -449,7 +448,7 @@ namespace ManagedNativeWifi
 		/// </remarks>
 		public static bool SetProfile(Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileXml))
@@ -474,7 +473,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully set.</returns>
 		public static bool SetProfilePosition(Guid interfaceId, string profileName, int position)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
@@ -501,7 +500,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully deleted. False if could not delete.</returns>
 		public static bool DeleteProfile(Guid interfaceId, string profileName)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
@@ -526,7 +525,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully requested the connection. False if failed.</returns>
 		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType = BssType.Any)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
@@ -562,7 +561,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
 		public static async Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
@@ -614,7 +613,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully requested the disconnection. False if failed.</returns>
 		public static bool DisconnectNetwork(Guid interfaceId)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			using (var client = new Base.WlanClient())
@@ -643,7 +642,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
 		public static async Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeout, CancellationToken cancellationToken)
 		{
-			if (interfaceId == default(Guid))
+			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			if (timeout < TimeSpan.Zero)
@@ -691,7 +690,7 @@ namespace ManagedNativeWifi
 			return new InterfaceInfo(
 				id: info.InterfaceGuid,
 				description: info.strInterfaceDescription,
-				state: (InterfaceState)info.isState);
+				state: (InterfaceState)info.isState); // The values of two enumerations are identical.
 		}
 
 		private static DOT11_BSS_TYPE ConvertFromBssType(BssType source)

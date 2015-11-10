@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+
 using static ManagedNativeWifi.Win32.NativeMethod;
 
 namespace ManagedNativeWifi.Win32
@@ -162,7 +163,7 @@ namespace ManagedNativeWifi.Win32
 					WlanFreeMemory(queryData);
 			}
 		}
-
+		
 		public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var profileList = IntPtr.Zero;
