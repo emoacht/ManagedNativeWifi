@@ -758,15 +758,15 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Detect wireless LAN channel from frequency.
+		/// Detect wireless LAN channel from center frequency.
 		/// </summary>
-		/// <param name="frequency">Frequency (KHz)</param>
-		/// <returns>Wireless LAN channel</returns>
+		/// <param name="frequency">Center frequency (KHz)</param>
+		/// <returns>If successfully detected, channel number. If not, 0.</returns>
 		/// <remarks>
-		/// This method is marked internal for unit test.
+		/// This method is marked as internal for unit test.
 		/// As for 5GHz, this method may produce a channel number which is not actually in use.
-		/// Also, some channel numbers of 5GHz overlap those of 2.4GHz and 3.6GHz. In such cases,
-		/// refer the frequency to distinguish them.
+		/// Also, some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer
+		/// the frequency to distinguish them.
 		/// </remarks>
 		internal static int DetectChannel(uint frequency)
 		{

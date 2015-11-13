@@ -96,6 +96,9 @@ namespace ManagedNativeWifi.Test
 
 		#region Channel
 
+		/// <summary>
+		/// Test channels of 2.4GHz.
+		/// </summary>
 		[TestMethod]
 		public void DetectChannel24000Test()
 		{
@@ -114,6 +117,9 @@ namespace ManagedNativeWifi.Test
 			Assert.AreEqual(0, NativeWifi.DetectChannel(2453000));
 		}
 
+		/// <summary>
+		/// Test channels of 3.6GHz.
+		/// </summary>
 		[TestMethod]
 		public void DetectChannel36000Test()
 		{
@@ -134,6 +140,9 @@ namespace ManagedNativeWifi.Test
 			Assert.AreEqual(0, NativeWifi.DetectChannel(3673000));
 		}
 
+		/// <summary>
+		/// Test channels of 5GHz.
+		/// </summary>
 		[TestMethod]
 		public void DetectChannel50000Test()
 		{
