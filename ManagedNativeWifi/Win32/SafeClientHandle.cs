@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+
+using static ManagedNativeWifi.Win32.NativeMethod;
 
 namespace ManagedNativeWifi.Win32
 {
@@ -28,8 +29,8 @@ namespace ManagedNativeWifi.Win32
 
 		protected override bool ReleaseHandle()
 		{
-			var result = NativeMethod.WlanCloseHandle(handle, IntPtr.Zero);
-			return result == NativeMethod.ERROR_SUCCESS;
+			var result = WlanCloseHandle(handle, IntPtr.Zero);
+			return result == ERROR_SUCCESS;
 		}
 	}
 }

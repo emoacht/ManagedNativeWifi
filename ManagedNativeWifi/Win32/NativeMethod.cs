@@ -176,15 +176,18 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_INTERFACE_INFO_LIST(IntPtr ppInterfaceList)
 			{
-				dwNumberOfItems = (uint)Marshal.ReadInt32(ppInterfaceList, 0);
-				dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, 4);
-				InterfaceInfo = new WLAN_INTERFACE_INFO[dwNumberOfItems];
+				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
 
-				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppInterfaceList, 0);
+				dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, uintSize /* Offset for dwNumberOfItems */);
+				InterfaceInfo = new WLAN_INTERFACE_INFO[dwNumberOfItems];
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
-					var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_INTERFACE_INFO)) * i) + offset);
+					var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64()
+						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
+						+ (Marshal.SizeOf(typeof(WLAN_INTERFACE_INFO)) * i) /* Offset for preceding items */);
+
 					InterfaceInfo[i] = Marshal.PtrToStructure<WLAN_INTERFACE_INFO>(interfaceInfo);
 				}
 			}
@@ -224,15 +227,18 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_AVAILABLE_NETWORK_LIST(IntPtr ppAvailableNetworkList)
 			{
-				dwNumberOfItems = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 0);
-				dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 4);
-				Network = new WLAN_AVAILABLE_NETWORK[dwNumberOfItems];
+				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
 
-				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 0);
+				dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, uintSize /* Offset for dwNumberOfItems */);
+				Network = new WLAN_AVAILABLE_NETWORK[dwNumberOfItems];
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
-					var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_AVAILABLE_NETWORK)) * i) + offset);
+					var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64()
+						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
+						+ (Marshal.SizeOf(typeof(WLAN_AVAILABLE_NETWORK)) * i) /* Offset for preceding items */);
+
 					Network[i] = Marshal.PtrToStructure<WLAN_AVAILABLE_NETWORK>(availableNetwork);
 				}
 			}
@@ -271,15 +277,18 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_BSS_LIST(IntPtr ppWlanBssList)
 			{
-				dwTotalSize = (uint)Marshal.ReadInt32(ppWlanBssList, 0);
-				dwNumberOfItems = (uint)Marshal.ReadInt32(ppWlanBssList, 4);
-				wlanBssEntries = new WLAN_BSS_ENTRY[dwNumberOfItems];
+				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
 
-				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwTotalSize and dwNumberOfItems
+				dwTotalSize = (uint)Marshal.ReadInt32(ppWlanBssList, 0);
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppWlanBssList, uintSize /* Offset for dwTotalSize */);
+				wlanBssEntries = new WLAN_BSS_ENTRY[dwNumberOfItems];
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
-					var wlanBssEntry = new IntPtr(ppWlanBssList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_BSS_ENTRY)) * i) + offset);
+					var wlanBssEntry = new IntPtr(ppWlanBssList.ToInt64()
+						+ (uintSize * 2) /* Offset for dwTotalSize and dwNumberOfItems */
+						+ (Marshal.SizeOf(typeof(WLAN_BSS_ENTRY)) * i) /* Offset for preceding items */);
+
 					wlanBssEntries[i] = Marshal.PtrToStructure<WLAN_BSS_ENTRY>(wlanBssEntry);
 				}
 			}
@@ -297,8 +306,7 @@ namespace ManagedNativeWifi.Win32
 			/// Return the byte array of SSID.
 			/// </summary>
 			/// <returns>Byte array</returns>
-			public byte[] ToBytes()
-				=> ucSSID?.Take((int)uSSIDLength).ToArray();
+			public byte[] ToBytes() => ucSSID?.Take((int)uSSIDLength).ToArray();
 
 			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
 				Encoding.GetEncoding(65001, // UTF-8 code page
@@ -335,8 +343,7 @@ namespace ManagedNativeWifi.Win32
 			/// Return the byte array of MAC address
 			/// </summary>
 			/// <returns></returns>
-			public byte[] ToBytes()
-				=> ucDot11MacAddress?.ToArray();
+			public byte[] ToBytes() => ucDot11MacAddress?.ToArray();
 
 			/// <summary>
 			/// Return the hexadecimal string representation of MAC address delimited by colon.
@@ -416,15 +423,18 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_PROFILE_INFO_LIST(IntPtr ppProfileList)
 			{
-				dwNumberOfItems = (uint)Marshal.ReadInt32(ppProfileList, 0);
-				dwIndex = (uint)Marshal.ReadInt32(ppProfileList, 4);
-				ProfileInfo = new WLAN_PROFILE_INFO[dwNumberOfItems];
+				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
 
-				var offset = Marshal.SizeOf(typeof(uint)) * 2; // Size of dwNumberOfItems and dwIndex
+				dwNumberOfItems = (uint)Marshal.ReadInt32(ppProfileList, 0);
+				dwIndex = (uint)Marshal.ReadInt32(ppProfileList, uintSize /* Offset for dwNumberOfItems */);
+				ProfileInfo = new WLAN_PROFILE_INFO[dwNumberOfItems];
 
 				for (int i = 0; i < dwNumberOfItems; i++)
 				{
-					var profileInfo = new IntPtr(ppProfileList.ToInt64() + (Marshal.SizeOf(typeof(WLAN_PROFILE_INFO)) * i) + offset);
+					var profileInfo = new IntPtr(ppProfileList.ToInt64()
+						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
+						+ (Marshal.SizeOf(typeof(WLAN_PROFILE_INFO)) * i) /* Offset for preceding items */);
+
 					ProfileInfo[i] = Marshal.PtrToStructure<WLAN_PROFILE_INFO>(profileInfo);
 				}
 			}
