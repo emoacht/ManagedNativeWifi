@@ -84,19 +84,19 @@ namespace ManagedNativeWifi.Demo
 			}
 		}
 
-		//private static async Task PerformUsage()
-		//{
-		//	foreach (var ssid in Usage.EnumerateNetworkSsids())
-		//		Trace.WriteLine($"Ssid: {ssid}");
+		private static async Task PerformUsage()
+		{
+			foreach (var ssid in Usage.EnumerateNetworkSsids())
+				Trace.WriteLine($"Ssid: {ssid}");
 
-		//	Trace.WriteLine($"Connect: {await Usage.ConnectAsync()}");
+			Trace.WriteLine($"Connect: {await Usage.ConnectAsync()}");
 
-		//	await Usage.RefreshAsync();
+			await Usage.RefreshAsync();
 
-		//	Trace.WriteLine($"Delete: {Usage.DeleteProfile("TestProfile")}");
+			Trace.WriteLine($"Delete: {Usage.DeleteProfile("TestProfile")}");
 
-		//	foreach (var channel in Usage.EnumerateNetworkChannels(-60))
-		//		Trace.WriteLine($"Channel: {channel}");
-		//}
+			foreach (var channel in Usage.EnumerateNetworkChannels(-60))
+				Trace.WriteLine($"Channel: {channel}");
+		}
 	}
 }
