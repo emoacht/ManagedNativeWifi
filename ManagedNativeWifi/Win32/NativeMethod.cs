@@ -13,7 +13,7 @@ namespace ManagedNativeWifi.Win32
 		#region Method
 
 		[SuppressUnmanagedCodeSecurity]
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanOpenHandle(
 			uint dwClientVersion,
 			IntPtr pReserved,
@@ -21,21 +21,21 @@ namespace ManagedNativeWifi.Win32
 			out SafeClientHandle phClientHandle);
 
 		[SuppressUnmanagedCodeSecurity]
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanCloseHandle(
 			IntPtr hClientHandle,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern void WlanFreeMemory(IntPtr pMemory);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanEnumInterfaces(
 			SafeClientHandle hClientHandle,
 			IntPtr pReserved,
 			out IntPtr ppInterfaceList); // Pointer to WLAN_INTERFACE_INFO_LIST
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanQueryInterface(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -45,14 +45,14 @@ namespace ManagedNativeWifi.Win32
 			ref IntPtr ppData, // Pointer to WLAN_CONNECTION_ATTRIBUTES, WLAN_RADIO_STATE
 			IntPtr pWlanOpcodeValueType);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetInterfaceCapability(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved,
 			out IntPtr ppCapability); // Pointer to WLAN_INTERFACE_CAPABILITY
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetInterface(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -61,7 +61,7 @@ namespace ManagedNativeWifi.Win32
 			IntPtr pData, // Pointer to WLAN_PHY_RADIO_STATE
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanScan(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -69,7 +69,7 @@ namespace ManagedNativeWifi.Win32
 			IntPtr pIeData,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetAvailableNetworkList(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -77,7 +77,7 @@ namespace ManagedNativeWifi.Win32
 			IntPtr pReserved,
 			out IntPtr ppAvailableNetworkList); // Pointer to WLAN_AVAILABLE_NETWORK_LIST
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetNetworkBssList(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -87,14 +87,14 @@ namespace ManagedNativeWifi.Win32
 			IntPtr pReserved,
 			out IntPtr ppWlanBssList); // Pointer to WLAN_BSS_LIST
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetProfileList(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved,
 			out IntPtr ppProfileList); // Pointer to WLAN_PROFILE_INFO_LIST
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetProfile(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -104,7 +104,7 @@ namespace ManagedNativeWifi.Win32
 			ref uint pdwFlags,
 			out uint pdwGrantedAccess);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetProfile(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -115,7 +115,7 @@ namespace ManagedNativeWifi.Win32
 			IntPtr pReserved,
 			out uint pdwReasonCode); // WLAN_REASON_CODE
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetProfilePosition(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -123,7 +123,7 @@ namespace ManagedNativeWifi.Win32
 			uint dwPosition,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanRenameProfile(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -131,27 +131,27 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.LPWStr)] string strNewProfileName,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanDeleteProfile(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanConnect(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[In] ref WLAN_CONNECTION_PARAMETERS pConnectionParameters,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanDisconnect(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanRegisterNotification(
 			SafeClientHandle hClientHandle,
 			uint dwNotifSource,
@@ -165,7 +165,7 @@ namespace ManagedNativeWifi.Win32
 			IntPtr data, // Pointer to WLAN_NOTIFICATION_DATA
 			IntPtr context);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanReasonCodeToString(
 			uint dwReasonCode,
 			int dwBufferSize,

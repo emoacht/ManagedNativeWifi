@@ -15,28 +15,28 @@ namespace ManagedNativeWifi.Simple
 	{
 		#region Win32
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanOpenHandle(
 			uint dwClientVersion,
 			IntPtr pReserved,
 			out uint pdwNegotiatedVersion,
 			out IntPtr phClientHandle);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanCloseHandle(
 			IntPtr hClientHandle,
 			IntPtr pReserved);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern void WlanFreeMemory(IntPtr pMemory);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanEnumInterfaces(
 			IntPtr hClientHandle,
 			IntPtr pReserved,
 			out IntPtr ppInterfaceList);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetAvailableNetworkList(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
@@ -44,7 +44,7 @@ namespace ManagedNativeWifi.Simple
 			IntPtr pReserved,
 			out IntPtr ppAvailableNetworkList);
 
-		[DllImport("Wlanapi.dll", SetLastError = true)]
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanQueryInterface(
 			IntPtr hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
