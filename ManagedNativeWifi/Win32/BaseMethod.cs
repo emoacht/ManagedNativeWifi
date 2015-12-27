@@ -163,7 +163,7 @@ namespace ManagedNativeWifi.Win32
 					WlanFreeMemory(queryData);
 			}
 		}
-		
+
 		public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var profileList = IntPtr.Zero;
@@ -296,6 +296,84 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanDisconnect), result, false);
 		}
 
+		public static WLAN_INTERFACE_CAPABILITY GetInterfaceCapability(SafeClientHandle clientHandle, Guid interfaceId)
+		{
+			var capability = IntPtr.Zero;
+			try
+			{
+				var result = WlanGetInterfaceCapability(
+					clientHandle,
+					interfaceId,
+					IntPtr.Zero,
+					out capability);
+
+				return CheckResult(nameof(WlanGetInterfaceCapability), result, false)
+					? Marshal.PtrToStructure<WLAN_INTERFACE_CAPABILITY>(capability)
+					: default(WLAN_INTERFACE_CAPABILITY);
+			}
+			finally
+			{
+				if (capability != IntPtr.Zero)
+					WlanFreeMemory(capability);
+			}
+		}
+
+		public static IEnumerable<WLAN_PHY_RADIO_STATE> GetPhyRadioStates(SafeClientHandle clientHandle, Guid interfaceId)
+		{
+			var queryData = IntPtr.Zero;
+			try
+			{
+				uint dataSize;
+				var result = WlanQueryInterface(
+					clientHandle,
+					interfaceId,
+					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
+					IntPtr.Zero,
+					out dataSize,
+					ref queryData,
+					IntPtr.Zero);
+
+				return CheckResult(nameof(WlanQueryInterface), result, false)
+					? new WLAN_RADIO_STATE(queryData).PhyRadioState
+					: new WLAN_PHY_RADIO_STATE[0];
+			}
+			finally
+			{
+				if (queryData != IntPtr.Zero)
+					WlanFreeMemory(queryData);
+			}
+		}
+
+		public static bool SetPhyRadioState(SafeClientHandle clientHandle, Guid interfaceId, WLAN_PHY_RADIO_STATE state)
+		{
+			var size = Marshal.SizeOf(state);
+
+			IntPtr pointer = IntPtr.Zero;
+			try
+			{
+				pointer = Marshal.AllocHGlobal(size);
+				Marshal.StructureToPtr(state, pointer, false);
+
+				var result = WlanSetInterface(
+					clientHandle,
+					interfaceId,
+					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
+					(uint)size,
+					pointer,
+					IntPtr.Zero);
+
+				// ERROR_ACCESS_DENIED will be thrown if the caller does not have sufficient permissions.
+				// By default, only a user who is logged on as a member of the Administrators group or
+				// the Network Configuration Operators group can set the operation mode of the interface.
+				// ERROR_GEN_FAILURE will be thrown if the OpCode is not supported by the driver or NIC.
+				return CheckResult(nameof(WlanSetInterface), result, false);
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(pointer);
+			}
+		}
+
 		public static void RegisterNotification(SafeClientHandle clientHandle, uint notificationSource, Action<IntPtr, IntPtr> callback)
 		{
 			// Storing a delegate in class field is necessary to prevent garbage collector from collecting it
@@ -330,6 +408,7 @@ namespace ManagedNativeWifi.Win32
 				case ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED:
 				case ERROR_NDIS_DOT11_MEDIA_IN_USE:
 				case ERROR_NDIS_DOT11_POWER_STATE_INVALID:
+				case ERROR_GEN_FAILURE:
 					if (!throwOnFailure)
 						return false;
 					else
@@ -339,7 +418,7 @@ namespace ManagedNativeWifi.Win32
 					throw new UnauthorizedAccessException(CreateExceptionMessage(methodName, result));
 
 				case ERROR_NOT_ENOUGH_MEMORY:
-					throw new OutOfMemoryException(CreateExceptionMessage(methodName, result));
+					throw new OutOfMemoryException(CreateExceptionMessage(methodName, result)); // To be considered
 
 				case ERROR_INVALID_HANDLE:
 				case ERROR_ALREADY_EXISTS:

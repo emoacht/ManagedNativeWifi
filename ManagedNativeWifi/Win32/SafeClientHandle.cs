@@ -14,7 +14,7 @@ namespace ManagedNativeWifi.Win32
 	/// </summary>
 	/// <remarks>
 	/// This implementation is based on:
-	/// http://referencesource.microsoft.com/#mscorlib/system/runtime/interopservices/safehandle.cs 
+	/// http://referencesource.microsoft.com/#mscorlib/system/runtime/interopservices/safehandle.cs
 	/// </remarks>
 	internal class SafeClientHandle : SafeHandle
 	{

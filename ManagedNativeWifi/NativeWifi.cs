@@ -373,7 +373,7 @@ namespace ManagedNativeWifi
 		/// <returns>Wireless profile information</returns>
 		/// <remarks>
 		/// For profile elements, see
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx 
+		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx
 		/// </remarks>
 		private static ProfilePack GetProfile(SafeClientHandle clientHandle, InterfaceInfo interfaceInfo, string profileName, int signalQuality, int position, bool isConnected)
 		{
@@ -683,6 +683,83 @@ namespace ManagedNativeWifi
 
 		#endregion
 
+		#region Turn on/off
+
+		/// <summary>
+		/// Get wireless interface radio information of a specified wireless interface.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <returns>Wireless interface radio information if succeeded. Null if not.</returns>
+		public static InterfaceRadio GetInterfaceRadio(Guid interfaceId)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			using (var client = new Base.WlanClient())
+			{
+				var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
+				var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
+
+				if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
+					(capability.dwNumberOfSupportedPhys != states.Count()))
+					return null;
+
+				var radioSets = Enumerable.Zip(
+					capability.dot11PhyTypes,
+					states.OrderBy(x => x.dwPhyIndex),
+					(x, y) => new RadioSet(
+						type: ConvertToPhyType(x),
+						softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState),
+						hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState)));
+
+				return new InterfaceRadio(
+					id: interfaceId,
+					radioSets: radioSets);
+			}
+		}
+
+		/// <summary>
+		/// Turn on the radio of a specified wireless interface (software radio state only).
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <returns>True if successfully changed radio state. False if not.</returns>
+		/// <remarks>If the user is not logged on as a member of the Administrators group,
+		/// an UnauthorizedAccessException should be thrown.</remarks>
+		public static bool TurnOnInterfaceRadio(Guid interfaceId)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			return TurnInterfaceRadio(interfaceId, DOT11_RADIO_STATE.dot11_radio_state_on);
+		}
+
+		/// <summary>
+		/// Turn off the radio of a specified wireless interface (software radio state only).
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <returns>True if successfully changed radio state. False if not.</returns>
+		/// <remarks>If the user is not logged on as a member of the Administrators group,
+		/// an UnauthorizedAccessException should be thrown.</remarks>
+		public static bool TurnOffInterfaceRadio(Guid interfaceId)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			return TurnInterfaceRadio(interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
+		}
+
+		private static bool TurnInterfaceRadio(Guid interfaceId, DOT11_RADIO_STATE radioState)
+		{
+			using (var client = new Base.WlanClient())
+			{
+				var phyRadioState = new WLAN_PHY_RADIO_STATE { dot11SoftwareRadioState = radioState, };
+
+				return Base.SetPhyRadioState(client.Handle, interfaceId, phyRadioState);
+			}
+		}
+
+		#endregion
+
 		#region Helper
 
 		private static InterfaceInfo ConvertToInterfaceInfo(WLAN_INTERFACE_INFO info)
@@ -734,6 +811,81 @@ namespace ManagedNativeWifi
 				return BssType.Independent;
 			}
 			return BssType.Any;
+		}
+
+		private static DOT11_PHY_TYPE ConvertFromPhyType(PhyType source)
+		{
+			switch (source)
+			{
+				case PhyType.Any:
+					return DOT11_PHY_TYPE.dot11_phy_type_any;
+				case PhyType.Fhss:
+					return DOT11_PHY_TYPE.dot11_phy_type_fhss;
+				case PhyType.Dsss:
+					return DOT11_PHY_TYPE.dot11_phy_type_dsss;
+				case PhyType.IrBaseband:
+					return DOT11_PHY_TYPE.dot11_phy_type_irbaseband;
+				case PhyType.Ofdm:
+					return DOT11_PHY_TYPE.dot11_phy_type_ofdm;
+				case PhyType.HrDsss:
+					return DOT11_PHY_TYPE.dot11_phy_type_hrdsss;
+				case PhyType.Erp:
+					return DOT11_PHY_TYPE.dot11_phy_type_erp;
+				case PhyType.Ht:
+					return DOT11_PHY_TYPE.dot11_phy_type_ht;
+				case PhyType.Vht:
+					return DOT11_PHY_TYPE.dot11_phy_type_vht;
+				case PhyType.IhvStart:
+					return DOT11_PHY_TYPE.dot11_phy_type_IHV_start;
+				case PhyType.IhvEnd:
+					return DOT11_PHY_TYPE.dot11_phy_type_IHV_end;
+				default:
+					return DOT11_PHY_TYPE.dot11_phy_type_unknown;
+			}
+		}
+
+		private static PhyType ConvertToPhyType(DOT11_PHY_TYPE source)
+		{
+			switch (source)
+			{
+				case DOT11_PHY_TYPE.dot11_phy_type_any:
+					return PhyType.Any;
+				case DOT11_PHY_TYPE.dot11_phy_type_fhss:
+					return PhyType.Fhss;
+				case DOT11_PHY_TYPE.dot11_phy_type_dsss:
+					return PhyType.Dsss;
+				case DOT11_PHY_TYPE.dot11_phy_type_irbaseband:
+					return PhyType.IrBaseband;
+				case DOT11_PHY_TYPE.dot11_phy_type_ofdm:
+					return PhyType.Ofdm;
+				case DOT11_PHY_TYPE.dot11_phy_type_hrdsss:
+					return PhyType.HrDsss;
+				case DOT11_PHY_TYPE.dot11_phy_type_erp:
+					return PhyType.Erp;
+				case DOT11_PHY_TYPE.dot11_phy_type_ht:
+					return PhyType.Ht;
+				case DOT11_PHY_TYPE.dot11_phy_type_vht:
+					return PhyType.Vht;
+				case DOT11_PHY_TYPE.dot11_phy_type_IHV_start:
+					return PhyType.IhvStart;
+				case DOT11_PHY_TYPE.dot11_phy_type_IHV_end:
+					return PhyType.IhvEnd;
+				default:
+					return PhyType.Unknown;
+			}
+		}
+
+		private static bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
+		{
+			switch (source)
+			{
+				case DOT11_RADIO_STATE.dot11_radio_state_on:
+					return true;
+				case DOT11_RADIO_STATE.dot11_radio_state_off:
+					return false;
+				default:
+					return null;
+			}
 		}
 
 		private static byte[] ConvertFromHexadecimalStringToBytes(string source)
