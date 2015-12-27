@@ -78,5 +78,37 @@ namespace ManagedNativeWifi.Demo
 				.Where(x => x.SignalStrength > signalStrengthThreshold)
 				.Select(x => x.Channel);
 		}
+
+		/// <summary>
+		/// Turn on the radio of a wireless interface which is not currently on but can be on.
+		/// </summary>
+		/// <returns>True if successfully turned on. False if not.</returns>
+		public static async Task<bool> TurnOnAsync()
+		{
+			var targetInterface = NativeWifi.EnumerateInterfaces()
+				.FirstOrDefault(x =>
+				{
+					var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
+					if (radioSet == null)
+						return false;
+
+					if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
+						return false;
+
+					return (radioSet.SoftwareOn == false); // Software radio state is off.
+				});
+
+			if (targetInterface == null)
+				return false;
+
+			try
+			{
+				return await Task.Run(() => NativeWifi.TurnOnInterfaceRadio(targetInterface.Id));
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return false;
+			}
+		}
 	}
 }

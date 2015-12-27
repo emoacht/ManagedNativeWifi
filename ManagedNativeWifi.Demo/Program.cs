@@ -14,9 +14,14 @@ namespace ManagedNativeWifi.Demo
 			if (!Debugger.IsAttached)
 				Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-			ShowInformation();
+			//ShowInformation();
 
 			//PerformUsage().Wait();
+
+			ShowRadioInformation();
+
+			//TurnOn();
+			//TurnOff();
 		}
 
 		private static void ShowInformation()
@@ -86,6 +91,8 @@ namespace ManagedNativeWifi.Demo
 
 		private static async Task PerformUsage()
 		{
+			Trace.WriteLine($"Turn on: {await Usage.TurnOnAsync()}");
+
 			foreach (var ssid in Usage.EnumerateNetworkSsids())
 				Trace.WriteLine($"Ssid: {ssid}");
 
@@ -97,6 +104,58 @@ namespace ManagedNativeWifi.Demo
 
 			foreach (var channel in Usage.EnumerateNetworkChannels(-60))
 				Trace.WriteLine($"Channel: {channel}");
+		}
+
+		private static void ShowRadioInformation()
+		{
+			foreach (var interfaceInfo in NativeWifi.EnumerateInterfaces())
+			{
+				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
+
+				var interfaceRadio = NativeWifi.GetInterfaceRadio(interfaceInfo.Id);
+				if (interfaceRadio == null)
+					continue;
+
+				foreach (var radioSet in interfaceRadio.RadioSets)
+				{
+					Trace.WriteLine($"Type: {radioSet.Type}");
+					Trace.WriteLine($"HardwareOn: {radioSet.HardwareOn}, SoftwareOn: {radioSet.SoftwareOn}, On: {radioSet.On}");
+				}
+			}
+		}
+
+		private static void TurnOn()
+		{
+			foreach (var interfaceInfo in NativeWifi.EnumerateInterfaces())
+			{
+				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
+
+				try
+				{
+					Trace.WriteLine($"Turn on: {NativeWifi.TurnOnInterfaceRadio(interfaceInfo.Id)}");
+				}
+				catch (UnauthorizedAccessException)
+				{
+					Trace.WriteLine("Turn on: Unauthorized");
+				}
+			}
+		}
+
+		private static void TurnOff()
+		{
+			foreach (var interfaceInfo in NativeWifi.EnumerateInterfaces())
+			{
+				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
+
+				try
+				{
+					Trace.WriteLine($"Turn off: {NativeWifi.TurnOffInterfaceRadio(interfaceInfo.Id)}");
+				}
+				catch (UnauthorizedAccessException)
+				{
+					Trace.WriteLine("Turn off: Unauthorized");
+				}
+			}
 		}
 	}
 }
