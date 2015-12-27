@@ -43,11 +43,14 @@
   <ItemGroup>
     <Compile Include="BssType.cs" />
     <Compile Include="InterfaceInfo.cs" />
+    <Compile Include="InterfaceRadio.cs" />
+    <Compile Include="RadioSet.cs" />
     <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
     <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssNetworkPack.cs" />
     <Compile Include="NetworkIdentifier.cs" />
+    <Compile Include="PhyType.cs" />
     <Compile Include="ProfilePack.cs" />
     <Compile Include="ProfileType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
