@@ -29,6 +29,9 @@ Available methods including asynchronous ones based on TAP.
 | ConnectNetworkAsync            | Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile. |
 | DisconnectNetwork              | Disconnect from the wireless LAN associated to a specified wireless interface.                    |
 | DisconnectNetworkAsync         | Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.     |
+| GetInterfaceRadio              | Get wireless interface radio information of a specified wireless interface.                       |
+| TurnOnInterfaceRadio           | Turn on the radio of a specified wireless interface (software radio state only).                  |
+| TurnOffInterfaceRadio          | Turn off the radio of a specified wireless interface (software radio state only).                 |
 
 ##Usage
 
@@ -104,6 +107,40 @@ public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThresh
     return NativeWifi.EnumerateBssNetworks()
         .Where(x => x.SignalStrength > signalStrengthThreshold)
         .Select(x => x.Channel);
+}
+```
+
+To turn on the radio of a wireless interface, check the current radio state by GetInterfaceRadio method and then call TurnOnInterfaceRadio method.
+
+Please note that this can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is turned off), it cannot be changed.
+
+```csharp
+public static async Task<bool> TurnOnAsync()
+{
+    var targetInterface = NativeWifi.EnumerateInterfaces()
+        .FirstOrDefault(x =>
+        {
+            var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
+            if (radioSet == null)
+                return false;
+
+            if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
+                return false;
+
+            return (radioSet.SoftwareOn == false); // Software radio state is off.
+        });
+
+    if (targetInterface == null)
+        return false;
+
+    try
+    {
+        return await Task.Run(() => NativeWifi.TurnOnInterfaceRadio(targetInterface.Id));
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return false;
+    }
 }
 ```
 
