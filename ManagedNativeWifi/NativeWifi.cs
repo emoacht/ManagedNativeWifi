@@ -723,7 +723,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>If the user is not logged on as a member of the Administrators group,
+		/// <remarks>If the user is not logged on as a member of Administrators group,
 		/// an UnauthorizedAccessException should be thrown.</remarks>
 		public static bool TurnOnInterfaceRadio(Guid interfaceId)
 		{
@@ -738,7 +738,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>If the user is not logged on as a member of the Administrators group,
+		/// <remarks>If the user is not logged on as a member of Administrators group,
 		/// an UnauthorizedAccessException should be thrown.</remarks>
 		public static bool TurnOffInterfaceRadio(Guid interfaceId)
 		{
