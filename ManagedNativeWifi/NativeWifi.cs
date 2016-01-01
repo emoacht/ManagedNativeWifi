@@ -368,7 +368,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceInfo">Interface information</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="signalQuality">Signal quality</param>
-		/// <param name="position">Position in preference order</param> 
+		/// <param name="position">Position in preference order</param>
 		/// <param name="isConnected">Whether this profile is connected to a wireless LAN</param>
 		/// <returns>Wireless profile information</returns>
 		/// <remarks>
@@ -554,7 +554,7 @@ namespace ManagedNativeWifi
 		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <param name="profileName">Profile name</param> 
+		/// <param name="profileName">Profile name</param>
 		/// <param name="bssType">BSS network type</param>
 		/// <param name="timeout">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>

@@ -2,7 +2,7 @@
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// BSS network type  
+	/// BSS network type
 	/// </summary>
 	public enum BssType
 	{
