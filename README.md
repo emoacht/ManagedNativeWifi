@@ -12,26 +12,26 @@ A managed implementation of [Native Wifi][1] API
 
 Available methods including asynchronous ones based on TAP.
 
-| Method                         | Description                                                                                       |
-|--------------------------------|---------------------------------------------------------------------------------------------------|
-| EnumerateInterfaces            | Enumerate wireless interface information.                                                         |
-| ScanNetworksAsync              | Asynchronously request wireless interfaces to scan (rescan) wireless LANs.                        |
-| EnumerateAvailableNetworkSsids | Enumerate SSIDs of available wireless LANs.                                                       |
-| EnumerateConnectedNetworkSsids | Enumerate SSIDs of connected wireless LANs.                                                       |
-| EnumerateAvailableNetworks     | Enumerate wireless LAN information on available networks.                                         |
-| EnumerateBssNetworks           | Enumerate wireless LAN information on BSS networks.                                               |
-| EnumerateProfileNames          | Enumerate wireless profile names in preference order.                                             |
-| EnumerateProfiles              | Enumerate wireless profile information in preference order.                                       |
-| SetProfile                     | Set (add or overwrite) the content of a specified wireless profile.                               |
-| SetProfilePosition             | Set the position of a specified wireless profile in preference order.                             |
-| DeleteProfile                  | Delete a specified wireless profile.                                                              |
-| ConnectNetwork                 | Attempt to connect to the wireless LAN associated to a specified wireless profile.                |
-| ConnectNetworkAsync            | Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile. |
-| DisconnectNetwork              | Disconnect from the wireless LAN associated to a specified wireless interface.                    |
-| DisconnectNetworkAsync         | Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.     |
-| GetInterfaceRadio              | Get wireless interface radio information of a specified wireless interface.                       |
-| TurnOnInterfaceRadio           | Turn on the radio of a specified wireless interface (software radio state only).                  |
-| TurnOffInterfaceRadio          | Turn off the radio of a specified wireless interface (software radio state only).                 |
+| Method                         | Description                                                                                        |
+|--------------------------------|----------------------------------------------------------------------------------------------------|
+| EnumerateInterfaces            | Enumerates wireless interface information.                                                         |
+| ScanNetworksAsync              | Asynchronously requests wireless interfaces to scan (rescan) wireless LANs.                        |
+| EnumerateAvailableNetworkSsids | Enumerates SSIDs of available wireless LANs.                                                       |
+| EnumerateConnectedNetworkSsids | Enumerates SSIDs of connected wireless LANs.                                                       |
+| EnumerateAvailableNetworks     | Enumerates wireless LAN information on available networks.                                         |
+| EnumerateBssNetworks           | Enumerates wireless LAN information on BSS networks.                                               |
+| EnumerateProfileNames          | Enumerates wireless profile names in preference order.                                             |
+| EnumerateProfiles              | Enumerates wireless profile information in preference order.                                       |
+| SetProfile                     | Sets (add or overwrite) the content of a specified wireless profile.                               |
+| SetProfilePosition             | Sets the position of a specified wireless profile in preference order.                             |
+| DeleteProfile                  | Deletes a specified wireless profile.                                                              |
+| ConnectNetwork                 | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |
+| ConnectNetworkAsync            | Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile. |
+| DisconnectNetwork              | Disconnects from the wireless LAN associated to a specified wireless interface.                    |
+| DisconnectNetworkAsync         | Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.     |
+| GetInterfaceRadio              | Gets wireless interface radio information of a specified wireless interface.                       |
+| TurnOnInterfaceRadio           | Turns on the radio of a specified wireless interface (software radio state only).                  |
+| TurnOffInterfaceRadio          | Turns off the radio of a specified wireless interface (software radio state only).                 |
 
 ##Usage
 
