@@ -25,13 +25,13 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Return the identifier in byte array.
+		/// Returns the identifier in byte array.
 		/// </summary>
 		/// <returns>Identifier in byte array</returns>
 		public byte[] ToBytes() => _rawBytes?.ToArray();
 
 		/// <summary>
-		/// Return the identifier in UTF-8 string.
+		/// Returns the identifier in UTF-8 string.
 		/// </summary>
 		/// <returns>Identifier in UTF-8 string</returns>
 		public override string ToString() => _rawString;

@@ -9,7 +9,7 @@ namespace ManagedNativeWifi.Demo
 	public static class Usage
 	{
 		/// <summary>
-		/// Enumerate SSIDs of available wireless LANs.
+		/// Enumerates SSIDs of available wireless LANs.
 		/// </summary>
 		/// <returns>SSID strings</returns>
 		public static IEnumerable<string> EnumerateNetworkSsids()
@@ -19,7 +19,7 @@ namespace ManagedNativeWifi.Demo
 		}
 
 		/// <summary>
-		/// Connect to the available wireless LAN which has the highest signal quality.
+		/// Connects to the available wireless LAN which has the highest signal quality.
 		/// </summary>
 		/// <returns>True if successfully connected. False if not.</returns>
 		public static async Task<bool> ConnectAsync()
@@ -40,7 +40,7 @@ namespace ManagedNativeWifi.Demo
 		}
 
 		/// <summary>
-		/// Refresh available wireless LANs.
+		/// Refreshes available wireless LANs.
 		/// </summary>
 		public static async Task RefreshAsync()
 		{
@@ -48,7 +48,7 @@ namespace ManagedNativeWifi.Demo
 		}
 
 		/// <summary>
-		/// Delete a specified wireless profile.
+		/// Deletes a specified wireless profile.
 		/// </summary>
 		/// <param name="profileName">Profile name to be deleted</param>
 		/// <returns>True if successfully deleted. False if not.</returns>
@@ -68,7 +68,7 @@ namespace ManagedNativeWifi.Demo
 		}
 
 		/// <summary>
-		/// Enumerate wireless LAN channels whose signal strength go beyond a specified threshold.
+		/// Enumerates wireless LAN channels whose signal strength go beyond a specified threshold.
 		/// </summary>
 		/// <param name="signalStrengthThreshold">Threshold of signal strength</param>
 		/// <returns>Channel numbers</returns>
@@ -80,7 +80,7 @@ namespace ManagedNativeWifi.Demo
 		}
 
 		/// <summary>
-		/// Turn on the radio of a wireless interface which is not currently on but can be on.
+		/// Turns on the radio of a wireless interface which is not currently on but can be on.
 		/// </summary>
 		/// <returns>True if successfully turned on. False if not.</returns>
 		public static async Task<bool> TurnOnAsync()

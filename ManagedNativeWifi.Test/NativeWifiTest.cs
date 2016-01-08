@@ -97,7 +97,7 @@ namespace ManagedNativeWifi.Test
 		#region Channel
 
 		/// <summary>
-		/// Test channels of 2.4GHz.
+		/// Detects channels of 2.4GHz.
 		/// </summary>
 		[TestMethod]
 		public void DetectChannel24000Test()
@@ -118,7 +118,7 @@ namespace ManagedNativeWifi.Test
 		}
 
 		/// <summary>
-		/// Test channels of 3.6GHz.
+		/// Detects channels of 3.6GHz.
 		/// </summary>
 		[TestMethod]
 		public void DetectChannel36000Test()
@@ -141,7 +141,7 @@ namespace ManagedNativeWifi.Test
 		}
 
 		/// <summary>
-		/// Test channels of 5GHz.
+		/// Detects channels of 5GHz.
 		/// </summary>
 		[TestMethod]
 		public void DetectChannel50000Test()

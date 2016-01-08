@@ -428,7 +428,7 @@ namespace ManagedNativeWifi.Win32
 			public byte[] ucSSID;
 
 			/// <summary>
-			/// Return the byte array of SSID.
+			/// Returns the byte array of SSID.
 			/// </summary>
 			/// <returns>Byte array</returns>
 			public byte[] ToBytes() => ucSSID?.Take((int)uSSIDLength).ToArray();
@@ -439,7 +439,7 @@ namespace ManagedNativeWifi.Win32
 					DecoderFallback.ExceptionFallback));
 
 			/// <summary>
-			/// Return the UTF-8 string representation of SSID
+			/// Returns the UTF-8 string representation of SSID
 			/// </summary>
 			/// <returns>If successfully converted the byte array of SSID, UTF-8 string. If not, null.</returns>
 			public override string ToString()
@@ -465,13 +465,13 @@ namespace ManagedNativeWifi.Win32
 			public byte[] ucDot11MacAddress;
 
 			/// <summary>
-			/// Return the byte array of MAC address
+			/// Returns the byte array of MAC address
 			/// </summary>
 			/// <returns></returns>
 			public byte[] ToBytes() => ucDot11MacAddress?.ToArray();
 
 			/// <summary>
-			/// Return the hexadecimal string representation of MAC address delimited by colon.
+			/// Returns the hexadecimal string representation of MAC address delimited by colon.
 			/// </summary>
 			/// <returns>Hexadecimal string</returns>
 			public override string ToString()

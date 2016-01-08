@@ -345,7 +345,7 @@ namespace ManagedNativeWifi.Simple
 		#endregion
 
 		/// <summary>
-		/// Get SSIDs of available wireless LANs.
+		/// Gets SSIDs of available wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> GetAvailableNetworkSsids()
@@ -411,7 +411,7 @@ namespace ManagedNativeWifi.Simple
 		}
 
 		/// <summary>
-		/// Get SSIDs of connected wireless LANs.
+		/// Gets SSIDs of connected wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<string> GetConnectedNetworkSsids()

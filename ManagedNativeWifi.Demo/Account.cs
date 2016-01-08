@@ -10,7 +10,7 @@ namespace ManagedNativeWifi.Demo
 	public static class Account
 	{
 		/// <summary>
-		/// Check if current user is a member of Administrators group.
+		/// Checks if current user is a member of Administrators group.
 		/// </summary>
 		/// <returns>True if a member of the Administrators group</returns>
 		/// <remarks>This method can tell whether current user is a member of Administrators group under UAC,

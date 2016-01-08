@@ -23,7 +23,7 @@ namespace ManagedNativeWifi
 		#region Enumerate interfaces
 
 		/// <summary>
-		/// Enumerate wireless interface information.
+		/// Enumerates wireless interface information.
 		/// </summary>
 		/// <returns>Wireless interface information</returns>
 		public static IEnumerable<InterfaceInfo> EnumerateInterfaces()
@@ -40,7 +40,7 @@ namespace ManagedNativeWifi
 		#region Scan networks
 
 		/// <summary>
-		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
+		/// Asynchronously requests wireless interfaces to scan (rescan) wireless LANs.
 		/// </summary>
 		/// <param name="timeout">Timeout duration</param>
 		/// <returns>Interface IDs that successfully scanned</returns>
@@ -50,7 +50,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously request wireless interfaces to scan (rescan) wireless LANs.
+		/// Asynchronously requests wireless interfaces to scan (rescan) wireless LANs.
 		/// </summary>
 		/// <param name="timeout">Timeout duration</param>
 		/// <param name="cancellationToken">Cancellation token</param>
@@ -149,7 +149,7 @@ namespace ManagedNativeWifi
 		#region Enumerate networks
 
 		/// <summary>
-		/// Enumerate SSIDs of available wireless LANs.
+		/// Enumerates SSIDs of available wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<NetworkIdentifier> EnumerateAvailableNetworkSsids()
@@ -176,7 +176,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate SSIDs of connected wireless LANs.
+		/// Enumerates SSIDs of connected wireless LANs.
 		/// </summary>
 		/// <returns>SSIDs</returns>
 		public static IEnumerable<NetworkIdentifier> EnumerateConnectedNetworkSsids()
@@ -205,7 +205,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate wireless LAN information on available networks.
+		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
 		/// <returns>Wireless LAN information</returns>
 		/// <remarks>If multiple profiles are associated with a same network, there will be multiple
@@ -241,7 +241,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate wireless LAN information on BSS networks.
+		/// Enumerates wireless LAN information on BSS networks.
 		/// </summary>
 		/// <returns>Wireless LAN information</returns>
 		public static IEnumerable<BssNetworkPack> EnumerateBssNetworks()
@@ -283,7 +283,7 @@ namespace ManagedNativeWifi
 		#region Enumerate profiles
 
 		/// <summary>
-		/// Enumerate wireless profile names in preference order.
+		/// Enumerates wireless profile names in preference order.
 		/// </summary>
 		/// <returns>Wireless profile names</returns>
 		public static IEnumerable<string> EnumerateProfileNames()
@@ -309,7 +309,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerate wireless profile information in preference order.
+		/// Enumerates wireless profile information in preference order.
 		/// </summary>
 		/// <returns>Wireless profile information</returns>
 		public static IEnumerable<ProfilePack> EnumerateProfiles()
@@ -362,7 +362,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Get a specified wireless profile information.
+		/// Gets a specified wireless profile information.
 		/// </summary>
 		/// <param name="clientHandle">Client handle</param>
 		/// <param name="interfaceInfo">Interface information</param>
@@ -432,7 +432,7 @@ namespace ManagedNativeWifi
 		#region Set profile
 
 		/// <summary>
-		/// Set (add or overwrite) the content of a specific profile.
+		/// Sets (add or overwrite) the content of a specific profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileType">Profile type</param>
@@ -465,7 +465,7 @@ namespace ManagedNativeWifi
 		#region Set profile position
 
 		/// <summary>
-		/// Set the position of a specified wireless profile in preference order.
+		/// Sets the position of a specified wireless profile in preference order.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
@@ -493,7 +493,7 @@ namespace ManagedNativeWifi
 		#region Delete profile
 
 		/// <summary>
-		/// Delete a specified wireless profile.
+		/// Deletes a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
@@ -517,7 +517,7 @@ namespace ManagedNativeWifi
 		#region Connect/Disconnect
 
 		/// <summary>
-		/// Attempt to connect to the wireless LAN associated to a specified wireless profile.
+		/// Attempts to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
@@ -538,7 +538,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
+		/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
@@ -551,7 +551,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously attempt to connect to the wireless LAN associated to a specified wireless profile.
+		/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
@@ -607,7 +607,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Disconnect from the wireless LAN associated to a specified wireless interface.
+		/// Disconnects from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully requested the disconnection. False if failed.</returns>
@@ -623,7 +623,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.
+		/// Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="timeout">Timeout duration</param>
@@ -634,7 +634,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Asynchronously disconnect from the wireless LAN associated to a specified wireless interface.
+		/// Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="timeout">Timeout duration</param>
@@ -686,7 +686,7 @@ namespace ManagedNativeWifi
 		#region Turn on/off
 
 		/// <summary>
-		/// Get wireless interface radio information of a specified wireless interface.
+		/// Gets wireless interface radio information of a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>Wireless interface radio information if succeeded. Null if not.</returns>
@@ -719,7 +719,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Turn on the radio of a specified wireless interface (software radio state only).
+		/// Turns on the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully changed radio state. False if not.</returns>
@@ -734,7 +734,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Turn off the radio of a specified wireless interface (software radio state only).
+		/// Turns off the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>True if successfully changed radio state. False if not.</returns>
@@ -910,7 +910,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Detect wireless LAN channel from center frequency.
+		/// Detects wireless LAN channel from center frequency.
 		/// </summary>
 		/// <param name="frequency">Center frequency (KHz)</param>
 		/// <returns>If successfully detected, channel number. If not, 0.</returns>
