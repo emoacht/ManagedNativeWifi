@@ -35,7 +35,7 @@ Available methods including asynchronous ones based on TAP.
 
 ##Usage
 
-To check SSIDs of currently available wireless LANs, call EnumerateAvailableNetworkSsids method.
+To check SSIDs of currently available wireless LANs, call `EnumerateAvailableNetworkSsids` method.
 
 ```csharp
 public static IEnumerable<string> EnumerateNetworkSsids()
@@ -45,9 +45,9 @@ public static IEnumerable<string> EnumerateNetworkSsids()
 }
 ```
 
-In general, a SSID is represented by a UTF-8 string but it is not guaranteed. If the string seems not correct, try ToBytes method instead.
+In general, a SSID is represented by a UTF-8 string but it is not guaranteed. If the string seems not correct, try `ToBytes` method instead.
 
-To connect to a wireless LAN, call ConnectNetworkAsync asynchronous method.
+To connect to a wireless LAN, call `ConnectNetworkAsync` asynchronous method.
 
 ```csharp
 public static async Task<bool> ConnectAsync()
@@ -68,9 +68,9 @@ public static async Task<bool> ConnectAsync()
 }
 ```
 
-This method returns true if successfully connected to the wireless LAN in contrast to its synchronous sibling, ConnectNetwork method, returns true if the request for the connection succeeds and doesn't indicate the result.
+This method returns true if successfully connected to the wireless LAN in contrast to its synchronous sibling, `ConnectNetwork` method, returns true if the request for the connection succeeds and doesn't indicate the result.
 
-To refresh currently available wireless LANs, call ScanNetworksAsync method.
+To refresh currently available wireless LANs, call `ScanNetworksAsync` method.
 
 ```csharp
 public static async Task RefreshAsync()
@@ -81,7 +81,7 @@ public static async Task RefreshAsync()
 
 This method requests wireless interfaces to scan wireless LANs in parallel. It takes no more than 4 seconds.
 
-To delete an existing wireless profile, use DeleteProfile method. Please note that a profile name is case-sensitive.
+To delete an existing wireless profile, use `DeleteProfile` method. Please note that a profile name is case-sensitive.
 
 ```csharp
 public static bool DeleteProfile(string profileName)
@@ -99,7 +99,7 @@ public static bool DeleteProfile(string profileName)
 }
 ```
 
-To check wireless LAN channels that are already used by surrounding access points, call EnumerateBssNetworks method and filter the results by signal strength.
+To check wireless LAN channels that are already used by surrounding access points, call `EnumerateBssNetworks` method and filter the results by signal strength.
 
 ```csharp
 public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
@@ -110,9 +110,7 @@ public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThresh
 }
 ```
 
-To turn on the radio of a wireless interface, check the current radio state by GetInterfaceRadio method and then call TurnOnInterfaceRadio method.
-
-Please note that this can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is turned off), it cannot be changed.
+To turn on the radio of a wireless interface, check the current radio state by `GetInterfaceRadio` method and then call `TurnOnInterfaceRadio` method.
 
 ```csharp
 public static async Task<bool> TurnOnAsync()
@@ -143,6 +141,8 @@ public static async Task<bool> TurnOnAsync()
     }
 }
 ```
+
+Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
 ##License
 
