@@ -45,7 +45,7 @@ public static IEnumerable<string> EnumerateNetworkSsids()
 }
 ```
 
-In general, a SSID is represented by a UTF-8 string but it is not guaranteed. If the string seems not correct, try `ToBytes` method instead.
+In general, a SSID is represented by a UTF-8 string but it is not guaranteed. So if `ToString` method seems not to produce a valid value, try `ToBytes` method instead.
 
 To connect to a wireless LAN, call `ConnectNetworkAsync` asynchronous method.
 
