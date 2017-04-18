@@ -1,14 +1,13 @@
-﻿Managed Native Wifi
-===================
+﻿# Managed Native Wifi
 
 A managed implementation of [Native Wifi][1] API
 
-##Requirements
+## Requirements
 
  * Windows 7 or newer
  * .NET Framework 4.5.2
 
-##Methods
+## Methods
 
 Available methods including asynchronous ones based on TAP.
 
@@ -33,7 +32,7 @@ Available methods including asynchronous ones based on TAP.
 | TurnOnInterfaceRadio           | Turns on the radio of a specified wireless interface (software radio state only).                  |
 | TurnOffInterfaceRadio          | Turns off the radio of a specified wireless interface (software radio state only).                 |
 
-##Usage
+## Usage
 
 To check SSIDs of currently available wireless LANs, call `EnumerateAvailableNetworkSsids` method.
 
@@ -144,7 +143,7 @@ public static async Task<bool> TurnOnAsync()
 
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
-##License
+## License
 
  - MIT License
 
