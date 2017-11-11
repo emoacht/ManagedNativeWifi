@@ -100,7 +100,7 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved,
-			out IntPtr pstrProfileXml,
+			[MarshalAs(UnmanagedType.LPWStr)] out string pstrProfileXml,
 			ref uint pdwFlags,
 			out uint pdwGrantedAccess);
 
@@ -556,6 +556,27 @@ namespace ManagedNativeWifi.Win32
 			public Guid InterfaceGuid;
 			public uint dwDataSize;
 			public IntPtr pData;
+		}
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public struct WLAN_CONNECTION_NOTIFICATION_DATA
+		{
+			public WLAN_CONNECTION_MODE wlanConnectionMode;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+			public string strProfileName;
+
+			public DOT11_SSID dot11Ssid;
+			public DOT11_BSS_TYPE dot11BssType;
+
+			[MarshalAs(UnmanagedType.Bool)]
+			public bool bSecurityEnabled;
+
+			public uint wlanReasonCode; // WLAN_REASON_CODE
+			public uint dwFlags;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+			public string strProfileXml;
 		}
 
 		#endregion

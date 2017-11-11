@@ -20,11 +20,10 @@ namespace ManagedNativeWifi.Win32
 
 			public WlanClient()
 			{
-				uint negotiatedVersion;
 				var result = WlanOpenHandle(
 					2, // Client version for Windows Vista and Windows Server 2008
 					IntPtr.Zero,
-					out negotiatedVersion,
+					out uint negotiatedVersion,
 					out _clientHandle);
 
 				CheckResult(nameof(WlanOpenHandle), result, true);
@@ -45,9 +44,90 @@ namespace ManagedNativeWifi.Win32
 				if (_disposed)
 					return;
 
-				_clientHandle?.Dispose();
+				if (disposing)
+				{
+					_clientHandle?.Dispose();
+				}
 
 				_disposed = true;
+			}
+
+			#endregion
+		}
+
+		public class WlanNotificationClient : WlanClient
+		{
+			public event EventHandler<WLAN_NOTIFICATION_DATA> NotificationReceived;
+
+			private WLAN_NOTIFICATION_CALLBACK _notificationCallback;
+
+			public WlanNotificationClient() : base()
+			{
+				RegisterNotification();
+			}
+
+			private void RegisterNotification()
+			{
+				// Storing a delegate in class field is necessary to prevent garbage collector from collecting
+				// the delegate before it is called. Otherwise, CallbackOnCollectedDelegate may occur.
+				_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, context) =>
+				{
+					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
+					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+						return;
+
+					NotificationReceived?.Invoke(null, notificationData);
+				});
+
+				var result = WlanRegisterNotification(
+					Handle,
+					WLAN_NOTIFICATION_SOURCE_ACM,
+					false,
+					_notificationCallback,
+					IntPtr.Zero,
+					IntPtr.Zero,
+					0);
+
+				CheckResult(nameof(WlanRegisterNotification), result, true);
+			}
+
+			private void UnregisterNotification()
+			{
+				_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, context) => { });
+
+				var result = WlanRegisterNotification(
+					Handle,
+					WLAN_NOTIFICATION_SOURCE_NONE,
+					false,
+					_notificationCallback,
+					IntPtr.Zero,
+					IntPtr.Zero,
+					0);
+
+				CheckResult(nameof(WlanRegisterNotification), result, true);
+			}
+
+			#region Dispose
+
+			private bool _disposed = false;
+
+			protected override void Dispose(bool disposing)
+			{
+				if (_disposed)
+					return;
+
+				if (disposing)
+				{
+					NotificationReceived = null;
+
+					// Since closing the handle used for a registration to receive notification will
+					// automatically undone the registration, an unregistration is not actually required.
+					UnregisterNotification();
+				}
+
+				_disposed = true;
+
+				base.Dispose(disposing);
 			}
 
 			#endregion
@@ -142,13 +222,12 @@ namespace ManagedNativeWifi.Win32
 			var queryData = IntPtr.Zero;
 			try
 			{
-				uint dataSize;
 				var result = WlanQueryInterface(
 					clientHandle,
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 					IntPtr.Zero,
-					out dataSize,
+					out uint dataSize,
 					ref queryData,
 					IntPtr.Zero);
 
@@ -188,39 +267,28 @@ namespace ManagedNativeWifi.Win32
 
 		public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out ProfileType profileType)
 		{
-			var profileXml = IntPtr.Zero;
-			try
-			{
-				uint flags = 0U;
-				uint grantedAccess;
-				var result = WlanGetProfile(
-					clientHandle,
-					interfaceId,
-					profileName,
-					IntPtr.Zero,
-					out profileXml,
-					ref flags,
-					out grantedAccess);
+			uint flags = 0U;
+			var result = WlanGetProfile(
+				clientHandle,
+				interfaceId,
+				profileName,
+				IntPtr.Zero,
+				out string profileXml,
+				ref flags,
+				out uint grantedAccess);
 
-				profileType = Enum.IsDefined(typeof(ProfileType), (int)flags)
-					? (ProfileType)(int)flags
-					: default(ProfileType);
+			profileType = Enum.IsDefined(typeof(ProfileType), (int)flags)
+				? (ProfileType)(int)flags
+				: default(ProfileType);
 
-				// ERROR_NOT_FOUND will be returned if the profile is not found.
-				return CheckResult(nameof(WlanGetProfile), result, false)
-					? Marshal.PtrToStringUni(profileXml)
-					: null; // To be used
-			}
-			finally
-			{
-				if (profileXml != IntPtr.Zero)
-					WlanFreeMemory(profileXml);
-			}
+			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			return CheckResult(nameof(WlanGetProfile), result, false)
+				? profileXml
+				: null; // To be used
 		}
 
 		public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
 		{
-			uint pdwReasonCode;
 			var result = WlanSetProfile(
 				clientHandle,
 				interfaceId,
@@ -229,7 +297,7 @@ namespace ManagedNativeWifi.Win32
 				profileSecurity,
 				overwrite,
 				IntPtr.Zero,
-				out pdwReasonCode);
+				out uint pdwReasonCode);
 
 			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
 			// ERROR_ALREADY_EXISTS will be returned if the profile already exists.
@@ -323,13 +391,12 @@ namespace ManagedNativeWifi.Win32
 			var queryData = IntPtr.Zero;
 			try
 			{
-				uint dataSize;
 				var result = WlanQueryInterface(
 					clientHandle,
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
 					IntPtr.Zero,
-					out dataSize,
+					out uint dataSize,
 					ref queryData,
 					IntPtr.Zero);
 
@@ -348,18 +415,18 @@ namespace ManagedNativeWifi.Win32
 		{
 			var size = Marshal.SizeOf(state);
 
-			IntPtr pointer = IntPtr.Zero;
+			IntPtr setData = IntPtr.Zero;
 			try
 			{
-				pointer = Marshal.AllocHGlobal(size);
-				Marshal.StructureToPtr(state, pointer, false);
+				setData = Marshal.AllocHGlobal(size);
+				Marshal.StructureToPtr(state, setData, false);
 
 				var result = WlanSetInterface(
 					clientHandle,
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
 					(uint)size,
-					pointer,
+					setData,
 					IntPtr.Zero);
 
 				// ERROR_ACCESS_DENIED will be thrown if the caller does not have sufficient permissions.
@@ -370,28 +437,11 @@ namespace ManagedNativeWifi.Win32
 			}
 			finally
 			{
-				Marshal.FreeHGlobal(pointer);
+				Marshal.FreeHGlobal(setData);
 			}
 		}
 
-		public static void RegisterNotification(SafeClientHandle clientHandle, uint notificationSource, Action<IntPtr, IntPtr> callback)
-		{
-			// Storing a delegate in class field is necessary to prevent garbage collector from collecting it
-			// before the delegate is called. Otherwise, CallbackOnCollectedDelegate may occur.
-			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK(callback);
-
-			var result = WlanRegisterNotification(clientHandle,
-				notificationSource,
-				false,
-				_notificationCallback,
-				IntPtr.Zero,
-				IntPtr.Zero,
-				0);
-
-			CheckResult(nameof(WlanRegisterNotification), result, true);
-		}
-
-		private static WLAN_NOTIFICATION_CALLBACK _notificationCallback;
+		#region Helper
 
 		private static bool CheckResult(string methodName, uint result, bool throwOnFailure, uint reasonCode = 0)
 		{
@@ -465,5 +515,7 @@ namespace ManagedNativeWifi.Win32
 
 			return message.ToString();
 		}
+
+		#endregion
 	}
 }

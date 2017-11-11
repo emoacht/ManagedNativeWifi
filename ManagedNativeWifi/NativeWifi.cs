@@ -57,60 +57,54 @@ namespace ManagedNativeWifi
 		/// <returns>Interface IDs that successfully scanned</returns>
 		public static async Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken)
 		{
-			using (var client = new Base.WlanClient())
+			using (var client = new Base.WlanNotificationClient())
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 				var interfaceIds = interfaceInfoList.Select(x => x.InterfaceGuid).ToArray();
 
 				var tcs = new TaskCompletionSource<bool>();
-				var handler = new ScanHandler(tcs, interfaceIds);
+				var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), interfaceIds);
 
-				Action<IntPtr, IntPtr> callback = (data, context) =>
+				client.NotificationReceived += (sender, data) =>
 				{
-					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
-					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
-						return;
+					Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
 
-					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
-
-					switch (notificationData.NotificationCode)
+					switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 					{
-						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_complete:
-							handler.SetSuccess(notificationData.InterfaceGuid);
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_complete:
+							counter.SetSuccess(data.InterfaceGuid);
 							break;
-						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_fail:
-							handler.SetFailure(notificationData.InterfaceGuid);
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_fail:
+							counter.SetFailure(data.InterfaceGuid);
 							break;
 					}
 				};
-
-				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
 				foreach (var interfaceId in interfaceIds)
 				{
 					var result = Base.Scan(client.Handle, interfaceId);
 					if (!result)
-						handler.SetFailure(interfaceId);
+						counter.SetFailure(interfaceId);
 				}
 
 				var scanTask = tcs.Task;
 				await Task.WhenAny(scanTask, Task.Delay(timeout, cancellationToken));
 
-				return handler.Results;
+				return counter.Results;
 			}
 		}
 
-		private class ScanHandler
+		private class ScanCounter
 		{
-			private TaskCompletionSource<bool> _tcs;
+			private Action _complete;
 			private readonly List<Guid> _targets = new List<Guid>();
 			private readonly List<Guid> _results = new List<Guid>();
 
 			public IEnumerable<Guid> Results => _results.ToArray();
 
-			public ScanHandler(TaskCompletionSource<bool> tcs, IEnumerable<Guid> targets)
+			public ScanCounter(Action complete, IEnumerable<Guid> targets)
 			{
-				this._tcs = tcs;
+				this._complete = complete;
 				this._targets.AddRange(targets);
 			}
 
@@ -139,8 +133,10 @@ namespace ManagedNativeWifi
 
 			private void CheckTargets()
 			{
-				if ((_targets.Count <= 0) && !_tcs.Task.IsCompleted)
-					Task.Run(() => _tcs.SetResult(true));
+				if (_targets.Count > 0)
+					return;
+
+				_complete.Invoke();
 			}
 		}
 
@@ -570,30 +566,40 @@ namespace ManagedNativeWifi
 			if (timeout < TimeSpan.Zero)
 				throw new ArgumentException(nameof(timeout));
 
-			using (var client = new Base.WlanClient())
+			using (var client = new Base.WlanNotificationClient())
 			{
 				var tcs = new TaskCompletionSource<bool>();
 
-				Action<IntPtr, IntPtr> callback = (data, context) =>
+				client.NotificationReceived += (sender, data) =>
 				{
-					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
-					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+					Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
+
+					if (data.InterfaceGuid != interfaceId)
 						return;
 
-					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
-
-					switch (notificationData.NotificationCode)
+					switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 					{
-						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-							Task.Run(() => tcs.SetResult(true));
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
 							break;
-						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
-							Task.Run(() => tcs.SetResult(false));
+						default:
+							return;
+					}
+
+					var connectionNotificationData = Marshal.PtrToStructure<WLAN_CONNECTION_NOTIFICATION_DATA>(data.pData);
+					if (connectionNotificationData.strProfileName != profileName)
+						return;
+
+					switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
+					{
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+							Task.Run(() => tcs.TrySetResult(true));
+							break;
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+							Task.Run(() => tcs.TrySetResult(false));
 							break;
 					}
 				};
-
-				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
 				var result = Base.Connect(client.Handle, interfaceId, profileName, ConvertFromBssType(bssType));
 				if (!result)
@@ -648,27 +654,24 @@ namespace ManagedNativeWifi
 			if (timeout < TimeSpan.Zero)
 				throw new ArgumentException(nameof(timeout));
 
-			using (var client = new Base.WlanClient())
+			using (var client = new Base.WlanNotificationClient())
 			{
 				var tcs = new TaskCompletionSource<bool>();
 
-				Action<IntPtr, IntPtr> callback = (data, context) =>
+				client.NotificationReceived += (sender, data) =>
 				{
-					var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
-					if (notificationData.NotificationSource != WLAN_NOTIFICATION_SOURCE_ACM)
+					Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
+
+					if (data.InterfaceGuid != interfaceId)
 						return;
 
-					Debug.WriteLine("Callback: {0}", (WLAN_NOTIFICATION_ACM)notificationData.NotificationCode);
-
-					switch (notificationData.NotificationCode)
+					switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 					{
-						case (uint)WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-							Task.Run(() => tcs.SetResult(true));
+						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
+							Task.Run(() => tcs.TrySetResult(true));
 							break;
 					}
 				};
-
-				Base.RegisterNotification(client.Handle, WLAN_NOTIFICATION_SOURCE_ACM, callback);
 
 				var result = Base.Disconnect(client.Handle, interfaceId);
 				if (!result)
