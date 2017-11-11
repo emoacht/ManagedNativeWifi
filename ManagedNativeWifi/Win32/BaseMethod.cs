@@ -265,7 +265,7 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out ProfileType profileType)
+		public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out uint profileTypeFlag)
 		{
 			uint flags = 0U;
 			var result = WlanGetProfile(
@@ -277,9 +277,7 @@ namespace ManagedNativeWifi.Win32
 				ref flags,
 				out uint grantedAccess);
 
-			profileType = Enum.IsDefined(typeof(ProfileType), (int)flags)
-				? (ProfileType)(int)flags
-				: default(ProfileType);
+			profileTypeFlag = flags;
 
 			// ERROR_NOT_FOUND will be returned if the profile is not found.
 			return CheckResult(nameof(WlanGetProfile), result, false)
@@ -287,12 +285,12 @@ namespace ManagedNativeWifi.Win32
 				: null; // To be used
 		}
 
-		public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
+		public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceId, uint profileTypeFlag, string profileXml, string profileSecurity, bool overwrite)
 		{
 			var result = WlanSetProfile(
 				clientHandle,
 				interfaceId,
-				(uint)profileType,
+				profileTypeFlag,
 				profileXml,
 				profileSecurity,
 				overwrite,

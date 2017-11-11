@@ -1,4 +1,9 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace ManagedNativeWifi
 {
 	/// <summary>
@@ -22,5 +27,18 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <remarks>Equivalent to WLAN_PROFILE_USER</remarks>
 		PerUser
+	}
+
+	internal static class ProfileTypeConverter
+	{
+		public static ProfileType ToProfileType(uint source)
+		{
+			return Enum.IsDefined(typeof(ProfileType), (int)source)
+				? (ProfileType)source
+				: throw new ArgumentOutOfRangeException(nameof(source));
+		}
+
+		public static uint FromProfileType(ProfileType source) =>
+			(uint)source;
 	}
 }

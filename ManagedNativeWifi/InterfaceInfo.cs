@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using static ManagedNativeWifi.Win32.NativeMethod;
+
 namespace ManagedNativeWifi
 {
 	/// <summary>
@@ -34,6 +36,13 @@ namespace ManagedNativeWifi
 			this.Id = id;
 			this.Description = description;
 			this.State = state;
+		}
+
+		internal InterfaceInfo(WLAN_INTERFACE_INFO info)
+		{
+			Id = info.InterfaceGuid;
+			Description = info.strInterfaceDescription;
+			State = InterfaceStateConverter.ToInterfaceState(info.isState);
 		}
 	}
 }

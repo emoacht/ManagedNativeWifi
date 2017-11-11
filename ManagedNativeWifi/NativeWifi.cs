@@ -31,7 +31,7 @@ namespace ManagedNativeWifi
 			using (var client = new Base.WlanClient())
 			{
 				return Base.GetInterfaceInfoList(client.Handle)
-					.Select(x => ConvertToInterfaceInfo(x));
+					.Select(x => new InterfaceInfo(x));
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
 				{
 					var availableNetworkList = Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id);
 
@@ -227,7 +227,7 @@ namespace ManagedNativeWifi
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
-							bssType: ConvertToBssType(availableNetwork.dot11BssType),
+							bssType: BssTypeConverter.ToBssType(availableNetwork.dot11BssType),
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
 							profileName: availableNetwork.strProfileName);
@@ -246,7 +246,7 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
 				{
 					var networkBssEntryList = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id);
 
@@ -263,7 +263,7 @@ namespace ManagedNativeWifi
 						yield return new BssNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
-							bssType: ConvertToBssType(networkBssEntry.dot11BssType),
+							bssType: BssTypeConverter.ToBssType(networkBssEntry.dot11BssType),
 							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
 							signalStrength: networkBssEntry.lRssi,
 							linkQuality: (int)networkBssEntry.uLinkQuality,
@@ -314,7 +314,7 @@ namespace ManagedNativeWifi
 			{
 				var interfaceInfoList = Base.GetInterfaceInfoList(client.Handle);
 
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => ConvertToInterfaceInfo(x)))
+				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
 				{
 					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
 
@@ -373,8 +373,7 @@ namespace ManagedNativeWifi
 		/// </remarks>
 		private static ProfilePack GetProfile(SafeClientHandle clientHandle, InterfaceInfo interfaceInfo, string profileName, int signalQuality, int position, bool isConnected)
 		{
-			ProfileType profileType;
-			var source = Base.GetProfile(clientHandle, interfaceInfo.Id, profileName, out profileType);
+			var source = Base.GetProfile(clientHandle, interfaceInfo.Id, profileName, out uint profileTypeFlag);
 			if (string.IsNullOrWhiteSpace(source))
 				return null;
 
@@ -390,7 +389,7 @@ namespace ManagedNativeWifi
 			var ssidString = ssidXml?.Descendants(ns + "name").FirstOrDefault()?.Value;
 
 			var connectionTypeXml = rootXml.Descendants(ns + "connectionType").FirstOrDefault();
-			var bssType = ConvertToBssType(connectionTypeXml?.Value);
+			var bssType = BssTypeConverter.Parse(connectionTypeXml?.Value);
 
 			var connectionModeXml = rootXml.Descendants(ns + "connectionMode").FirstOrDefault();
 			var isAutomatic = (connectionModeXml?.Value.Equals("auto", StringComparison.OrdinalIgnoreCase)).GetValueOrDefault();
@@ -411,7 +410,7 @@ namespace ManagedNativeWifi
 			return new ProfilePack(
 				name: profileName,
 				interfaceInfo: interfaceInfo,
-				profileType: profileType,
+				profileType: ProfileTypeConverter.ToProfileType(profileTypeFlag),
 				profileXml: source,
 				ssid: new NetworkIdentifier(ssidBytes, ssidString),
 				bssType: bssType,
@@ -452,7 +451,9 @@ namespace ManagedNativeWifi
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.SetProfile(client.Handle, interfaceId, profileType, profileXml, profileSecurity, overwrite);
+				var profileTypeFlag = ProfileTypeConverter.FromProfileType(profileType);
+
+				return Base.SetProfile(client.Handle, interfaceId, profileTypeFlag, profileXml, profileSecurity, overwrite);
 			}
 		}
 
@@ -529,7 +530,7 @@ namespace ManagedNativeWifi
 
 			using (var client = new Base.WlanClient())
 			{
-				return Base.Connect(client.Handle, interfaceId, profileName, ConvertFromBssType(bssType));
+				return Base.Connect(client.Handle, interfaceId, profileName, BssTypeConverter.FromBssType(bssType));
 			}
 		}
 
@@ -601,7 +602,7 @@ namespace ManagedNativeWifi
 					}
 				};
 
-				var result = Base.Connect(client.Handle, interfaceId, profileName, ConvertFromBssType(bssType));
+				var result = Base.Connect(client.Handle, interfaceId, profileName, BssTypeConverter.FromBssType(bssType));
 				if (!result)
 					tcs.SetResult(false);
 
@@ -711,7 +712,7 @@ namespace ManagedNativeWifi
 					capability.dot11PhyTypes,
 					states.OrderBy(x => x.dwPhyIndex),
 					(x, y) => new RadioSet(
-						type: ConvertToPhyType(x),
+						type: PhyTypeConverter.ToPhyType(x),
 						softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState),
 						hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState)));
 
@@ -764,119 +765,6 @@ namespace ManagedNativeWifi
 		#endregion
 
 		#region Helper
-
-		private static InterfaceInfo ConvertToInterfaceInfo(WLAN_INTERFACE_INFO info)
-		{
-			return new InterfaceInfo(
-				id: info.InterfaceGuid,
-				description: info.strInterfaceDescription,
-				state: (InterfaceState)info.isState); // The values of two enumerations are identical.
-		}
-
-		private static DOT11_BSS_TYPE ConvertFromBssType(BssType source)
-		{
-			switch (source)
-			{
-				case BssType.Infrastructure:
-					return DOT11_BSS_TYPE.dot11_BSS_type_infrastructure;
-				case BssType.Independent:
-					return DOT11_BSS_TYPE.dot11_BSS_type_independent;
-				default:
-					return DOT11_BSS_TYPE.dot11_BSS_type_any;
-			}
-		}
-
-		private static BssType ConvertToBssType(DOT11_BSS_TYPE source)
-		{
-			switch (source)
-			{
-				case DOT11_BSS_TYPE.dot11_BSS_type_infrastructure:
-					return BssType.Infrastructure;
-				case DOT11_BSS_TYPE.dot11_BSS_type_independent:
-					return BssType.Independent;
-				default:
-					return BssType.Any;
-			}
-		}
-
-		private static BssType ConvertToBssType(string source)
-		{
-			if (string.IsNullOrWhiteSpace(source))
-			{
-				return default(BssType);
-			}
-			if (source.Equals("ESS", StringComparison.OrdinalIgnoreCase))
-			{
-				return BssType.Infrastructure;
-			}
-			if (source.Equals("IBSS", StringComparison.OrdinalIgnoreCase))
-			{
-				return BssType.Independent;
-			}
-			return BssType.Any;
-		}
-
-		private static DOT11_PHY_TYPE ConvertFromPhyType(PhyType source)
-		{
-			switch (source)
-			{
-				case PhyType.Any:
-					return DOT11_PHY_TYPE.dot11_phy_type_any;
-				case PhyType.Fhss:
-					return DOT11_PHY_TYPE.dot11_phy_type_fhss;
-				case PhyType.Dsss:
-					return DOT11_PHY_TYPE.dot11_phy_type_dsss;
-				case PhyType.IrBaseband:
-					return DOT11_PHY_TYPE.dot11_phy_type_irbaseband;
-				case PhyType.Ofdm:
-					return DOT11_PHY_TYPE.dot11_phy_type_ofdm;
-				case PhyType.HrDsss:
-					return DOT11_PHY_TYPE.dot11_phy_type_hrdsss;
-				case PhyType.Erp:
-					return DOT11_PHY_TYPE.dot11_phy_type_erp;
-				case PhyType.Ht:
-					return DOT11_PHY_TYPE.dot11_phy_type_ht;
-				case PhyType.Vht:
-					return DOT11_PHY_TYPE.dot11_phy_type_vht;
-				case PhyType.IhvStart:
-					return DOT11_PHY_TYPE.dot11_phy_type_IHV_start;
-				case PhyType.IhvEnd:
-					return DOT11_PHY_TYPE.dot11_phy_type_IHV_end;
-				default:
-					return DOT11_PHY_TYPE.dot11_phy_type_unknown;
-			}
-		}
-
-		private static PhyType ConvertToPhyType(DOT11_PHY_TYPE source)
-		{
-			switch (source)
-			{
-				case DOT11_PHY_TYPE.dot11_phy_type_any:
-					return PhyType.Any;
-				case DOT11_PHY_TYPE.dot11_phy_type_fhss:
-					return PhyType.Fhss;
-				case DOT11_PHY_TYPE.dot11_phy_type_dsss:
-					return PhyType.Dsss;
-				case DOT11_PHY_TYPE.dot11_phy_type_irbaseband:
-					return PhyType.IrBaseband;
-				case DOT11_PHY_TYPE.dot11_phy_type_ofdm:
-					return PhyType.Ofdm;
-				case DOT11_PHY_TYPE.dot11_phy_type_hrdsss:
-					return PhyType.HrDsss;
-				case DOT11_PHY_TYPE.dot11_phy_type_erp:
-					return PhyType.Erp;
-				case DOT11_PHY_TYPE.dot11_phy_type_ht:
-					return PhyType.Ht;
-				case DOT11_PHY_TYPE.dot11_phy_type_vht:
-					return PhyType.Vht;
-				case DOT11_PHY_TYPE.dot11_phy_type_IHV_start:
-					return PhyType.IhvStart;
-				case DOT11_PHY_TYPE.dot11_phy_type_IHV_end:
-					return PhyType.IhvEnd;
-				default:
-					return PhyType.Unknown;
-			}
-		}
 
 		private static bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
 		{

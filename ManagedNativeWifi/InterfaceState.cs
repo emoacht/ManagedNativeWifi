@@ -1,4 +1,11 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using static ManagedNativeWifi.Win32.NativeMethod;
+
 namespace ManagedNativeWifi
 {
 	/// <summary>
@@ -46,5 +53,14 @@ namespace ManagedNativeWifi
 		/// The interface is in the process of authenticating.
 		/// </summary>
 		Authenticating
+	}
+
+	internal static class InterfaceStateConverter
+	{
+		public static InterfaceState ToInterfaceState(WLAN_INTERFACE_STATE source) =>
+			(InterfaceState)source;
+
+		public static WLAN_INTERFACE_STATE FromInterfaceState(InterfaceState source) =>
+			(WLAN_INTERFACE_STATE)source;
 	}
 }
