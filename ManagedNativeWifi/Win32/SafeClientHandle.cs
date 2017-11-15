@@ -30,7 +30,7 @@ namespace ManagedNativeWifi.Win32
 		protected override bool ReleaseHandle()
 		{
 			var result = WlanCloseHandle(handle, IntPtr.Zero);
-			return result == ERROR_SUCCESS;
+			return (result == ERROR_SUCCESS);
 		}
 	}
 }

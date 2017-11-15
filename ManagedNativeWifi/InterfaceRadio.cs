@@ -22,6 +22,9 @@ namespace ManagedNativeWifi
 		public IReadOnlyList<RadioSet> RadioSets => Array.AsReadOnly(_radioSets);
 		private readonly RadioSet[] _radioSets;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public InterfaceRadio(Guid id, IEnumerable<RadioSet> radioSets)
 		{
 			this.Id = id;

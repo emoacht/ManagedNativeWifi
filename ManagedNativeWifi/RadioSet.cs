@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Radio information
+	/// Wireless radio information
 	/// </summary>
 	public class RadioSet
 	{
