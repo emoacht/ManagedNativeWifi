@@ -41,18 +41,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthenticationMethod.cs" />
+    <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssType.cs" />
+    <Compile Include="BssNetworkPack.cs" />
+    <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
     <Compile Include="InterfaceRadio.cs" />
-    <Compile Include="RadioSet.cs" />
     <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
-    <Compile Include="AvailableNetworkPack.cs" />
-    <Compile Include="BssNetworkPack.cs" />
     <Compile Include="NetworkIdentifier.cs" />
     <Compile Include="PhyType.cs" />
+    <Compile Include="ProfileDocument.cs" />
     <Compile Include="ProfilePack.cs" />
     <Compile Include="ProfileType.cs" />
+    <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />

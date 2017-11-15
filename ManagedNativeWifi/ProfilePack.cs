@@ -27,34 +27,45 @@ namespace ManagedNativeWifi
 		public ProfileType ProfileType { get; }
 
 		/// <summary>
-		/// Profile XML
+		/// Profile XML document
 		/// </summary>
-		public string ProfileXml { get; }
+		public ProfileDocument Document { get; }
+
+		/// <summary>
+		/// Profile XML string
+		/// </summary>
+		[Obsolete("Use Document.ToString method instead.")]
+		public string ProfileXml => Document.ToString();
 
 		/// <summary>
 		/// SSID of associated wireless LAN
 		/// </summary>
-		public NetworkIdentifier Ssid { get; }
+		[Obsolete("Use Document.Ssid property instead.")]
+		public NetworkIdentifier Ssid => Document.Ssid;
 
 		/// <summary>
 		/// BSS network type of associated wireless LAN
 		/// </summary>
-		public BssType BssType { get; }
+		[Obsolete("Use Document.BssType property instead.")]
+		public BssType BssType => Document.BssType;
 
 		/// <summary>
-		/// Authentication type of associated wireless LAN
+		/// Authentication of associated wireless LAN
 		/// </summary>
-		public string Authentication { get; }
+		[Obsolete("Use Document.Authentication property instead.")]
+		public string Authentication => Document.AuthenticationString;
 
 		/// <summary>
-		/// Encryption type of associated wireless LAN
+		/// Encryption of associated wireless LAN
 		/// </summary>
-		public string Encryption { get; }
+		[Obsolete("Use Document.Encryption property instead.")]
+		public string Encryption => Document.EncryptionString;
 
 		/// <summary>
-		/// Signal quality of associated wireless LAN
+		/// Whether this profile is set to be automatically connected
 		/// </summary>
-		public int SignalQuality { get; }
+		[Obsolete("Use Document.IsAutoConnectionEnabled property instead.")]
+		public bool IsAutomatic => Document.IsAutoConnectionEnabled;
 
 		/// <summary>
 		/// Position in preference order of associated wireless interface
@@ -62,9 +73,9 @@ namespace ManagedNativeWifi
 		public int Position { get; }
 
 		/// <summary>
-		/// Whether this profile is set to be automatically connected
+		/// Signal quality of associated wireless LAN
 		/// </summary>
-		public bool IsAutomatic { get; }
+		public int SignalQuality { get; }
 
 		/// <summary>
 		/// Whether this profile is currently connected
@@ -79,26 +90,16 @@ namespace ManagedNativeWifi
 			InterfaceInfo interfaceInfo,
 			ProfileType profileType,
 			string profileXml,
-			NetworkIdentifier ssid,
-			BssType bssType,
-			string authentication,
-			string encryption,
-			int signalQuality,
 			int position,
-			bool isAutomatic,
+			int signalQuality,
 			bool isConnected)
 		{
 			this.Name = name;
 			this.Interface = interfaceInfo;
 			this.ProfileType = profileType;
-			this.ProfileXml = profileXml;
-			this.Ssid = ssid;
-			this.BssType = bssType;
-			this.Authentication = authentication;
-			this.Encryption = encryption;
-			this.SignalQuality = signalQuality;
+			Document = new ProfileDocument(profileXml);
 			this.Position = position;
-			this.IsAutomatic = isAutomatic;
+			this.SignalQuality = signalQuality;
 			this.IsConnected = isConnected;
 		}
 	}

@@ -7,9 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
-using ManagedNativeWifi.Win32;
 using static ManagedNativeWifi.Win32.NativeMethod;
 using Base = ManagedNativeWifi.Win32.BaseMethod;
 
@@ -330,96 +328,32 @@ namespace ManagedNativeWifi
 
 					foreach (var profileInfo in profileInfoList)
 					{
-						var availableNetwork = availableNetworkList.FirstOrDefault(x => x.strProfileName.Equals(profileInfo.strProfileName, StringComparison.Ordinal));
+						var availableNetwork = availableNetworkList.FirstOrDefault(x => string.Equals(x.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
 						var signalQuality = (int)availableNetwork.wlanSignalQuality;
+						var profileIsConnected = interfaceIsConnected && string.Equals(connection.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal);
 
-						var profileIsConnected = interfaceIsConnected && profileInfo.strProfileName.Equals(connection.strProfileName, StringComparison.Ordinal);
-
-						//Debug.WriteLine("Interface: {0}, Profile: {1}, Signal {2}, Position: {3}, Connected {4}",
+						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, Signal: {3}, Connected: {4}",
 						//	interfaceInfo.Description,
 						//	profileInfo.strProfileName,
-						//	signalQuality,
 						//	position,
+						//	signalQuality,
 						//	profileIsConnected);
 
-						var profile = GetProfile(
-							client.Handle,
-							interfaceInfo,
-							profileInfo.strProfileName,
-							signalQuality,
-							position++,
-							profileIsConnected);
+						var profileXml = Base.GetProfile(client.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
+						if (string.IsNullOrWhiteSpace(profileXml))
+							continue;
 
-						if (profile != null)
-							yield return profile;
+						yield return new ProfilePack(
+							name: profileInfo.strProfileName,
+							interfaceInfo: interfaceInfo,
+							profileType: ProfileTypeConverter.ToProfileType(profileTypeFlag),
+							profileXml: profileXml,
+							position: position++,
+							signalQuality: signalQuality,
+							isConnected: profileIsConnected);
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// Gets a specified wireless profile information.
-		/// </summary>
-		/// <param name="clientHandle">Client handle</param>
-		/// <param name="interfaceInfo">Interface information</param>
-		/// <param name="profileName">Profile name</param>
-		/// <param name="signalQuality">Signal quality</param>
-		/// <param name="position">Position in preference order</param>
-		/// <param name="isConnected">Whether this profile is connected to a wireless LAN</param>
-		/// <returns>Wireless profile information</returns>
-		/// <remarks>
-		/// For profile elements, see
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707381.aspx
-		/// </remarks>
-		private static ProfilePack GetProfile(SafeClientHandle clientHandle, InterfaceInfo interfaceInfo, string profileName, int signalQuality, int position, bool isConnected)
-		{
-			var source = Base.GetProfile(clientHandle, interfaceInfo.Id, profileName, out uint profileTypeFlag);
-			if (string.IsNullOrWhiteSpace(source))
-				return null;
-
-			XElement rootXml;
-			using (var sr = new StringReader(source))
-				rootXml = XElement.Load(sr);
-
-			var ns = rootXml.Name.Namespace;
-
-			var ssidXml = rootXml.Descendants(ns + "SSID").FirstOrDefault();
-			var ssidHexadecimalString = ssidXml?.Descendants(ns + "hex").FirstOrDefault()?.Value;
-			var ssidBytes = ConvertFromHexadecimalStringToBytes(ssidHexadecimalString);
-			var ssidString = ssidXml?.Descendants(ns + "name").FirstOrDefault()?.Value;
-
-			var connectionTypeXml = rootXml.Descendants(ns + "connectionType").FirstOrDefault();
-			var bssType = BssTypeConverter.Parse(connectionTypeXml?.Value);
-
-			var connectionModeXml = rootXml.Descendants(ns + "connectionMode").FirstOrDefault();
-			var isAutomatic = (connectionModeXml?.Value.Equals("auto", StringComparison.OrdinalIgnoreCase)).GetValueOrDefault();
-
-			var authenticationXml = rootXml.Descendants(ns + "authentication").FirstOrDefault();
-			var authentication = authenticationXml?.Value;
-
-			var encryptionXml = rootXml.Descendants(ns + "encryption").FirstOrDefault();
-			var encryption = encryptionXml?.Value;
-
-			//Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}, Automatic: {4}",
-			//	ssidString,
-			//	bssType,
-			//	authentication,
-			//	encryption,
-			//	isAutomatic);
-
-			return new ProfilePack(
-				name: profileName,
-				interfaceInfo: interfaceInfo,
-				profileType: ProfileTypeConverter.ToProfileType(profileTypeFlag),
-				profileXml: source,
-				ssid: new NetworkIdentifier(ssidBytes, ssidString),
-				bssType: bssType,
-				authentication: authentication,
-				encryption: encryption,
-				signalQuality: signalQuality,
-				position: position,
-				isAutomatic: isAutomatic,
-				isConnected: isConnected);
 		}
 
 		#endregion
@@ -777,27 +711,6 @@ namespace ManagedNativeWifi
 				default:
 					return null;
 			}
-		}
-
-		private static byte[] ConvertFromHexadecimalStringToBytes(string source)
-		{
-			if (string.IsNullOrWhiteSpace(source))
-				return null;
-
-			var buff = new byte[source.Length / 2];
-
-			for (int i = 0; i < buff.Length; i++)
-			{
-				try
-				{
-					buff[i] = Convert.ToByte(source.Substring(i * 2, 2), 16);
-				}
-				catch (FormatException)
-				{
-					break;
-				}
-			}
-			return buff;
 		}
 
 		/// <summary>
