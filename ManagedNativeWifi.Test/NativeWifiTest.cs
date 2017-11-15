@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ManagedNativeWifi.Test
@@ -8,11 +10,9 @@ namespace ManagedNativeWifi.Test
 	[TestClass]
 	public class NativeWifiTest
 	{
-		#region SetProfile/DeleteProfile
+		#region Set/Delete Profile
 
 		private static Guid _interfaceId;
-		private const string _testProfileName = "TestProfile";
-		private const string _testSsidString = "TestSsid";
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -25,48 +25,47 @@ namespace ManagedNativeWifi.Test
 		[TestMethod]
 		public void SetProfileTest()
 		{
+			var testProfileName = $"TestProfile{DateTime.Today.Year}";
+			var testSsidString = $"TestSsidString{DateTime.Today.DayOfYear}";
+
 			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
 
-			var profileXml = CreateProfileXml(_testProfileName, _testSsidString);
+			var profileXml = CreateProfileXml(testProfileName, testSsidString);
 
 			var result = NativeWifi.SetProfile(_interfaceId, ProfileType.AllUser, profileXml, null, true);
 			Assert.IsTrue(result, "Failed to set the wireless profile for test.");
 
-			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),
+			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
 				"The wireless profile for test doesn't appear.");
 		}
 
 		[TestMethod]
 		public void DeletProfileTest()
 		{
+			var testProfileName = $"TestProfile{DateTime.Today.Year}";
+			var testSsidString = $"TestSsidString{DateTime.Today.DayOfYear}";
+
 			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
 
-			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),
+			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
 				"The wireless profile for test doesn't exist.");
 
-			var result = NativeWifi.DeleteProfile(_interfaceId, _testProfileName);
+			var result = NativeWifi.DeleteProfile(_interfaceId, testProfileName);
 			Assert.IsTrue(result, "Failed to delete the wireless profile for test.");
 
-			Assert.IsFalse(NativeWifi.EnumerateProfileNames().Contains(_testProfileName),
+			Assert.IsFalse(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
 				"The wireless profile for test remains.");
 		}
 
 		#region Helper
 
-		private static string CreateProfileXml(string profileName, string ssidString)
-		{
-			if (string.IsNullOrWhiteSpace(profileName))
-				throw new ArgumentNullException(nameof(profileName));
-
-			if (string.IsNullOrWhiteSpace(ssidString))
-				throw new ArgumentNullException(nameof(ssidString));
-
-			return $@"<?xml version=""1.0""?>
+		private static string CreateProfileXml(string profileName, string ssidString) =>
+			$@"<?xml version=""1.0""?>
 <WLANProfile xmlns=""http://www.microsoft.com/networking/WLAN/profile/v1"">
 	<name>{profileName}</name>
 	<SSIDConfig>
 		<SSID>
-			<hex>{ConvertFromStringToHexadecimalString(ssidString)}</hex>
+			<hex>{HexadecimalStringConverter.ToHexadecimalString(ssidString)}</hex>
 			<name>{ssidString}</name>
 		</SSID>
 	</SSIDConfig>
@@ -82,13 +81,6 @@ namespace ManagedNativeWifi.Test
 		</security>
 	</MSM>
 </WLANProfile>";
-		}
-
-		private static string ConvertFromStringToHexadecimalString(string source)
-		{
-			var buff = Encoding.UTF8.GetBytes(source);
-			return BitConverter.ToString(buff).Replace("-", "");
-		}
 
 		#endregion
 
