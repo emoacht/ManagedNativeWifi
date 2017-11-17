@@ -41,10 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\DisposableContainer.cs" />
+    <Compile Include="Win32\BaseMethod.cs" />
+    <Compile Include="Win32\NativeMethod.cs" />
+    <Compile Include="Win32\SafeClientHandle.cs" />
     <Compile Include="AuthenticationMethod.cs" />
     <Compile Include="AvailableNetworkPack.cs" />
-    <Compile Include="BssType.cs" />
     <Compile Include="BssNetworkPack.cs" />
+    <Compile Include="BssType.cs" />
     <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
     <Compile Include="InterfaceRadio.cs" />
@@ -57,9 +61,6 @@
     <Compile Include="ProfileType.cs" />
     <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Win32\BaseMethod.cs" />
-    <Compile Include="Win32\NativeMethod.cs" />
-    <Compile Include="Win32\SafeClientHandle.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
