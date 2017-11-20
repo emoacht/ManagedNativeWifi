@@ -439,10 +439,6 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		#endregion
-
-		#region Set profile position
-
 		/// <summary>
 		/// Sets the position of a specified wireless profile in preference order.
 		/// </summary>

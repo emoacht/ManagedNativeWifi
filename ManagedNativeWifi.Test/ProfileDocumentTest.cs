@@ -55,6 +55,9 @@ namespace ManagedNativeWifi.Test
 			document.IsAutoConnectionEnabled = false;
 			Assert.IsTrue(!document.IsAutoConnectionEnabled, "Failed to disable wireless profile automatic connection.");
 			Assert.IsTrue(!document.IsAutoSwitchEnabled, "Failed to disable wireless profile automatic switch.");
+
+			document.IsAutoSwitchEnabled = true;
+			Assert.IsTrue(!document.IsAutoSwitchEnabled, "Failed to interrupt enabling wireless profile automatic switch.");
 		}
 
 		#region Helper

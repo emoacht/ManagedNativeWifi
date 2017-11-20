@@ -170,6 +170,9 @@ namespace ManagedNativeWifi
 			get => ((bool?)_autoSwitchElement).GetValueOrDefault();
 			set
 			{
+				if (value && !IsAutoConnectionEnabled)
+					return;
+
 				if (_autoSwitchElement == null)
 				{
 					if (_connectionModeElement == null)
@@ -183,10 +186,9 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Returns profile XML.
+		/// Profile XML
 		/// </summary>
-		/// <returns>Profile XML</returns>
-		public override string ToString() => Root?.Declaration + Root?.ToString();
+		public string Xml => Root?.Declaration + Root?.ToString();
 
 		/// <summary>
 		/// Creates new instance cloned from this instance by deep copy.
