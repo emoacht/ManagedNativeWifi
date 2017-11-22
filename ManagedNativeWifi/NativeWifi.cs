@@ -78,8 +78,6 @@ namespace ManagedNativeWifi
 
 				container.Content.NotificationReceived += (sender, data) =>
 				{
-					//Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
-
 					switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 					{
 						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_complete:
@@ -571,8 +569,6 @@ namespace ManagedNativeWifi
 
 				container.Content.NotificationReceived += (sender, data) =>
 				{
-					//Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
-
 					if (data.InterfaceGuid != interfaceId)
 						return;
 
@@ -595,6 +591,9 @@ namespace ManagedNativeWifi
 							Task.Run(() => tcs.TrySetResult(true));
 							break;
 						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+							// This notification will not always mean that a connection has failed.
+							// A connection consists of one or more connection attempts and this notification
+							// may be received zero or more times before the connection completes.
 							Task.Run(() => tcs.TrySetResult(false));
 							break;
 					}
@@ -669,8 +668,6 @@ namespace ManagedNativeWifi
 
 				container.Content.NotificationReceived += (sender, data) =>
 				{
-					//Debug.WriteLine("NotificationReceived: {0}", (WLAN_NOTIFICATION_ACM)data.NotificationCode);
-
 					if (data.InterfaceGuid != interfaceId)
 						return;
 
