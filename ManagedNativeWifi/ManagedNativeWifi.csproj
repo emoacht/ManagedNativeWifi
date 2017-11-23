@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\ManagedNativeWifi.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -54,6 +55,7 @@
     <Compile Include="InterfaceRadio.cs" />
     <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
+    <Compile Include="NativeWifiPlayer.cs" />
     <Compile Include="NetworkIdentifier.cs" />
     <Compile Include="PhyType.cs" />
     <Compile Include="ProfileDocument.cs" />
