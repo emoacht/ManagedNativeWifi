@@ -188,7 +188,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Profile XML
 		/// </summary>
-		public string Xml => Root?.Declaration + Root?.ToString();
+		public string Xml => $"{Root?.Declaration}{Environment.NewLine}{Root?.ToString()}";
 
 		/// <summary>
 		/// Creates new instance cloned from this instance by deep copy.
