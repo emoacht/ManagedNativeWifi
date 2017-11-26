@@ -242,6 +242,9 @@ namespace ManagedNativeWifi
 
 					foreach (var availableNetwork in availableNetworkList)
 					{
+						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
+							continue;
+
 						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
 						//	interfaceInfo.Description,
 						//	availableNetwork.dot11Ssid,
@@ -251,7 +254,7 @@ namespace ManagedNativeWifi
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
-							bssType: BssTypeConverter.ToBssType(availableNetwork.dot11BssType),
+							bssType: bssType,
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
 							profileName: availableNetwork.strProfileName);
@@ -281,6 +284,9 @@ namespace ManagedNativeWifi
 
 					foreach (var networkBssEntry in networkBssEntryList)
 					{
+						if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
+							continue;
+
 						//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
 						//	interfaceInfo.Description,
 						//	networkBssEntry.dot11Ssid,
@@ -292,7 +298,7 @@ namespace ManagedNativeWifi
 						yield return new BssNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
-							bssType: BssTypeConverter.ToBssType(networkBssEntry.dot11BssType),
+							bssType: bssType,
 							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
 							signalStrength: networkBssEntry.lRssi,
 							linkQuality: (int)networkBssEntry.uLinkQuality,
@@ -373,6 +379,13 @@ namespace ManagedNativeWifi
 						var signalQuality = (int)availableNetwork.wlanSignalQuality;
 						var profileIsConnected = interfaceIsConnected && string.Equals(connection.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal);
 
+						var profileXml = Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
+						if (string.IsNullOrWhiteSpace(profileXml))
+							continue;
+
+						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
+							continue;
+
 						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, Signal: {3}, Connected: {4}",
 						//	interfaceInfo.Description,
 						//	profileInfo.strProfileName,
@@ -380,14 +393,10 @@ namespace ManagedNativeWifi
 						//	signalQuality,
 						//	profileIsConnected);
 
-						var profileXml = Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
-						if (string.IsNullOrWhiteSpace(profileXml))
-							continue;
-
 						yield return new ProfilePack(
 							name: profileInfo.strProfileName,
 							interfaceInfo: interfaceInfo,
-							profileType: ProfileTypeConverter.ToProfileType(profileTypeFlag),
+							profileType: profileType,
 							profileXml: profileXml,
 							position: position++,
 							signalQuality: signalQuality,
@@ -431,7 +440,7 @@ namespace ManagedNativeWifi
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var profileTypeFlag = ProfileTypeConverter.FromProfileType(profileType);
+				var profileTypeFlag = ProfileTypeConverter.ConvertBack(profileType);
 
 				return Base.SetProfile(container.Content.Handle, interfaceId, profileTypeFlag, profileXml, profileSecurity, overwrite);
 			}
@@ -506,12 +515,12 @@ namespace ManagedNativeWifi
 		/// <param name="profileName">Profile name</param>
 		/// <param name="bssType">BSS network type</param>
 		/// <returns>True if successfully requested the connection. False if failed.</returns>
-		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType = BssType.Any)
+		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType)
 		{
 			return ConnectNetwork(null, interfaceId, profileName, bssType);
 		}
 
-		internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType = BssType.Any)
+		internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
@@ -521,7 +530,7 @@ namespace ManagedNativeWifi
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.FromBssType(bssType));
+				return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
 			}
 		}
 
@@ -599,7 +608,7 @@ namespace ManagedNativeWifi
 					}
 				};
 
-				var result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.FromBssType(bssType));
+				var result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
 				if (!result)
 					tcs.SetResult(false);
 
@@ -722,7 +731,7 @@ namespace ManagedNativeWifi
 					capability.dot11PhyTypes,
 					states.OrderBy(x => x.dwPhyIndex),
 					(x, y) => new RadioSet(
-						type: PhyTypeConverter.ToPhyType(x),
+						type: PhyTypeConverter.Convert(x),
 						softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState),
 						hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState)));
 

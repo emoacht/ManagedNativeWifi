@@ -15,7 +15,7 @@ namespace ManagedNativeWifi
 	public enum AuthenticationMethod
 	{
 		/// <summary>
-		/// None
+		/// None (invalid value)
 		/// </summary>
 		None = 0,
 
@@ -56,25 +56,31 @@ namespace ManagedNativeWifi
 
 	internal static class AuthenticationMethodConverter
 	{
-		public static AuthenticationMethod ToAuthenticationMethod(string source)
+		public static bool TryParse(string source, out AuthenticationMethod authentication)
 		{
 			switch (source)
 			{
 				case "open":
-					return AuthenticationMethod.Open;
+					authentication = AuthenticationMethod.Open;
+					return true;
 				case "shared":
-					return AuthenticationMethod.Shared;
+					authentication = AuthenticationMethod.Shared;
+					return true;
 				case "WPA":
-					return AuthenticationMethod.WPA_Enterprise;
+					authentication = AuthenticationMethod.WPA_Enterprise;
+					return true;
 				case "WPAPSK":
-					return AuthenticationMethod.WPA_Personal;
+					authentication = AuthenticationMethod.WPA_Personal;
+					return true;
 				case "WPA2":
-					return AuthenticationMethod.WPA2_Enterprise;
+					authentication = AuthenticationMethod.WPA2_Enterprise;
+					return true;
 				case "WPA2PSK":
-					return AuthenticationMethod.WPA2_Personal;
-				default:
-					return AuthenticationMethod.None;
+					authentication = AuthenticationMethod.WPA2_Personal;
+					return true;
 			}
+			authentication = default(AuthenticationMethod);
+			return false;
 		}
 	}
 }

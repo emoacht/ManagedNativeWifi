@@ -31,14 +31,18 @@ namespace ManagedNativeWifi
 
 	internal static class ProfileTypeConverter
 	{
-		public static ProfileType ToProfileType(uint source)
+		public static bool TryConvert(uint source, out ProfileType profileType)
 		{
-			return Enum.IsDefined(typeof(ProfileType), (int)source)
-				? (ProfileType)source
-				: throw new ArgumentOutOfRangeException(nameof(source));
+			if (Enum.IsDefined(typeof(ProfileType), (int)source))
+			{
+				profileType = (ProfileType)source;
+				return true;
+			}
+			profileType = default(ProfileType);
+			return false;
 		}
 
-		public static uint FromProfileType(ProfileType source) =>
+		public static uint ConvertBack(ProfileType source) =>
 			(uint)source;
 	}
 }

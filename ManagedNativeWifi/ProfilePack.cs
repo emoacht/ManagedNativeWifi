@@ -64,8 +64,8 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Whether this profile is set to be automatically connected
 		/// </summary>
-		[Obsolete("Use Document.IsAutoConnectionEnabled property instead.")]
-		public bool IsAutomatic => Document.IsAutoConnectionEnabled;
+		[Obsolete("Use Document.IsAutoConnectEnabled property instead.")]
+		public bool IsAutomatic => Document.IsAutoConnectEnabled;
 
 		/// <summary>
 		/// Position in preference order of associated wireless interface

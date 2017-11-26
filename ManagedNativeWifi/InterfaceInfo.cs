@@ -42,7 +42,7 @@ namespace ManagedNativeWifi
 		{
 			Id = info.InterfaceGuid;
 			Description = info.strInterfaceDescription;
-			State = InterfaceStateConverter.ToInterfaceState(info.isState);
+			State = InterfaceStateConverter.Convert(info.isState);
 		}
 	}
 }

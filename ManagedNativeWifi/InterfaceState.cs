@@ -57,10 +57,10 @@ namespace ManagedNativeWifi
 
 	internal static class InterfaceStateConverter
 	{
-		public static InterfaceState ToInterfaceState(WLAN_INTERFACE_STATE source) =>
+		public static InterfaceState Convert(WLAN_INTERFACE_STATE source) =>
 			(InterfaceState)source;
 
-		public static WLAN_INTERFACE_STATE FromInterfaceState(InterfaceState source) =>
+		public static WLAN_INTERFACE_STATE ConvertBack(InterfaceState source) =>
 			(WLAN_INTERFACE_STATE)source;
 	}
 }

@@ -78,7 +78,7 @@ namespace ManagedNativeWifi
 
 	internal static class PhyTypeConverter
 	{
-		public static PhyType ToPhyType(DOT11_PHY_TYPE source)
+		public static PhyType Convert(DOT11_PHY_TYPE source)
 		{
 			switch (source)
 			{
@@ -109,7 +109,7 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		public static DOT11_PHY_TYPE FromPhyType(PhyType source)
+		public static DOT11_PHY_TYPE ConvertBack(PhyType source)
 		{
 			switch (source)
 			{

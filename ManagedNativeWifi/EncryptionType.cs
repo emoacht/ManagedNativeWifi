@@ -15,7 +15,7 @@ namespace ManagedNativeWifi
 	public enum EncryptionType
 	{
 		/// <summary>
-		/// None
+		/// None (valid value)
 		/// </summary>
 		None = 0,
 
@@ -37,19 +37,25 @@ namespace ManagedNativeWifi
 
 	internal static class EncryptionTypeConverter
 	{
-		public static EncryptionType ToEncryptionType(string source)
+		public static bool TryParse(string source, out EncryptionType encryption)
 		{
 			switch (source)
 			{
 				case "WEP":
-					return EncryptionType.WEP;
+					encryption = EncryptionType.WEP;
+					return true;
 				case "TKIP":
-					return EncryptionType.TKIP;
+					encryption = EncryptionType.TKIP;
+					return true;
 				case "AES":
-					return EncryptionType.AES;
-				default:
-					return EncryptionType.None;
+					encryption = EncryptionType.AES;
+					return true;
+				case "none":
+					encryption = EncryptionType.None;
+					return true;
 			}
+			encryption = default(EncryptionType);
+			return true;
 		}
 	}
 }

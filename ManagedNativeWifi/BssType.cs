@@ -14,7 +14,7 @@ namespace ManagedNativeWifi
 	public enum BssType
 	{
 		/// <summary>
-		/// None
+		/// None (invalid value)
 		/// </summary>
 		None = 0,
 
@@ -26,30 +26,43 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Independent BSS (IBSS) network (Ad hoc network)
 		/// </summary>
-		Independent,
-
-		/// <summary>
-		/// Any BSS network
-		/// </summary>
-		Any
+		Independent
 	}
 
 	internal static class BssTypeConverter
 	{
-		public static BssType ToBssType(DOT11_BSS_TYPE source)
+		public static bool TryConvert(DOT11_BSS_TYPE source, out BssType bssType)
 		{
 			switch (source)
 			{
 				case DOT11_BSS_TYPE.dot11_BSS_type_infrastructure:
-					return BssType.Infrastructure;
+					bssType = BssType.Infrastructure;
+					return true;
 				case DOT11_BSS_TYPE.dot11_BSS_type_independent:
-					return BssType.Independent;
-				default:
-					return BssType.Any;
+					bssType = BssType.Independent;
+					return true;
 			}
+			bssType = default(BssType);
+			return false;
 		}
 
-		public static DOT11_BSS_TYPE FromBssType(BssType source)
+		public static bool TryParse(string source, out BssType bssType)
+		{
+			if (string.Equals("ESS", source, StringComparison.OrdinalIgnoreCase))
+			{
+				bssType = BssType.Infrastructure;
+				return true;
+			}
+			if (string.Equals("IBSS", source, StringComparison.OrdinalIgnoreCase))
+			{
+				bssType = BssType.Independent;
+				return true;
+			}
+			bssType = default(BssType);
+			return false;
+		}
+
+		public static DOT11_BSS_TYPE ConvertBack(BssType source)
 		{
 			switch (source)
 			{
@@ -57,26 +70,8 @@ namespace ManagedNativeWifi
 					return DOT11_BSS_TYPE.dot11_BSS_type_infrastructure;
 				case BssType.Independent:
 					return DOT11_BSS_TYPE.dot11_BSS_type_independent;
-				default:
-					return DOT11_BSS_TYPE.dot11_BSS_type_any;
 			}
-		}
-
-		public static BssType Parse(string source)
-		{
-			if (string.IsNullOrWhiteSpace(source))
-			{
-				return default(BssType);
-			}
-			if (string.Equals("ESS", source, StringComparison.OrdinalIgnoreCase))
-			{
-				return BssType.Infrastructure;
-			}
-			if (string.Equals("IBSS", source, StringComparison.OrdinalIgnoreCase))
-			{
-				return BssType.Independent;
-			}
-			return BssType.Any;
+			throw new ArgumentException(nameof(source));
 		}
 	}
 }
