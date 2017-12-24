@@ -72,9 +72,9 @@ This method returns true if successfully connected to the wireless LAN in contra
 To refresh currently available wireless LANs, call `ScanNetworksAsync` method.
 
 ```csharp
-public static async Task RefreshAsync()
+public static Task RefreshAsync()
 {
-    await NativeWifi.ScanNetworksAsync(timeout: TimeSpan.FromSeconds(10));
+    return NativeWifi.ScanNetworksAsync(timeout: TimeSpan.FromSeconds(10));
 }
 ```
 
