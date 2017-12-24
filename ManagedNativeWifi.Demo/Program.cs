@@ -14,11 +14,11 @@ namespace ManagedNativeWifi.Demo
 			if (!Debugger.IsAttached)
 				Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-			//ShowInformation();
+			ShowInformation();
 
-			//PerformUsage().Wait();
+			PerformUsage().Wait();
 
-			ShowRadioInformation();
+			//ShowRadioInformation();
 
 			//TurnOn();
 			//TurnOff();
@@ -78,13 +78,14 @@ namespace ManagedNativeWifi.Demo
 			{
 				Trace.WriteLine($"{{Name: {profile.Name}");
 				Trace.WriteLine($" Interface: {profile.Interface.Description} ({profile.Interface.Id})");
-				Trace.WriteLine($" SSID: {profile.Ssid}");
-				Trace.WriteLine($" BSS: {profile.BssType}");
-				Trace.WriteLine($" Authentication: {profile.Authentication}");
-				Trace.WriteLine($" Encryption: {profile.Encryption}");
+				Trace.WriteLine($" SSID: {profile.Document.Ssid}");
+				Trace.WriteLine($" BSS: {profile.Document.BssType}");
+				Trace.WriteLine($" Authentication: {profile.Document.Authentication}");
+				Trace.WriteLine($" Encryption: {profile.Document.Encryption}");
+				Trace.WriteLine($" AutoConnect: {profile.Document.IsAutoConnectEnabled}");
+				Trace.WriteLine($" AutoSwitch: {profile.Document.IsAutoSwitchEnabled}");
 				Trace.WriteLine($" Signal: {profile.SignalQuality}");
 				Trace.WriteLine($" Position: {profile.Position}");
-				Trace.WriteLine($" Automatic: {profile.IsAutomatic}");
 				Trace.WriteLine($" Connected: {profile.IsConnected}}}");
 			}
 		}
@@ -96,6 +97,7 @@ namespace ManagedNativeWifi.Demo
 			foreach (var ssid in Usage.EnumerateNetworkSsids())
 				Trace.WriteLine($"Ssid: {ssid}");
 
+			Trace.WriteLine($"Change automatic connection: {Usage.ChangeProfile(true, false)}");
 			Trace.WriteLine($"Connect: {await Usage.ConnectAsync()}");
 
 			await Usage.RefreshAsync();
