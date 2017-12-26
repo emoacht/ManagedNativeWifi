@@ -73,12 +73,17 @@ namespace ManagedNativeWifi
 		public int Position { get; }
 
 		/// <summary>
+		/// Whether radio of associated wireless interface is on
+		/// </summary>
+		public bool IsRadioOn { get; }
+
+		/// <summary>
 		/// Signal quality of associated wireless LAN
 		/// </summary>
 		public int SignalQuality { get; }
 
 		/// <summary>
-		/// Whether this profile is currently connected
+		/// Whether associated wireless interface is connected to associated wireless LAN
 		/// </summary>
 		public bool IsConnected { get; }
 
@@ -91,6 +96,7 @@ namespace ManagedNativeWifi
 			ProfileType profileType,
 			string profileXml,
 			int position,
+			bool isRadioOn,
 			int signalQuality,
 			bool isConnected)
 		{
@@ -99,6 +105,7 @@ namespace ManagedNativeWifi
 			this.ProfileType = profileType;
 			Document = new ProfileDocument(profileXml);
 			this.Position = position;
+			this.IsRadioOn = isRadioOn;
 			this.SignalQuality = signalQuality;
 			this.IsConnected = isConnected;
 		}

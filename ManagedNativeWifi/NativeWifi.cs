@@ -363,6 +363,8 @@ namespace ManagedNativeWifi
 				{
 					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
 
+					var interfaceIsRadioOn = interfaceIsConnected || IsInterfaceRadioOn(container.Content, interfaceInfo.Id);
+
 					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id)
 						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
 						.ToArray();
@@ -386,10 +388,11 @@ namespace ManagedNativeWifi
 						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
 							continue;
 
-						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, Signal: {3}, Connected: {4}",
+						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, RadioOn: {3}, Signal: {4}, Connected: {5}",
 						//	interfaceInfo.Description,
 						//	profileInfo.strProfileName,
 						//	position,
+						//	interfaceIsRadioOn,
 						//	signalQuality,
 						//	profileIsConnected);
 
@@ -399,11 +402,25 @@ namespace ManagedNativeWifi
 							profileType: profileType,
 							profileXml: profileXml,
 							position: position++,
+							isRadioOn: interfaceIsRadioOn,
 							signalQuality: signalQuality,
 							isConnected: profileIsConnected);
 					}
 				}
 			}
+		}
+
+		private static bool IsInterfaceRadioOn(Base.WlanClient client, Guid interfaceId)
+		{
+			var states = Base.GetPhyRadioStates(client.Handle, interfaceId);
+			if (!states.Any())
+				return false;
+
+			var hardwareOn = ConvertToNullableBoolean(states.First().dot11HardwareRadioState);
+			var softwareOn = ConvertToNullableBoolean(states.First().dot11SoftwareRadioState);
+
+			return hardwareOn.GetValueOrDefault()
+				&& softwareOn.GetValueOrDefault();
 		}
 
 		#endregion
