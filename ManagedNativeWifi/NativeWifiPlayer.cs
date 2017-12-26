@@ -33,12 +33,17 @@ namespace ManagedNativeWifi
 		public event EventHandler NetworkRefreshed;
 
 		/// <summary>
+		/// Occurs when availability of a wireless interface is changed.
+		/// </summary>
+		public event EventHandler AvailabilityChanged;
+
+		/// <summary>
 		/// Occurs when a wireless interface is added/removed/enabled/disabled
 		/// </summary>
 		public event EventHandler InterfaceChanged;
 
 		/// <summary>
-		/// Occurs when connection to wireless LAN is changed.
+		/// Occurs when connection of a wireless interface is changed.
 		/// </summary>
 		public event EventHandler ConnectionChanged;
 
@@ -51,10 +56,16 @@ namespace ManagedNativeWifi
 		{
 			Debug.WriteLine($"NotificationReceived: {(WLAN_NOTIFICATION_ACM)e.NotificationCode}");
 
-			switch (((WLAN_NOTIFICATION_ACM)e.NotificationCode))
+			switch ((WLAN_NOTIFICATION_ACM)e.NotificationCode)
 			{
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_list_refresh:
 					NetworkRefreshed?.Invoke(this, EventArgs.Empty);
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_available:
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_not_available:
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_start:
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_end:
+					AvailabilityChanged?.Invoke(this, EventArgs.Empty);
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_arrival:
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_removal:
