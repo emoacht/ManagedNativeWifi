@@ -84,8 +84,9 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" Encryption: {profile.Document.Encryption}");
 				Trace.WriteLine($" AutoConnect: {profile.Document.IsAutoConnectEnabled}");
 				Trace.WriteLine($" AutoSwitch: {profile.Document.IsAutoSwitchEnabled}");
-				Trace.WriteLine($" Signal: {profile.SignalQuality}");
 				Trace.WriteLine($" Position: {profile.Position}");
+				Trace.WriteLine($" RadioOn: {profile.IsRadioOn}");
+				Trace.WriteLine($" Signal: {profile.SignalQuality}");
 				Trace.WriteLine($" Connected: {profile.IsConnected}}}");
 			}
 		}
