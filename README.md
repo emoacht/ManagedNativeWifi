@@ -23,6 +23,7 @@ Available methods including asynchronous ones based on TAP.
 | EnumerateProfiles              | Enumerates wireless profile information in preference order.                                       |
 | SetProfile                     | Sets (add or overwrite) the content of a specified wireless profile.                               |
 | SetProfilePosition             | Sets the position of a specified wireless profile in preference order.                             |
+| RenameProfile                  | Renames a specified wireless profile.                                                              |
 | DeleteProfile                  | Deletes a specified wireless profile.                                                              |
 | ConnectNetwork                 | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |
 | ConnectNetworkAsync            | Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile. |
