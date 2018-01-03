@@ -169,6 +169,12 @@ namespace ManagedNativeWifi
 			NativeWifi.SetProfilePosition(_client, interfaceId, profileName, position);
 
 		/// <summary>
+		/// Renames a specified wireless profile.
+		/// </summary>
+		public bool RenameProfile(Guid interfaceId, string oldProfileName, string newProfileName) =>
+			NativeWifi.RenameProfile(_client, interfaceId, oldProfileName, newProfileName);
+
+		/// <summary>
 		/// Deletes a specified wireless profile.
 		/// </summary>
 		public bool DeleteProfile(Guid interfaceId, string profileName) =>

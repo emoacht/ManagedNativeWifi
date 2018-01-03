@@ -425,7 +425,7 @@ namespace ManagedNativeWifi
 
 		#endregion
 
-		#region Set profile
+		#region Set/Rename/Delete profile
 
 		/// <summary>
 		/// Sets (adds or overwrites) the content of a specified wireless profile.
@@ -492,9 +492,34 @@ namespace ManagedNativeWifi
 			}
 		}
 
-		#endregion
+		/// <summary>
+		/// Renames a specified wireless profile.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <param name="oldProfileName">Old profile name</param>
+		/// <param name="newProfileName">New profile name</param>
+		/// <returns>True if successfully renamed. False if not.</returns>
+		public static bool RenameProfile(Guid interfaceId, string oldProfileName, string newProfileName)
+		{
+			return RenameProfile(null, interfaceId, oldProfileName, newProfileName);
+		}
 
-		#region Delete profile
+		internal static bool RenameProfile(Base.WlanClient client, Guid interfaceId, string oldProfileName, string newProfileName)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			if (string.IsNullOrWhiteSpace(oldProfileName))
+				throw new ArgumentNullException(nameof(oldProfileName));
+
+			if (string.IsNullOrWhiteSpace(newProfileName))
+				throw new ArgumentNullException(nameof(newProfileName));
+
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				return Base.RenameProfile(container.Content.Handle, interfaceId, oldProfileName, newProfileName);
+			}
+		}
 
 		/// <summary>
 		/// Deletes a specified wireless profile.

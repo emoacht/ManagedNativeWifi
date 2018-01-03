@@ -318,6 +318,20 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanSetProfilePosition), result, false);
 		}
 
+		public static bool RenameProfile(SafeClientHandle clientHandle, Guid interfaceId, string oldProfileName, string newProfileName)
+		{
+			var result = WlanRenameProfile(
+				clientHandle,
+				interfaceId,
+				oldProfileName,
+				newProfileName,
+				IntPtr.Zero);
+
+			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
+			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			return CheckResult(nameof(WlanRenameProfile), result, false);
+		}
+
 		public static bool DeleteProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName)
 		{
 			var result = WlanDeleteProfile(
