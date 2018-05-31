@@ -51,7 +51,9 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" SSID: {network.Ssid}");
 				Trace.WriteLine($" BSS: {network.BssType}");
 				Trace.WriteLine($" Signal: {network.SignalQuality}");
-				Trace.WriteLine($" Security: {network.IsSecurityEnabled}}}");
+				Trace.WriteLine($" Security: {network.IsSecurityEnabled}");
+				Trace.WriteLine($" Auth Algorithm: {network.AuthAlgorithm.ToString()}");
+				Trace.WriteLine($" Cipher Algorithm: {network.CipherAlgorithm.ToString()}}}");
 			}
 
 			Trace.WriteLine("[BSS Networks]");

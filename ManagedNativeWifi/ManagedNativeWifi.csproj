@@ -43,26 +43,33 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\DisposableContainer.cs" />
+    <Compile Include="EnumDefinition\AuthType.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />
     <Compile Include="AuthenticationMethod.cs" />
     <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssNetworkPack.cs" />
-    <Compile Include="BssType.cs" />
-    <Compile Include="EncryptionType.cs" />
+    <Compile Include="EnumDefinition\BssType.cs" />
+    <Compile Include="EnumDefinition\EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
     <Compile Include="InterfaceRadio.cs" />
-    <Compile Include="InterfaceState.cs" />
+    <Compile Include="EnumDefinition\InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
     <Compile Include="NativeWifiPlayer.cs" />
     <Compile Include="NetworkIdentifier.cs" />
-    <Compile Include="PhyType.cs" />
+    <Compile Include="EnumDefinition\PhyType.cs" />
     <Compile Include="ProfileDocument.cs" />
     <Compile Include="ProfilePack.cs" />
-    <Compile Include="ProfileType.cs" />
+    <Compile Include="EnumDefinition\ProfileType.cs" />
     <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ManagedNativeWifi.Simple\ManagedNativeWifi.Simple.csproj">
+      <Project>{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}</Project>
+      <Name>ManagedNativeWifi.Simple</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

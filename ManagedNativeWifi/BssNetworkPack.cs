@@ -17,6 +17,11 @@ namespace ManagedNativeWifi
 		public InterfaceInfo Interface { get; }
 
 		/// <summary>
+        /// Associated wireless network information
+        /// </summary>
+		public AvailableNetworkPack Network { get; }
+
+		/// <summary>
 		/// SSID (maximum 32 bytes)
 		/// </summary>
 		public NetworkIdentifier Ssid { get; }
@@ -56,6 +61,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public BssNetworkPack(
 			InterfaceInfo interfaceInfo,
+			AvailableNetworkPack network,
 			NetworkIdentifier ssid,
 			BssType bssType,
 			NetworkIdentifier bssid,
@@ -65,6 +71,7 @@ namespace ManagedNativeWifi
 			int channel)
 		{
 			this.Interface = interfaceInfo;
+			this.Network = network;
 			this.Ssid = ssid;
 			this.BssType = bssType;
 			this.Bssid = bssid;

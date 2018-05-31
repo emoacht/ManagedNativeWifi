@@ -240,12 +240,19 @@ namespace ManagedNativeWifi
                 {
                     var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
                     BssType bssType;
-
+	                EncryptionType encryptionType;
+	                AuthType authType;
                     foreach (var availableNetwork in availableNetworkList)
                     {
                         if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out bssType))
                             continue;
 
+						if(!EncryptionTypeConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm,out encryptionType))
+							continue;
+
+	                    if (!AuthTypeConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out authType))
+							continue;
+	                    ;
                         //Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
                         //	interfaceInfo.Description,
                         //	availableNetwork.dot11Ssid,
@@ -258,7 +265,9 @@ namespace ManagedNativeWifi
                             bssType: bssType,
                             signalQuality: (int)availableNetwork.wlanSignalQuality,
                             isSecurityEnabled: availableNetwork.bSecurityEnabled,
-                            profileName: availableNetwork.strProfileName);
+                            profileName: availableNetwork.strProfileName,
+	                        cipherAlgorithm: encryptionType,
+                            authAlgorithm: authType);
                     }
                 }
             }
@@ -281,6 +290,8 @@ namespace ManagedNativeWifi
 
                 foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
                 {
+	                var networkList = EnumerateAvailableNetworks(client);
+
                     var networkBssEntryList = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id);
 
                     foreach (var networkBssEntry in networkBssEntryList)
@@ -297,9 +308,16 @@ namespace ManagedNativeWifi
                         //	networkBssEntry.lRssi,
                         //	networkBssEntry.uLinkQuality,
                         //	networkBssEntry.ulChCenterFrequency);
+	                    var network = networkList.Where(o => o.Ssid.ToString() == new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()).ToString());
+
+						//this program work get available network first and get bssnetwork list.
+						//so if can not found network. just skip the bss network.
+						//it just happen if you don't have a luck.
+						if(network.Any()) continue;
 
                         yield return new BssNetworkPack(
                             interfaceInfo: interfaceInfo,
+                            network: network.First(),
                             ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
                             bssType: bssType,
                             bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
