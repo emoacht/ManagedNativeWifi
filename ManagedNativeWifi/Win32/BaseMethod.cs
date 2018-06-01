@@ -247,7 +247,22 @@ namespace ManagedNativeWifi.Win32
 		    }
 	    }
 
-	    public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
+        /// <summary>
+        /// Gets a parameter of the interface whose data type is <see cref="int"/>.
+        /// 
+        /// Possible Win32 errors:
+        /// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions to perform the requested operation.
+        /// ERROR_INVALID PARAMETER: hClientHandle is NULL or invalid, pInterfaceGuid is NULL, pReserved is not NULL, ppData is NULL, or pdwDataSize is NULL.
+        /// ERROR_INVALID_HANDLE: The handle hClientHandle was not found in the handle table.
+        /// ERROR_INVALID_STATE: OpCode is set to wlan_intf_opcode_current_connection and the client is not currently connected to a network.
+        /// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
+        /// RPC_STATUS: Various error codes.
+        /// </summary>
+        /// <param name="clientHandle">The client's session handle, obtained by a previous call to the WlanOpenHandle function.</param>
+        /// <param name="interfaceId">The GUID of the interface to be queried.</param>
+        /// <param name="wlanIntfOpcode">A WLAN_INTF_OPCODE value that specifies the parameter to be queried.</param>
+        /// <returns>The integer value.</returns>
+        public static int GetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
 	    {
 		    var queryData = IntPtr.Zero;
 		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;
@@ -265,14 +280,50 @@ namespace ManagedNativeWifi.Win32
 				    out opcodeValueType);
 
 			    // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
-			    return CheckResult(nameof(WlanQueryInterface), result, false)
-				    ? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
-				    : default(WLAN_CONNECTION_ATTRIBUTES);
+			    return CheckResult(nameof(GetInterfaceInt), result, false)
+				    ? Marshal.ReadInt32(queryData)
+				    : -1;
 		    }
 		    finally
 		    {
 			    if (queryData != IntPtr.Zero)
 				    WlanFreeMemory(queryData);
+		    }
+	    }
+
+        /// <summary>
+        /// Sets a parameter of the interface whose data type is <see cref="int"/>.
+        /// 
+        /// Possible Win32 errors:
+        /// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions to perform the requested operation.
+        /// ERROR_GEN_FAILURE: The parameter specified by OpCode is not supported by the driver or NIC.
+        /// ERROR_INVALID_HANDLE: The handle hClientHandle was not found in the handle table.
+        /// ERROR_INVALID_PARAMETER: One parameter is likely NULL
+        /// RPC_STATUS: Various return codes to indicate errors occurred when connecting.
+        /// </summary>
+        /// <param name="clientHandle">The client's session handle, obtained by a previous call to the WlanOpenHandle function.</param>
+        /// <param name="interfaceId">The GUID of the interface to be configured.</param>
+        /// <param name="wlanIntfOpcode">A WLAN_INTF_OPCODE value that specifies the parameter to be set.</param>
+        /// <param name="value">The value to set.</param>
+        public static void SetIntesrfaceInt(SafeClientHandle clientHandle, Guid interfaceId,
+		    WLAN_INTF_OPCODE wlanIntfOpcode, int value)
+	    {
+		    IntPtr dataPtr = Marshal.AllocHGlobal(sizeof(int));
+			Marshal.WriteInt32(dataPtr,value);
+		    try
+		    {
+			    var result = WlanSetInterface(
+				    clientHandle,
+				    interfaceId,
+				    wlanIntfOpcode,
+				    sizeof(int),
+				    dataPtr,
+				    IntPtr.Zero
+			    );
+		    }
+		    finally
+		    {
+			    Marshal.FreeHGlobal(dataPtr);
 		    }
 	    }
 
