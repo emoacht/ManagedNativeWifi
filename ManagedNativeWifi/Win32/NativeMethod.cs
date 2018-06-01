@@ -42,8 +42,8 @@ namespace ManagedNativeWifi.Win32
 			WLAN_INTF_OPCODE OpCode,
 			IntPtr pReserved,
 			out uint pdwDataSize,
-			ref IntPtr ppData, // Pointer to WLAN_CONNECTION_ATTRIBUTES, WLAN_RADIO_STATE
-			IntPtr pWlanOpcodeValueType);
+			out IntPtr ppData, // Pointer to WLAN_CONNECTION_ATTRIBUTES, WLAN_RADIO_STATE
+			out WLAN_OPCODE_VALUE_TYPE pWlanOpcodeValueType);
 
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetInterfaceCapability(
@@ -637,7 +637,27 @@ namespace ManagedNativeWifi.Win32
 			dot11_BSS_type_any = 3,
 		}
 
-		public enum DOT11_PHY_TYPE : uint
+		public enum WLAN_OPCODE_VALUE_TYPE
+		{
+            /// <summary>
+            /// The auto config settings were queried, but the origin of the settings was not determined.
+            /// </summary>
+            wlan_opcode_value_type_query_only = 0,
+            /// <summary>
+            /// The auto config settings were set by group policy.
+            /// </summary>
+            wlan_opcode_value_type_set_by_group_policy = 1,
+            /// <summary>
+            /// The auto config settings were set by the user.
+            /// </summary>
+            wlan_opcode_value_type_set_by_user = 2,
+            /// <summary>
+            /// The auto config settings are invalid.
+            /// </summary>
+            wlan_opcode_value_type_invalid = 3
+        }
+
+        public enum DOT11_PHY_TYPE : uint
 		{
 			dot11_phy_type_unknown = 0,
 			dot11_phy_type_any = 0,

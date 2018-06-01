@@ -34,7 +34,7 @@ namespace ManagedNativeWifi
             using (var container = new DisposableContainer<Base.WlanClient>(client))
             {
                 return Base.GetInterfaceInfoList(container.Content.Handle)
-                    .Select(x => new InterfaceInfo(x));
+                    .Select(x => new InterfaceInfo(container.Content.Handle, x));
             }
         }
 
@@ -236,20 +236,20 @@ namespace ManagedNativeWifi
             {
                 var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
 
-                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(container.Content.Handle,x)))
                 {
                     var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
-                    BssType bssType;
-	                EncryptionType encryptionType;
-	                AuthType authType;
-                    foreach (var availableNetwork in availableNetworkList)
+	                foreach (var availableNetwork in availableNetworkList)
                     {
-                        if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out bssType))
+	                    BssType bssType;
+	                    if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out bssType))
                             continue;
 
-						if(!EncryptionTypeConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm,out encryptionType))
+	                    EncryptionType encryptionType;
+	                    if(!EncryptionTypeConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm,out encryptionType))
 							continue;
 
+	                    AuthType authType;
 	                    if (!AuthTypeConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out authType))
 							continue;
 	                    ;
@@ -267,7 +267,7 @@ namespace ManagedNativeWifi
                             isSecurityEnabled: availableNetwork.bSecurityEnabled,
                             profileName: availableNetwork.strProfileName,
 	                        cipherAlgorithm: encryptionType,
-                            authAlgorithm: authType);
+	                        authAlgorithm: authType);
                     }
                 }
             }
@@ -288,7 +288,7 @@ namespace ManagedNativeWifi
             {
                 var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
 
-                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(container.Content.Handle, x)))
                 {
 	                var networkList = EnumerateAvailableNetworks(client);
 
@@ -373,7 +373,13 @@ namespace ManagedNativeWifi
         {
             return EnumerateProfiles(null);
         }
-	    public static IEnumerable<ProfilePack> EnumerateProfiles(bool isProtected = true)
+        /// <summary>
+        /// Enumerates wireless profile information in preference order.
+        /// If you want Unprotected Profile, set false
+        /// </summary>
+        /// <param name="isProtected"></param>
+        /// <returns></returns>
+        public static IEnumerable<ProfilePack> EnumerateProfiles(bool isProtected = true)
 	    {
 		    return EnumerateProfiles(null, isProtected);
 	    }
@@ -383,7 +389,7 @@ namespace ManagedNativeWifi
             {
                 var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
 
-                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+                foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(container.Content.Handle, x)))
                 {
                     var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
 
@@ -752,7 +758,7 @@ namespace ManagedNativeWifi
                     switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
                     {
                         case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-                            Task.Run(() => tcs.TrySetResult(true));
+                            Task.Run(() => tcs.TrySetResult(true), cancellationToken);
                             break;
                     }
                 };

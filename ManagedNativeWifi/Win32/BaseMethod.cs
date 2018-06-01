@@ -218,33 +218,63 @@ namespace ManagedNativeWifi.Win32
             }
         }
 
-        public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
-        {
-            var queryData = IntPtr.Zero;
-            uint dataSize;
+	    public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
+	    {
+		    var queryData = IntPtr.Zero;
+		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
-            try
-            {
-                var result = WlanQueryInterface(
-                    clientHandle,
-                    interfaceId,
-                    WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
-                    IntPtr.Zero,
-                    out dataSize,
-                    ref queryData,
-                    IntPtr.Zero);
+		    try
+		    {
+			    uint dataSize;
+			    var result = WlanQueryInterface(
+				    clientHandle,
+				    interfaceId,
+				    WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
+				    IntPtr.Zero,
+				    out dataSize,
+				    out queryData,
+				    out opcodeValueType);
 
-                // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
-                return CheckResult(nameof(WlanQueryInterface), result, false)
-                    ? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
-                    : default(WLAN_CONNECTION_ATTRIBUTES);
-            }
-            finally
-            {
-                if (queryData != IntPtr.Zero)
-                    WlanFreeMemory(queryData);
-            }
-        }
+			    // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
+			    return CheckResult(nameof(WlanQueryInterface), result, false)
+				    ? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
+				    : default(WLAN_CONNECTION_ATTRIBUTES);
+		    }
+		    finally
+		    {
+			    if (queryData != IntPtr.Zero)
+				    WlanFreeMemory(queryData);
+		    }
+	    }
+
+	    public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
+	    {
+		    var queryData = IntPtr.Zero;
+		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;
+
+		    try
+		    {
+			    uint dataSize;
+			    var result = WlanQueryInterface(
+				    clientHandle,
+				    interfaceId,
+				    wlanIntfOpcode,
+				    IntPtr.Zero,
+				    out dataSize,
+				    out queryData,
+				    out opcodeValueType);
+
+			    // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
+			    return CheckResult(nameof(WlanQueryInterface), result, false)
+				    ? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
+				    : default(WLAN_CONNECTION_ATTRIBUTES);
+		    }
+		    finally
+		    {
+			    if (queryData != IntPtr.Zero)
+				    WlanFreeMemory(queryData);
+		    }
+	    }
 
         public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
         {
@@ -429,18 +459,19 @@ namespace ManagedNativeWifi.Win32
         public static IEnumerable<WLAN_PHY_RADIO_STATE> GetPhyRadioStates(SafeClientHandle clientHandle, Guid interfaceId)
         {
             var queryData = IntPtr.Zero;
-            uint dataSize;
+	        WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
             try
             {
-                var result = WlanQueryInterface(
+	            uint dataSize;
+	            var result = WlanQueryInterface(
                     clientHandle,
                     interfaceId,
                     WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
                     IntPtr.Zero,
                     out dataSize,
-                    ref queryData,
-                    IntPtr.Zero);
+                    out queryData,
+                    out opcodeValueType);
 
                 return CheckResult(nameof(WlanQueryInterface), result, false)
                     ? new WLAN_RADIO_STATE(queryData).PhyRadioState
