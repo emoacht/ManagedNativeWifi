@@ -313,7 +313,7 @@ namespace ManagedNativeWifi
 						//this program work get available network first and get bssnetwork list.
 						//so if can not found network. just skip the bss network.
 						//it just happen if you don't have a luck.
-						if(network.Any()) continue;
+						if(!network.Any()) continue;
 
                         yield return new BssNetworkPack(
                             interfaceInfo: interfaceInfo,

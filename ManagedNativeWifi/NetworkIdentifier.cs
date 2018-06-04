@@ -20,8 +20,9 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public NetworkIdentifier(byte[] rawBytes, string rawString)
 		{
-			this._rawBytes = rawBytes;
-			this._rawString = rawString;
+			this._rawBytes = new byte[32];
+			rawBytes.CopyTo(_rawBytes,0);
+            this._rawString = rawString;
 		}
 
 		/// <summary>
@@ -29,6 +30,8 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <returns>Identifier in byte array</returns>
 		public byte[] ToBytes() => _rawBytes?.ToArray();
+
+		public byte[] GetBytes() => _rawBytes;
 
 		/// <summary>
 		/// Returns the identifier in UTF-8 string.
