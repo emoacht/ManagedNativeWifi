@@ -84,7 +84,7 @@ namespace ManagedNativeWifi
             var ssidHexString = ssidElement?.Descendants(XName.Get("hex", Namespace)).FirstOrDefault()?.Value;
             var ssidHexBytes = HexadecimalStringConverter.ToBytes(ssidHexString);
             var ssidNameString = ssidElement?.Descendants(XName.Get("name", Namespace)).FirstOrDefault()?.Value;
-            Ssid = new NetworkIdentifier(ssidHexBytes, ssidNameString);
+            Ssid = new NetworkIdentifier(ssidHexBytes, ssidNameString, (uint) ssidHexBytes.Length);
 
             var connectionTypeString = Root.Descendants(XName.Get("connectionType", Namespace)).FirstOrDefault()?.Value;
             if (!BssTypeConverter.TryParse(connectionTypeString, out bssType)) return;

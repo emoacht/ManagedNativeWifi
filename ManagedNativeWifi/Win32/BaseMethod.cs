@@ -192,33 +192,74 @@ namespace ManagedNativeWifi.Win32
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of the basic service set (BSS) entries of the wireless network or networks on a given wireless LAN interface.
+        /// </summary>
+        /// <param name="clientHandle"></param>
+        /// <param name="interfaceId"></param>
+        /// <returns></returns>
         public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId)
-        {
-            var wlanBssList = IntPtr.Zero;
-            try
-            {
-                var result = WlanGetNetworkBssList(
-                    clientHandle,
-                    interfaceId,
-                    IntPtr.Zero,
-                    DOT11_BSS_TYPE.dot11_BSS_type_any,
-                    false,
-                    IntPtr.Zero,
-                    out wlanBssList);
+	    {
+		    var wlanBssList = IntPtr.Zero;
+		    try
+		    {
+			    var result = WlanGetNetworkBssList(
+				    clientHandle,
+				    interfaceId,
+				    IntPtr.Zero,
+				    DOT11_BSS_TYPE.dot11_BSS_type_any,
+				    false,
+				    IntPtr.Zero,
+				    out wlanBssList);
 
-                // ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
-                return CheckResult(nameof(WlanGetNetworkBssList), result, false)
-                    ? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
-                    : new WLAN_BSS_ENTRY[0];
-            }
-            finally
-            {
-                if (wlanBssList != IntPtr.Zero)
-                    WlanFreeMemory(wlanBssList);
-            }
-        }
+			    // ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+			    return CheckResult(nameof(WlanGetNetworkBssList), result, false)
+				    ? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+				    : new WLAN_BSS_ENTRY[0];
+		    }
+		    finally
+		    {
+			    if (wlanBssList != IntPtr.Zero)
+				    WlanFreeMemory(wlanBssList);
+		    }
+	    }
+        /// <summary>
+        /// Retrieves a list of the basic service set (BSS) entries of the wireless network or networks from specified the SSID on a given wireless LAN interface.
+        /// </summary>
+        /// <param name="clientHandle"></param>
+        /// <param name="interfaceId"></param>
+        /// <param name="ssid"></param>
+        /// <param name="bssType">dot11_BSS_type_infrastructure or dot11_BSS_type_independent</param>
+        /// <returns></returns>
+        public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId,DOT11_SSID ssid, DOT11_BSS_TYPE bssType)
+	    {
+		    IntPtr ssidPtr = Marshal.AllocHGlobal(Marshal.SizeOf(ssid));
+			Marshal.StructureToPtr(ssid,ssidPtr,false);
+		    var wlanBssList = IntPtr.Zero;
+		    try
+		    {
+			    var result = WlanGetNetworkBssList(
+				    clientHandle,
+				    interfaceId,
+				    ssidPtr,
+				    bssType,
+				    true, //must true
+				    IntPtr.Zero,
+				    out wlanBssList);
 
-	    public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
+			    // ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+			    return CheckResult(nameof(WlanGetNetworkBssList), result, false)
+				    ? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+				    : new WLAN_BSS_ENTRY[0];
+		    }
+		    finally
+		    {
+			    if (wlanBssList != IntPtr.Zero)
+				    WlanFreeMemory(wlanBssList);
+		    }
+	    }
+
+        public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 	    {
 		    var queryData = IntPtr.Zero;
 		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;

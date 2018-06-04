@@ -179,7 +179,7 @@ namespace ManagedNativeWifi
                         //	availableNetwork.dot11Ssid,
                         //	availableNetwork.wlanSignalQuality);
 
-                        yield return new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString());
+                        yield return new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString(), availableNetwork.dot11Ssid.uSSIDLength);
                     }
                 }
             }
@@ -214,7 +214,7 @@ namespace ManagedNativeWifi
                     //	association.dot11Bssid,
                     //	association.wlanSignalQuality);
 
-                    yield return new NetworkIdentifier(association.dot11Ssid.ToBytes(), association.dot11Ssid.ToString());
+                    yield return new NetworkIdentifier(association.dot11Ssid.ToBytes(), association.dot11Ssid.ToString(),association.dot11Ssid.uSSIDLength);
                 }
             }
         }
@@ -261,7 +261,7 @@ namespace ManagedNativeWifi
 
                         yield return new AvailableNetworkPack(
                             interfaceInfo: interfaceInfo,
-                            ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
+                            ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString(), availableNetwork.dot11Ssid.uSSIDLength),
                             bssType: bssType,
                             signalQuality: (int)availableNetwork.wlanSignalQuality,
                             isSecurityEnabled: availableNetwork.bSecurityEnabled,
@@ -279,8 +279,12 @@ namespace ManagedNativeWifi
         /// <returns>Wireless LAN information</returns>
         public static IEnumerable<BssNetworkPack> EnumerateBssNetworks()
         {
-            return EnumerateBssNetworks(null);
+	        return EnumerateBssNetworks((Base.WlanClient)null);
         }
+	    public static IEnumerable<BssNetworkPack> EnumerateBssNetworks(AvailableNetworkPack network)
+	    {
+		    return EnumerateBssNetworks(null,network);
+	    }
 
         internal static IEnumerable<BssNetworkPack> EnumerateBssNetworks(Base.WlanClient client)
         {
@@ -290,7 +294,7 @@ namespace ManagedNativeWifi
 
                 foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(container.Content.Handle, x)))
                 {
-	                var networkList = EnumerateAvailableNetworks(client);
+                    var networkList = EnumerateAvailableNetworks(client);
 
                     var networkBssEntryList = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id);
 
@@ -308,24 +312,65 @@ namespace ManagedNativeWifi
                         //	networkBssEntry.lRssi,
                         //	networkBssEntry.uLinkQuality,
                         //	networkBssEntry.ulChCenterFrequency);
-	                    var network = networkList.Where(o => o.Ssid.ToString() == new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()).ToString());
+                        var network = networkList.Where(o => o.Ssid.ToString() == new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString(), networkBssEntry.dot11Ssid.uSSIDLength).ToString());
 
-						//this program work get available network first and get bssnetwork list.
-						//so if can not found network. just skip the bss network.
-						//it just happen if you don't have a luck.
-						if(!network.Any()) continue;
+                        //this program work get available network first and get bssnetwork list.
+                        //so if can not found network. just skip the bss network.
+                        //it just happen if you don't have a luck.
+                        if (!network.Any()) continue;
 
                         yield return new BssNetworkPack(
                             interfaceInfo: interfaceInfo,
                             network: network.First(),
-                            ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
+                            ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString(), networkBssEntry.dot11Ssid.uSSIDLength),
                             bssType: bssType,
-                            bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
+                            bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString(), networkBssEntry.dot11Ssid.uSSIDLength),
                             signalStrength: networkBssEntry.lRssi,
                             linkQuality: (int)networkBssEntry.uLinkQuality,
                             frequency: (int)networkBssEntry.ulChCenterFrequency,
                             channel: DetectChannel(networkBssEntry.ulChCenterFrequency));
                     }
+                }
+            }
+        }
+
+        internal static IEnumerable<BssNetworkPack> EnumerateBssNetworks(Base.WlanClient client, AvailableNetworkPack network)
+        {
+            using (var container = new DisposableContainer<Base.WlanClient>(client))
+            {
+	            DOT11_SSID ssid;
+	            ssid.ucSSID = network.Ssid.ToBytes();
+	            ssid.uSSIDLength = network.Ssid.GetLength();
+	            DOT11_BSS_TYPE bssTypes = BssTypeConverter.ConvertBack(network.BssType);
+
+                var networkBssEntryList = Base.GetNetworkBssEntryList(container.Content.Handle,network.Interface.Id,ssid, bssTypes);
+
+                foreach (var networkBssEntry in networkBssEntryList)
+                {
+                    BssType bssType;
+
+                    if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out bssType))
+                        continue;
+
+                    //Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
+                    //	interfaceInfo.Description,
+                    //	networkBssEntry.dot11Ssid,
+                    //	networkBssEntry.dot11Bssid,
+                    //	networkBssEntry.lRssi,
+                    //	networkBssEntry.uLinkQuality,
+                    //	networkBssEntry.ulChCenterFrequency);
+                    
+
+                    yield return new BssNetworkPack(
+                        interfaceInfo: network.Interface,
+                        network: network,
+                        ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString(), networkBssEntry.dot11Ssid.uSSIDLength),
+                        bssType: bssType,
+                        bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString(), networkBssEntry.dot11Ssid.uSSIDLength),
+                        signalStrength: networkBssEntry.lRssi,
+                        linkQuality: (int)networkBssEntry.uLinkQuality,
+                        frequency: (int)networkBssEntry.ulChCenterFrequency,
+                        channel: DetectChannel(networkBssEntry.ulChCenterFrequency));
                 }
             }
         }
