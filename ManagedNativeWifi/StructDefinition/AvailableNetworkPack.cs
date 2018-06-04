@@ -41,6 +41,11 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public string ProfileName { get; }
 
+		public bool IsHasProfile
+		{
+			get { return !string.IsNullOrEmpty(ProfileName); }
+		}
+
 		/// <summary>
         /// 
         /// </summary>

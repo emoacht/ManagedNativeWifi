@@ -56,17 +56,18 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" Signal: {network.SignalQuality}");
 				Trace.WriteLine($" Security: {network.IsSecurityEnabled}");
 				Trace.WriteLine($" Auth Algorithm: {network.AuthAlgorithm.ToString()}");
-				Trace.WriteLine($" Cipher Algorithm: {network.CipherAlgorithm.ToString()}}}");
+				Trace.WriteLine($" Has Profile: {network.IsHasProfile} {(network.IsHasProfile ? "(" + network.ProfileName + ")" : network.ProfileName)}");
+
+                Trace.WriteLine($" Cipher Algorithm: {network.CipherAlgorithm.ToString()}}}");
 				var bssNetworks = NativeWifi.EnumerateBssNetworks(network);
 				if (bssNetworks != null)
 				{
 					Trace.WriteLine("[Child BSS Networks]");
 					foreach (var bssNetwork in bssNetworks)
 					{
-						Trace.WriteLine($"{{Child Interface: {bssNetwork.Interface.Description} ({bssNetwork.Interface.Id})");
-						Trace.WriteLine($" SSID: {bssNetwork.Ssid}");
+						Trace.WriteLine($"{{BSSID: {bssNetwork.Bssid}");
+                        Trace.WriteLine($" SSID: {bssNetwork.Ssid}");
 						Trace.WriteLine($" BSS: {bssNetwork.BssType}");
-						Trace.WriteLine($" BSSID: {bssNetwork.Bssid}");
 						Trace.WriteLine($" Signal: {bssNetwork.SignalStrength}");
 						Trace.WriteLine($" Link: {bssNetwork.LinkQuality}");
 						Trace.WriteLine($" Frequency: {bssNetwork.Frequency}");

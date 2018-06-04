@@ -33,6 +33,10 @@ namespace ManagedNativeWifi
 		/// <returns>Identifier in byte array</returns>
 		public byte[] ToBytes() => _rawBytes?.ToArray();
 
+		/// <summary>
+        /// Returns the identifier byte used length.
+        /// </summary>
+        /// <returns></returns>
 		public uint GetLength() => _length;
 
 		/// <summary>

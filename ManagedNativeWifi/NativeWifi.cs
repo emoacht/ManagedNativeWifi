@@ -281,7 +281,12 @@ namespace ManagedNativeWifi
         {
 	        return EnumerateBssNetworks((Base.WlanClient)null);
         }
-	    public static IEnumerable<BssNetworkPack> EnumerateBssNetworks(AvailableNetworkPack network)
+        /// <summary>
+        /// Enumerates wireless LAN information on BSS networks from specified network.
+        /// </summary>
+        /// <param name="network"></param>
+        /// <returns></returns>
+        public static IEnumerable<BssNetworkPack> EnumerateBssNetworks(AvailableNetworkPack network)
 	    {
 		    return EnumerateBssNetworks(null,network);
 	    }
