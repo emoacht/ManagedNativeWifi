@@ -43,27 +43,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\DisposableContainer.cs" />
-    <Compile Include="EnumDefinition\AuthType.cs" />
-    <Compile Include="EnumDefinition\ConnectionMode.cs" />
-    <Compile Include="StructDefinition\ConnectionAttributePack.cs" />
+    <Compile Include="AuthType.cs" />
+    <Compile Include="ConnectionMode.cs" />
+    <Compile Include="ConnectionAttributePack.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />
     <Compile Include="AuthenticationMethod.cs" />
-    <Compile Include="StructDefinition\AvailableNetworkPack.cs" />
-    <Compile Include="StructDefinition\BssNetworkPack.cs" />
-    <Compile Include="EnumDefinition\BssType.cs" />
-    <Compile Include="EnumDefinition\EncryptionType.cs" />
+    <Compile Include="AvailableNetworkPack.cs" />
+    <Compile Include="BssNetworkPack.cs" />
+    <Compile Include="BssType.cs" />
+    <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
     <Compile Include="InterfaceRadio.cs" />
-    <Compile Include="EnumDefinition\InterfaceState.cs" />
+    <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
     <Compile Include="NativeWifiPlayer.cs" />
     <Compile Include="NetworkIdentifier.cs" />
-    <Compile Include="EnumDefinition\PhyType.cs" />
+    <Compile Include="PhyType.cs" />
     <Compile Include="ProfileDocument.cs" />
-    <Compile Include="StructDefinition\ProfilePack.cs" />
-    <Compile Include="EnumDefinition\ProfileType.cs" />
+    <Compile Include="ProfilePack.cs" />
+    <Compile Include="ProfileType.cs" />
     <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -74,9 +74,6 @@ namespace ManagedNativeWifi
         {
             if (root == null) return;
             this.Root = root;
-            BssType bssType;
-            AuthenticationMethod authentication;
-            EncryptionType encryption;
 
             Name = Root.Elements().First().Elements(XName.Get("name", Namespace)).FirstOrDefault()?.Value;
 
@@ -87,15 +84,15 @@ namespace ManagedNativeWifi
             Ssid = new NetworkIdentifier(ssidHexBytes, ssidNameString, (uint) ssidHexBytes.Length);
 
             var connectionTypeString = Root.Descendants(XName.Get("connectionType", Namespace)).FirstOrDefault()?.Value;
-            if (!BssTypeConverter.TryParse(connectionTypeString, out bssType)) return;
+            if (!BssTypeConverter.TryParse(connectionTypeString, out BssType bssType)) return;
             this.BssType = bssType;
 
             AuthenticationString = Root.Descendants(XName.Get("authentication", Namespace)).FirstOrDefault()?.Value;
-            if (!AuthenticationMethodConverter.TryParse(AuthenticationString, out authentication)) return;
+            if (!AuthenticationMethodConverter.TryParse(AuthenticationString, out AuthenticationMethod authentication)) return;
             this.Authentication = authentication;
 
             EncryptionString = Root.Descendants(XName.Get("encryption", Namespace)).FirstOrDefault()?.Value;
-            if (!EncryptionTypeConverter.TryParse(EncryptionString, out encryption)) return;
+            if (!EncryptionTypeConverter.TryParse(EncryptionString, out EncryptionType encryption)) return;
             this.Encryption = encryption;
 
             //Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}",
@@ -152,9 +149,7 @@ namespace ManagedNativeWifi
         {
             get
             {
-                ConnectionMode value;
-
-                return Enum.TryParse(_connectionModeElement?.Value, true, out value)
+                return Enum.TryParse(_connectionModeElement?.Value, true, out ConnectionMode value)
                     && (value == ConnectionMode.Auto);
             }
             set
@@ -178,7 +173,7 @@ namespace ManagedNativeWifi
         /// </summary>
         public bool IsAutoSwitchEnabled
         {
-            get { return ((bool?)_autoSwitchElement).GetValueOrDefault(); }
+            get => ((bool?)_autoSwitchElement).GetValueOrDefault();
             set
             {
                 if (value && !IsAutoConnectEnabled)

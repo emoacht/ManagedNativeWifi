@@ -34,8 +34,8 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Profile XML string
 		/// </summary>
-		[Obsolete("Use Document.Xml method instead.")]
-		public string ProfileXml => Document.Xml;
+		[Obsolete("Use Document.ToString method instead.")]
+		public string ProfileXml => Document.ToString();
 
 		/// <summary>
 		/// SSID of associated wireless LAN

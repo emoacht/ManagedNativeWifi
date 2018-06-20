@@ -20,11 +20,10 @@ namespace ManagedNativeWifi.Win32
 
             public WlanClient()
             {
-                uint negotiatedVersion;
                 var result = WlanOpenHandle(
                     2, // Client version for Windows Vista and Windows Server 2008
                     IntPtr.Zero,
-                    out negotiatedVersion,
+                    out uint negotiatedVersion,
                     out _clientHandle);
 
                 CheckResult(nameof(WlanOpenHandle), result, true);
@@ -262,19 +261,17 @@ namespace ManagedNativeWifi.Win32
         public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 	    {
 		    var queryData = IntPtr.Zero;
-		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
 		    try
 		    {
-			    uint dataSize;
 			    var result = WlanQueryInterface(
 				    clientHandle,
 				    interfaceId,
 				    WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 				    IntPtr.Zero,
-				    out dataSize,
+				    out uint dataSize,
 				    out queryData,
-				    out opcodeValueType);
+				    out WLAN_OPCODE_VALUE_TYPE opcodeValueType);
 
 			    // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
 			    return CheckResult(nameof(WlanQueryInterface), result, false)
@@ -306,19 +303,17 @@ namespace ManagedNativeWifi.Win32
         public static int GetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
 	    {
 		    var queryData = IntPtr.Zero;
-		    WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
 		    try
 		    {
-			    uint dataSize;
 			    var result = WlanQueryInterface(
 				    clientHandle,
 				    interfaceId,
 				    wlanIntfOpcode,
 				    IntPtr.Zero,
-				    out dataSize,
+				    out uint dataSize,
 				    out queryData,
-				    out opcodeValueType);
+				    out WLAN_OPCODE_VALUE_TYPE opcodeValueType);
 
 			    // ERROR_INVALID_STATE will be returned if the client is not connected to a network.
 			    return CheckResult(nameof(GetInterfaceInt), result, false)
@@ -393,16 +388,14 @@ namespace ManagedNativeWifi.Win32
         public static string GetProfile(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out uint profileTypeFlag)
         {
             uint flags = 0U;
-            string profileXml;
-            uint grantedAccess;
             var result = WlanGetProfile(
                 clientHandle,
                 interfaceId,
                 profileName,
                 IntPtr.Zero,
-                out profileXml,
+                out string profileXml,
                 ref flags,
-                out grantedAccess);
+                out uint grantedAccess);
 
             profileTypeFlag = flags;
 
@@ -415,16 +408,14 @@ namespace ManagedNativeWifi.Win32
         public static string GetProfileUnProtected(SafeClientHandle clientHandle, Guid interfaceId, string profileName, out uint profileTypeFlag)
         {
             uint flags = 4U; //GetPlaintextKey
-            string profileXml;
-            uint grantedAccess;
             var result = WlanGetProfile(
                 clientHandle,
                 interfaceId,
                 profileName,
                 IntPtr.Zero,
-                out profileXml,
+                out string profileXml,
                 ref flags,
-                out grantedAccess);
+                out uint grantedAccess);
 
             profileTypeFlag = flags;
 
@@ -436,7 +427,6 @@ namespace ManagedNativeWifi.Win32
 
         public static bool SetProfile(SafeClientHandle clientHandle, Guid interfaceId, uint profileTypeFlag, string profileXml, string profileSecurity, bool overwrite)
         {
-            uint pdwReasonCode;
             var result = WlanSetProfile(
                 clientHandle,
                 interfaceId,
@@ -445,7 +435,7 @@ namespace ManagedNativeWifi.Win32
                 profileSecurity,
                 overwrite,
                 IntPtr.Zero,
-                out pdwReasonCode);
+                out uint pdwReasonCode);
 
             // ERROR_INVALID_PARAMETER will be returned if the interface is removed.
             // ERROR_ALREADY_EXISTS will be returned if the profile already exists.
@@ -551,19 +541,17 @@ namespace ManagedNativeWifi.Win32
         public static IEnumerable<WLAN_PHY_RADIO_STATE> GetPhyRadioStates(SafeClientHandle clientHandle, Guid interfaceId)
         {
             var queryData = IntPtr.Zero;
-	        WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
             try
             {
-	            uint dataSize;
 	            var result = WlanQueryInterface(
                     clientHandle,
                     interfaceId,
                     WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
                     IntPtr.Zero,
-                    out dataSize,
+                    out uint dataSize,
                     out queryData,
-                    out opcodeValueType);
+                    out WLAN_OPCODE_VALUE_TYPE opcodeValueType);
 
                 return CheckResult(nameof(WlanQueryInterface), result, false)
                     ? new WLAN_RADIO_STATE(queryData).PhyRadioState

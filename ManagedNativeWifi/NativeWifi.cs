@@ -241,18 +241,15 @@ namespace ManagedNativeWifi
                     var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
 	                foreach (var availableNetwork in availableNetworkList)
                     {
-	                    BssType bssType;
-	                    if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out bssType))
+	                    if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
                             continue;
 
-	                    EncryptionType encryptionType;
-	                    if(!EncryptionTypeConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm,out encryptionType))
+	                    if(!EncryptionTypeConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm,out EncryptionType encryptionType))
 							continue;
 
-	                    AuthType authType;
-	                    if (!AuthTypeConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out authType))
+	                    if (!AuthTypeConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthType authType))
 							continue;
-	                    ;
+	                    
                         //Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
                         //	interfaceInfo.Description,
                         //	availableNetwork.dot11Ssid,
@@ -305,9 +302,7 @@ namespace ManagedNativeWifi
 
                     foreach (var networkBssEntry in networkBssEntryList)
                     {
-                        BssType bssType;
-
-                        if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out bssType))
+                        if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
                             continue;
 
                         //Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
@@ -352,9 +347,7 @@ namespace ManagedNativeWifi
 
                 foreach (var networkBssEntry in networkBssEntryList)
                 {
-                    BssType bssType;
-
-                    if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out bssType))
+                    if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
                         continue;
 
                     //Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
@@ -461,14 +454,11 @@ namespace ManagedNativeWifi
                         var signalQuality = (int)availableNetwork.wlanSignalQuality;
                         var profileIsConnected = interfaceIsConnected && string.Equals(connection.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal);
 
-                        uint profileTypeFlag;
-                        ProfileType profileType;
-
-                        var profileXml = isProtected ? Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out profileTypeFlag) : Base.GetProfileUnProtected(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out profileTypeFlag);
+                        var profileXml = isProtected ? Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag) : Base.GetProfileUnProtected(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out profileTypeFlag);
                         if (string.IsNullOrWhiteSpace(profileXml))
                             continue;
 
-                        if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out profileType))
+                        if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
                             continue;
 
                         //Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, RadioOn: {3}, Signal: {4}, Connected: {5}",
@@ -808,7 +798,7 @@ namespace ManagedNativeWifi
                     switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
                     {
                         case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-                            Task.Run(() => tcs.TrySetResult(true), cancellationToken);
+                            Task.Run(() => tcs.TrySetResult(true));
                             break;
                     }
                 };
