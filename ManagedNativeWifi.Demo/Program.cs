@@ -32,28 +32,51 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
 			}
 
-			Trace.WriteLine("[Available Network SSIDs]");
+			Trace.WriteLine("");
+            Trace.WriteLine("[Available Network SSIDs]");
 			foreach (var ssid in NativeWifi.EnumerateAvailableNetworkSsids())
 			{
 				Trace.WriteLine($"SSID: {ssid}");
 			}
 
-			Trace.WriteLine("[Connected Network SSIDs]");
+			Trace.WriteLine("");
+            Trace.WriteLine("[Connected Network SSIDs]");
 			foreach (var ssid in NativeWifi.EnumerateConnectedNetworkSsids())
 			{
 				Trace.WriteLine($"SSID: {ssid}");
 			}
 
-			Trace.WriteLine("[Available Networks]");
+			Trace.WriteLine("");
+            Trace.WriteLine("[Available Networks]");
 			foreach (var network in NativeWifi.EnumerateAvailableNetworks())
 			{
 				Trace.WriteLine($"{{Interface: {network.Interface.Description} ({network.Interface.Id})");
 				Trace.WriteLine($" SSID: {network.Ssid}");
 				Trace.WriteLine($" BSS: {network.BssType}");
 				Trace.WriteLine($" Signal: {network.SignalQuality}");
-				Trace.WriteLine($" Security: {network.IsSecurityEnabled}}}");
+				Trace.WriteLine($" Security: {network.IsSecurityEnabled}");
+				Trace.WriteLine($" Auth Algorithm: {network.AuthAlgorithm.ToString()}");
+				Trace.WriteLine($" Has Profile: {network.IsHasProfile} {(network.IsHasProfile ? "(" + network.ProfileName + ")" : network.ProfileName)}");
+
+                Trace.WriteLine($" Cipher Algorithm: {network.CipherAlgorithm.ToString()}}}");
+				var bssNetworks = NativeWifi.EnumerateBssNetworks(network);
+				if (bssNetworks != null)
+				{
+					Trace.WriteLine("[Child BSS Networks]");
+					foreach (var bssNetwork in bssNetworks)
+					{
+						Trace.WriteLine($"{{BSSID: {bssNetwork.Bssid}");
+                        Trace.WriteLine($" SSID: {bssNetwork.Ssid}");
+						Trace.WriteLine($" BSS: {bssNetwork.BssType}");
+						Trace.WriteLine($" Signal: {bssNetwork.SignalStrength}");
+						Trace.WriteLine($" Link: {bssNetwork.LinkQuality}");
+						Trace.WriteLine($" Frequency: {bssNetwork.Frequency}");
+						Trace.WriteLine($" Channel: {bssNetwork.Channel}}}");
+					}
+				}
 			}
 
+			Trace.WriteLine("");
 			Trace.WriteLine("[BSS Networks]");
 			foreach (var network in NativeWifi.EnumerateBssNetworks())
 			{
@@ -67,13 +90,15 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" Channel: {network.Channel}}}");
 			}
 
-			Trace.WriteLine("[Network Profile Names]");
+			Trace.WriteLine("");
+            Trace.WriteLine("[Network Profile Names]");
 			foreach (var name in NativeWifi.EnumerateProfileNames())
 			{
 				Trace.WriteLine($"Name: {name}");
 			}
 
-			Trace.WriteLine("[Network Profiles]");
+			Trace.WriteLine("");
+            Trace.WriteLine("[Network Profiles]");
 			foreach (var profile in NativeWifi.EnumerateProfiles())
 			{
 				Trace.WriteLine($"{{Name: {profile.Name}");

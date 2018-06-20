@@ -20,14 +20,20 @@ namespace ManagedNativeWifi
 		/// Group policy profile
 		/// </summary>
 		/// <remarks>Equivalent to WLAN_PROFILE_GROUP_POLICY</remarks>
-		GroupPolicy,
+		GroupPolicy =1,
 
 		/// <summary>
 		/// Per-user profile
 		/// </summary>
 		/// <remarks>Equivalent to WLAN_PROFILE_USER</remarks>
-		PerUser
-	}
+		PerUser =2,
+
+		/// <summary>
+		/// On input, this flag indicates that the caller wants to retrieve the plain text key from a wireless profile. If the calling thread has the required permissions, the WlanGetProfile function returns the plain text key in the keyMaterial element of the profile returned in the buffer pointed to by the pstrProfileXml parameter.
+		/// Windows 7:  This flag passed on input is an extension to native wireless APIs added on Windows 7 and later. The pdwFlags parameter is an __inout_opt parameter on Windows 7 and later.
+		/// </summary>
+		GetPlaintextKey = 4
+    }
 
 	internal static class ProfileTypeConverter
 	{

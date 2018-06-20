@@ -43,6 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\DisposableContainer.cs" />
+    <Compile Include="AuthType.cs" />
+    <Compile Include="ConnectionMode.cs" />
+    <Compile Include="ConnectionAttributePack.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />
@@ -63,6 +66,12 @@
     <Compile Include="ProfileType.cs" />
     <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ManagedNativeWifi.Simple\ManagedNativeWifi.Simple.csproj">
+      <Project>{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}</Project>
+      <Name>ManagedNativeWifi.Simple</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

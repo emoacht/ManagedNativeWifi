@@ -41,16 +41,33 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public string ProfileName { get; }
 
+		public bool IsHasProfile
+		{
+			get { return !string.IsNullOrEmpty(ProfileName); }
+		}
+
 		/// <summary>
-		/// Constructor
-		/// </summary>
-		public AvailableNetworkPack(
+        /// 
+        /// </summary>
+		public AuthType AuthAlgorithm { get; }
+
+		/// <summary>
+        /// 
+        /// </summary>
+		public EncryptionType CipherAlgorithm { get; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public AvailableNetworkPack(
 			InterfaceInfo interfaceInfo,
 			NetworkIdentifier ssid,
 			BssType bssType,
 			int signalQuality,
 			bool isSecurityEnabled,
-			string profileName)
+			string profileName,
+			AuthType authAlgorithm,
+			EncryptionType cipherAlgorithm)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
@@ -58,6 +75,8 @@ namespace ManagedNativeWifi
 			this.SignalQuality = signalQuality;
 			this.IsSecurityEnabled = isSecurityEnabled;
 			this.ProfileName = profileName;
+			this.AuthAlgorithm = authAlgorithm;
+			this.CipherAlgorithm = cipherAlgorithm;
 		}
 	}
 }

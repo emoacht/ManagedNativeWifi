@@ -14,14 +14,17 @@ namespace ManagedNativeWifi
 	{
 		private readonly byte[] _rawBytes;
 		private readonly string _rawString;
+		private readonly uint _length;
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public NetworkIdentifier(byte[] rawBytes, string rawString)
+		public NetworkIdentifier(byte[] rawBytes, string rawString, uint Length)
 		{
-			this._rawBytes = rawBytes;
-			this._rawString = rawString;
+			this._rawBytes = new byte[32];
+			rawBytes.CopyTo(_rawBytes,0);
+            this._rawString = rawString;
+			this._length = Length;
 		}
 
 		/// <summary>
@@ -29,6 +32,12 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <returns>Identifier in byte array</returns>
 		public byte[] ToBytes() => _rawBytes?.ToArray();
+
+		/// <summary>
+        /// Returns the identifier byte used length.
+        /// </summary>
+        /// <returns></returns>
+		public uint GetLength() => _length;
 
 		/// <summary>
 		/// Returns the identifier in UTF-8 string.
