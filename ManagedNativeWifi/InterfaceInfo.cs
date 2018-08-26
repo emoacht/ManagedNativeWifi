@@ -45,4 +45,36 @@ namespace ManagedNativeWifi
 			State = InterfaceStateConverter.Convert(info.isState);
 		}
 	}
+
+	/// <summary>
+	/// Wireless interface information (Extended)
+	/// </summary>
+	public class InterfaceInfoExtended : InterfaceInfo
+	{
+		/// <summary>
+		/// Connection mode
+		/// </summary>
+		public ConnectionMode ConnectionMode { get; }
+
+		/// <summary>
+		/// The name of a wireless profile used for the connection, if connected
+		/// </summary>
+		public string ProfileName { get; }
+
+		/// <summary>
+		/// Whether automatic configuration service is enabled
+		/// </summary>
+		public bool IsAutoConfigEnabled { get; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		internal InterfaceInfoExtended(WLAN_INTERFACE_INFO info, ConnectionMode connectionMode, string profileName, bool isAutoConfigEnabled)
+			: base(info)
+		{
+			this.ConnectionMode = connectionMode;
+			this.ProfileName = profileName;
+			this.IsAutoConfigEnabled = isAutoConfigEnabled;
+		}
+	}
 }

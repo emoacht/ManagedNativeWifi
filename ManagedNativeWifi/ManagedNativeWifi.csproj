@@ -50,6 +50,7 @@
     <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssNetworkPack.cs" />
     <Compile Include="BssType.cs" />
+    <Compile Include="ConnectionMode.cs" />
     <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
     <Compile Include="InterfaceRadio.cs" />
