@@ -32,6 +32,15 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
 			}
 
+			Trace.WriteLine("[Usable Interfaces (Extended)]");
+			foreach (var interfaceInfo in NativeWifi.EnumerateInterfacesExtended())
+			{
+				Trace.WriteLine($"{{Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
+				Trace.WriteLine($" Connection: {interfaceInfo.ConnectionMode}");
+				Trace.WriteLine($" Profile: {interfaceInfo.ProfileName}");
+				Trace.WriteLine($" AutoConfig: {interfaceInfo.IsAutoConfigEnabled}}}");
+			}
+
 			Trace.WriteLine("[Available Network SSIDs]");
 			foreach (var ssid in NativeWifi.EnumerateAvailableNetworkSsids())
 			{
