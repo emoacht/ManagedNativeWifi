@@ -42,7 +42,7 @@ namespace ManagedNativeWifi.Win32
 			WLAN_INTF_OPCODE OpCode,
 			IntPtr pReserved,
 			out uint pdwDataSize,
-			ref IntPtr ppData, // Pointer to WLAN_CONNECTION_ATTRIBUTES, WLAN_RADIO_STATE
+			out IntPtr ppData, // Pointer to queried data
 			IntPtr pWlanOpcodeValueType);
 
 		[DllImport("Wlanapi.dll")]
@@ -58,7 +58,7 @@ namespace ManagedNativeWifi.Win32
 			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
 			WLAN_INTF_OPCODE OpCode,
 			uint dwDataSize,
-			IntPtr pData, // Pointer to WLAN_PHY_RADIO_STATE
+			IntPtr pData, // Pointer to data to be set
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll")]

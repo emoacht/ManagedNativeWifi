@@ -228,7 +228,7 @@ namespace ManagedNativeWifi.Win32
 					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 					IntPtr.Zero,
 					out uint dataSize,
-					ref queryData,
+					out queryData,
 					IntPtr.Zero);
 
 				// ERROR_INVALID_STATE will be returned if the client is not connected to a network.
@@ -409,7 +409,7 @@ namespace ManagedNativeWifi.Win32
 					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
 					IntPtr.Zero,
 					out uint dataSize,
-					ref queryData,
+					out queryData,
 					IntPtr.Zero);
 
 				return CheckResult(nameof(WlanQueryInterface), result, false)
