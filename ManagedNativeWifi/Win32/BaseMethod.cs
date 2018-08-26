@@ -453,6 +453,64 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
+		public static bool? GetAutoConfig(SafeClientHandle clientHandle, Guid interfaceId)
+		{
+			var value = GetInterfaceInt(clientHandle, interfaceId, WLAN_INTF_OPCODE.wlan_intf_opcode_autoconf_enabled);
+
+			return value.HasValue
+				? (value.Value != 0) // True = other than 0. False = 0.
+				: (bool?)null;
+		}
+
+		private static int? GetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
+		{
+			var queryData = IntPtr.Zero;
+			try
+			{
+				var result = WlanQueryInterface(
+					clientHandle,
+					interfaceId,
+					wlanIntfOpcode,
+					IntPtr.Zero,
+					out uint dataSize,
+					out queryData,
+					IntPtr.Zero);
+
+				return CheckResult(nameof(WlanQueryInterface), result, false)
+					? Marshal.ReadInt32(queryData)
+					: (int?)null;
+			}
+			finally
+			{
+				if (queryData != IntPtr.Zero)
+					WlanFreeMemory(queryData);
+			}
+		}
+
+		private static bool SetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode, int value)
+		{
+			var setData = IntPtr.Zero;
+			try
+			{
+				setData = Marshal.AllocHGlobal(sizeof(int));
+				Marshal.WriteInt32(setData, value);
+
+				var result = WlanSetInterface(
+					clientHandle,
+					interfaceId,
+					wlanIntfOpcode,
+					sizeof(int),
+					setData,
+					IntPtr.Zero);
+
+				return CheckResult(nameof(WlanSetInterface), result, false);
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(setData);
+			}
+		}
+
 		#region Helper
 
 		private static bool CheckResult(string methodName, uint result, bool throwOnFailure, uint reasonCode = 0)
