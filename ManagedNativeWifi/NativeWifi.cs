@@ -127,10 +127,13 @@ namespace ManagedNativeWifi
 						counter.SetFailure(interfaceId);
 				}
 
-				var scanTask = tcs.Task;
-				await Task.WhenAny(scanTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var scanTask = tcs.Task;
+					await Task.WhenAny(scanTask, Task.Delay(timeout, cancellationToken));
 
-				return counter.Results;
+					return counter.Results;
+				}
 			}
 		}
 
@@ -685,10 +688,13 @@ namespace ManagedNativeWifi
 				if (!result)
 					tcs.SetResult(false);
 
-				var connectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var connectTask = tcs.Task;
+					var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeout, cancellationToken));
 
-				return (completedTask == connectTask) && connectTask.Result;
+					return (completedTask == connectTask) && connectTask.IsCompleted && connectTask.Result;
+				}
 			}
 		}
 
@@ -765,10 +771,13 @@ namespace ManagedNativeWifi
 				if (!result)
 					tcs.SetResult(false);
 
-				var disconnectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var disconnectTask = tcs.Task;
+					var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeout, cancellationToken));
 
-				return (completedTask == disconnectTask) && disconnectTask.Result;
+					return (completedTask == disconnectTask) && disconnectTask.IsCompleted && disconnectTask.Result;
+				}
 			}
 		}
 
