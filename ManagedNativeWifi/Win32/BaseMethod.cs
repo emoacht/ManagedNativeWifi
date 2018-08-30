@@ -217,6 +217,38 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
+		public static WLAN_BSS_ENTRY[] GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid, DOT11_BSS_TYPE bssType, bool isSecurityEnabled)
+		{
+			var queryData = IntPtr.Zero;
+			var wlanBssList = IntPtr.Zero;
+			try
+			{
+				queryData = Marshal.AllocHGlobal(Marshal.SizeOf(ssid));
+				Marshal.StructureToPtr(ssid, queryData, false);
+
+				var result = WlanGetNetworkBssList(
+					clientHandle,
+					interfaceId,
+					queryData,
+					bssType,
+					isSecurityEnabled,
+					IntPtr.Zero,
+					out wlanBssList);
+
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				return CheckResult(nameof(WlanGetNetworkBssList), result, false)
+					? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+					: new WLAN_BSS_ENTRY[0];
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(queryData);
+
+				if (wlanBssList != IntPtr.Zero)
+					WlanFreeMemory(wlanBssList);
+			}
+		}
+
 		public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var queryData = IntPtr.Zero;

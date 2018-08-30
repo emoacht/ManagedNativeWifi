@@ -252,8 +252,10 @@ namespace ManagedNativeWifi
 		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
 		/// <returns>Wireless LAN information</returns>
-		/// <remarks>If multiple profiles are associated with a same network, there will be multiple
-		/// entries with the same SSID.</remarks>
+		/// <remarks>
+		/// If multiple profiles are associated with a same network, there will be multiple entries with
+		/// the same SSID.
+		/// </remarks>
 		public static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks()
 		{
 			return EnumerateAvailableNetworks(null);
@@ -289,6 +291,54 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
+		/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
+		/// </summary>
+		/// <returns>Wireless LAN information</returns>
+		/// <remarks>
+		/// If multiple profiles are associated with a same network, there will be multiple entries with
+		/// the same SSID.
+		/// </remarks>
+		public static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups()
+		{
+			return EnumerateAvailableNetworkGroups(null);
+		}
+
+		internal static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups(Base.WlanClient client)
+		{
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
+				{
+					foreach (var availableNetworkGroup in EnumerateAvailableNetworkGroups(container.Content, interfaceInfo))
+						yield return availableNetworkGroup;
+				}
+			}
+		}
+
+		private static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups(Base.WlanClient client, InterfaceInfo interfaceInfo)
+		{
+			foreach (var availableNetwork in Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id))
+			{
+				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
+					continue;
+
+				var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
+					availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled)
+					.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
+					.Where(x => x != null);
+
+				yield return new AvailableNetworkGroupPack(
+					interfaceInfo: interfaceInfo,
+					ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
+					bssType: bssType,
+					signalQuality: (int)availableNetwork.wlanSignalQuality,
+					isSecurityEnabled: availableNetwork.bSecurityEnabled,
+					profileName: availableNetwork.strProfileName,
+					bssNetworks: bssNetworks);
+			}
+		}
+
+		/// <summary>
 		/// Enumerates wireless LAN information on BSS networks.
 		/// </summary>
 		/// <returns>Wireless LAN information</returns>
@@ -305,33 +355,34 @@ namespace ManagedNativeWifi
 				{
 					foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id))
 					{
-						if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
-							continue;
-
-						if (!TryDetectBandChannel(networkBssEntry.ulChCenterFrequency, out float band, out int channel))
-							continue;
-
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
-						//	interfaceInfo.Description,
-						//	networkBssEntry.dot11Ssid,
-						//	networkBssEntry.dot11Bssid,
-						//	networkBssEntry.lRssi,
-						//	networkBssEntry.uLinkQuality,
-						//	networkBssEntry.ulChCenterFrequency);
-
-						yield return new BssNetworkPack(
-							interfaceInfo: interfaceInfo,
-							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid),
-							bssType: bssType,
-							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid),
-							signalStrength: networkBssEntry.lRssi,
-							linkQuality: (int)networkBssEntry.uLinkQuality,
-							frequency: (int)networkBssEntry.ulChCenterFrequency,
-							band: band,
-							channel: channel);
+						if (TryConvertBssNetwork(interfaceInfo, networkBssEntry, out BssNetworkPack bssNetwork))
+							yield return bssNetwork;
 					}
 				}
 			}
+		}
+
+		private static bool TryConvertBssNetwork(InterfaceInfo interfaceInfo, WLAN_BSS_ENTRY bssEntry, out BssNetworkPack bssNetwork)
+		{
+			bssNetwork = null;
+
+			if (!BssTypeConverter.TryConvert(bssEntry.dot11BssType, out BssType bssType))
+				return false;
+
+			if (!TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel))
+				return false;
+
+			bssNetwork = new BssNetworkPack(
+				interfaceInfo: interfaceInfo,
+				ssid: new NetworkIdentifier(bssEntry.dot11Ssid),
+				bssType: bssType,
+				bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
+				signalStrength: bssEntry.lRssi,
+				linkQuality: (int)bssEntry.uLinkQuality,
+				frequency: (int)bssEntry.ulChCenterFrequency,
+				band: band,
+				channel: channel);
+			return true;
 		}
 
 		#endregion

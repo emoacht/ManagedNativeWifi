@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Wireless LAN information
+	/// Wireless LAN information on BSS network
 	/// </summary>
 	public class BssNetworkPack
 	{
