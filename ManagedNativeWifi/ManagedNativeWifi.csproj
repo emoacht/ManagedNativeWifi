@@ -53,7 +53,6 @@
     <Compile Include="ConnectionMode.cs" />
     <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />
-    <Compile Include="InterfaceRadio.cs" />
     <Compile Include="InterfaceState.cs" />
     <Compile Include="NativeWifi.cs" />
     <Compile Include="NativeWifiPlayer.cs" />
@@ -62,6 +61,7 @@
     <Compile Include="ProfileDocument.cs" />
     <Compile Include="ProfilePack.cs" />
     <Compile Include="ProfileType.cs" />
+    <Compile Include="RadioInfo.cs" />
     <Compile Include="RadioSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

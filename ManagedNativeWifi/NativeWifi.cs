@@ -380,7 +380,8 @@ namespace ManagedNativeWifi
 				{
 					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
 
-					var interfaceIsRadioOn = interfaceIsConnected || IsInterfaceRadioOn(container.Content, interfaceInfo.Id);
+					var interfaceIsRadioOn = interfaceIsConnected ||
+						EnumerateInterfaceRadioSets(container.Content, interfaceInfo.Id).Any(x => x.On.GetValueOrDefault());
 
 					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id)
 						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
@@ -423,19 +424,6 @@ namespace ManagedNativeWifi
 					}
 				}
 			}
-		}
-
-		private static bool IsInterfaceRadioOn(Base.WlanClient client, Guid interfaceId)
-		{
-			var states = Base.GetPhyRadioStates(client.Handle, interfaceId);
-			if (!states.Any())
-				return false;
-
-			var hardwareOn = ConvertToNullableBoolean(states.First().dot11HardwareRadioState);
-			var softwareOn = ConvertToNullableBoolean(states.First().dot11SoftwareRadioState);
-
-			return hardwareOn.GetValueOrDefault()
-				&& softwareOn.GetValueOrDefault();
 		}
 
 		#endregion
@@ -771,36 +759,56 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <returns>Wireless interface radio information if succeeded. Null if not.</returns>
-		public static InterfaceRadio GetInterfaceRadio(Guid interfaceId)
+		public static RadioInfo GetInterfaceRadio(Guid interfaceId)
 		{
 			return GetInterfaceRadio(null, interfaceId);
 		}
 
-		internal static InterfaceRadio GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
+		internal static RadioInfo GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var capability = Base.GetInterfaceCapability(container.Content.Handle, interfaceId);
-				var states = Base.GetPhyRadioStates(container.Content.Handle, interfaceId); // The underlying collection is array.
-
-				if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
-					(capability.dwNumberOfSupportedPhys != states.Count()))
+				var radioSets = EnumerateInterfaceRadioSets(container.Content, interfaceId).ToArray();
+				if (!radioSets.Any())
 					return null;
 
-				var radioSets = Enumerable.Zip(
-					capability.dot11PhyTypes,
-					states.OrderBy(x => x.dwPhyIndex),
-					(x, y) => new RadioSet(
-						type: PhyTypeConverter.Convert(x),
-						softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState),
-						hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState)));
-
-				return new InterfaceRadio(
+				return new RadioInfo(
 					id: interfaceId,
 					radioSets: radioSets);
+			}
+		}
+
+		private static IEnumerable<RadioSet> EnumerateInterfaceRadioSets(Base.WlanClient client, Guid interfaceId)
+		{
+			var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
+			var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
+
+			if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
+				(capability.dwNumberOfSupportedPhys != states.Count()))
+				return Enumerable.Empty<RadioSet>();
+
+			return Enumerable.Zip(
+				capability.dot11PhyTypes,
+				states.OrderBy(x => x.dwPhyIndex),
+				(x, y) => new RadioSet(
+					type: PhyTypeConverter.Convert(x),
+					hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState),
+					softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState)));
+
+			bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
+			{
+				switch (source)
+				{
+					case DOT11_RADIO_STATE.dot11_radio_state_on:
+						return true;
+					case DOT11_RADIO_STATE.dot11_radio_state_off:
+						return false;
+					default:
+						return null;
+				}
 			}
 		}
 
@@ -848,19 +856,6 @@ namespace ManagedNativeWifi
 		#endregion
 
 		#region Helper
-
-		private static bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
-		{
-			switch (source)
-			{
-				case DOT11_RADIO_STATE.dot11_radio_state_on:
-					return true;
-				case DOT11_RADIO_STATE.dot11_radio_state_off:
-					return false;
-				default:
-					return null;
-			}
-		}
 
 		/// <summary>
 		/// Attempts to detect frequency band and channel from center frequency.

@@ -17,14 +17,14 @@ namespace ManagedNativeWifi
 		public PhyType Type { get; }
 
 		/// <summary>
-		/// Whether software radio state is on
-		/// </summary>
-		public bool? SoftwareOn { get; }
-
-		/// <summary>
 		/// Whether hardware radio state is on
 		/// </summary>
 		public bool? HardwareOn { get; }
+
+		/// <summary>
+		/// Whether software radio state is on
+		/// </summary>
+		public bool? SoftwareOn { get; }
 
 		/// <summary>
 		/// Whether the radio is on
@@ -36,11 +36,11 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public RadioSet(PhyType type, bool? softwareOn, bool? hardwareOn)
+		public RadioSet(PhyType type, bool? hardwareOn, bool? softwareOn)
 		{
 			this.Type = type;
-			this.SoftwareOn = softwareOn;
 			this.HardwareOn = hardwareOn;
+			this.SoftwareOn = softwareOn;
 		}
 	}
 }
