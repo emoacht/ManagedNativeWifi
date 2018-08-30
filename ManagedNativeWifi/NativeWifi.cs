@@ -213,7 +213,7 @@ namespace ManagedNativeWifi
 						//	availableNetwork.dot11Ssid,
 						//	availableNetwork.wlanSignalQuality);
 
-						yield return new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString());
+						yield return new NetworkIdentifier(availableNetwork.dot11Ssid);
 					}
 				}
 			}
@@ -248,7 +248,7 @@ namespace ManagedNativeWifi
 					//	association.dot11Bssid,
 					//	association.wlanSignalQuality);
 
-					yield return new NetworkIdentifier(association.dot11Ssid.ToBytes(), association.dot11Ssid.ToString());
+					yield return new NetworkIdentifier(association.dot11Ssid);
 				}
 			}
 		}
@@ -287,7 +287,7 @@ namespace ManagedNativeWifi
 
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
-							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
+							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
 							bssType: bssType,
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
@@ -334,9 +334,9 @@ namespace ManagedNativeWifi
 
 						yield return new BssNetworkPack(
 							interfaceInfo: interfaceInfo,
-							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
+							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid),
 							bssType: bssType,
-							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
+							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid),
 							signalStrength: networkBssEntry.lRssi,
 							linkQuality: (int)networkBssEntry.uLinkQuality,
 							frequency: (int)networkBssEntry.ulChCenterFrequency,
