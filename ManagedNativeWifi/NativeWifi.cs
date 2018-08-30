@@ -51,9 +51,7 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
 					var connectionMode = ConnectionModeConverter.Convert(connection.wlanConnectionMode);
@@ -101,8 +99,9 @@ namespace ManagedNativeWifi
 
 			using (var container = new DisposableContainer<Base.WlanNotificationClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-				var interfaceIds = interfaceInfoList.Select(x => x.InterfaceGuid).ToArray();
+				var interfaceIds = Base.GetInterfaceInfoList(container.Content.Handle)
+					.Select(x => x.InterfaceGuid)
+					.ToArray();
 
 				var tcs = new TaskCompletionSource<bool>();
 				var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), interfaceIds);
@@ -200,13 +199,9 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
-					foreach (var availableNetwork in availableNetworkList)
+					foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid))
 					{
 						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
 						//	interfaceInfo.strInterfaceDescription,
@@ -232,9 +227,7 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
 					if (connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
@@ -268,13 +261,9 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
-
-					foreach (var availableNetwork in availableNetworkList)
+					foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id))
 					{
 						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 							continue;
@@ -310,13 +299,9 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var networkBssEntryList = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id);
-
-					foreach (var networkBssEntry in networkBssEntryList)
+					foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id))
 					{
 						if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
 							continue;
@@ -364,13 +349,9 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
-					var profileInfoList = Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
-					foreach (var profileInfo in profileInfoList)
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.InterfaceGuid))
 					{
 						//Debug.WriteLine("Interface: {0}, Profile: {1}",
 						//	interfaceInfo.strInterfaceDescription,
@@ -395,9 +376,7 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
 					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
 
@@ -408,12 +387,10 @@ namespace ManagedNativeWifi
 						.ToArray();
 
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.Id);
-
-					var profileInfoList = Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id);
-
+					
 					int position = 0;
 
-					foreach (var profileInfo in profileInfoList)
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id))
 					{
 						var availableNetwork = availableNetworkList.FirstOrDefault(x => string.Equals(x.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
 						var signalQuality = (int)availableNetwork.wlanSignalQuality;
