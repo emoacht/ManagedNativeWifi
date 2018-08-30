@@ -458,6 +458,54 @@ namespace ManagedNativeWifi
 			}
 		}
 
+		/// <summary>
+		/// Enumerates wireless profile and related radio information in preference order.
+		/// </summary>
+		/// <returns>Wireless profile and related radio information</returns>
+		public static IEnumerable<ProfileRadioPack> EnumerateProfileRadios()
+		{
+			return EnumerateProfileRadios(null);
+		}
+
+		internal static IEnumerable<ProfileRadioPack> EnumerateProfileRadios(Base.WlanClient client)
+		{
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				foreach (var interfaceConnectionInfo in EnumerateInterfaceConnections(container.Content))
+				{
+					var availableNetworkGroups = EnumerateAvailableNetworkGroups(container.Content, interfaceConnectionInfo)
+						.Where(x => !string.IsNullOrWhiteSpace(x.ProfileName))
+						.ToArray();
+
+					int position = 0;
+
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceConnectionInfo.Id))
+					{
+						var profileXml = Base.GetProfile(container.Content.Handle, interfaceConnectionInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
+						if (string.IsNullOrWhiteSpace(profileXml))
+							continue;
+
+						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
+							continue;
+
+						var availableNetworkGroup = availableNetworkGroups.FirstOrDefault(x => string.Equals(x.ProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
+
+						yield return new ProfileRadioPack(
+							name: profileInfo.strProfileName,
+							interfaceInfo: interfaceConnectionInfo,
+							profileType: profileType,
+							profileXml: profileXml,
+							position: position++,
+							signalQuality: (availableNetworkGroup?.SignalQuality ?? 0),
+							linkQuality: (availableNetworkGroup?.LinkQuality ?? 0),
+							frequency: (availableNetworkGroup?.Frequency ?? 0),
+							band: (availableNetworkGroup?.Band ?? 0),
+							channel: (availableNetworkGroup?.Channel ?? 0));
+					}
+				}
+			}
+		}
+
 		#endregion
 
 		#region Set/Rename/Delete profile
