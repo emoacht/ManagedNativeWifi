@@ -321,6 +321,9 @@ namespace ManagedNativeWifi
 						if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
 							continue;
 
+						if (!TryDetectBandChannel(networkBssEntry.ulChCenterFrequency, out float band, out int channel))
+							continue;
+
 						//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
 						//	interfaceInfo.Description,
 						//	networkBssEntry.dot11Ssid,
@@ -337,7 +340,8 @@ namespace ManagedNativeWifi
 							signalStrength: networkBssEntry.lRssi,
 							linkQuality: (int)networkBssEntry.uLinkQuality,
 							frequency: (int)networkBssEntry.ulChCenterFrequency,
-							channel: DetectChannel(networkBssEntry.ulChCenterFrequency));
+							band: band,
+							channel: channel);
 					}
 				}
 			}
@@ -882,50 +886,64 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Detects wireless LAN channel from center frequency.
+		/// Attempts to detect frequency band and channel from center frequency.
 		/// </summary>
 		/// <param name="frequency">Center frequency (KHz)</param>
-		/// <returns>Channel number if successfully detected. 0 if not.</returns>
+		/// <param name="band">Frequency band (GHz)</param>
+		/// <param name="channel">Channel</param>
+		/// <returns>True if succeeded. False if failed.</returns>
 		/// <remarks>
 		/// This method is marked as internal for unit test.
 		/// As for 5GHz, this method may produce a channel number which is not actually in use.
-		/// Also, some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer
-		/// the frequency to distinguish them.
+		/// Some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer frequency band
+		/// to distinguish them.
 		/// </remarks>
-		internal static int DetectChannel(uint frequency)
+		internal static bool TryDetectBandChannel(uint frequency, out float band, out int channel)
 		{
-			// 2.4GHz
-			if ((2412000 <= frequency) && (frequency < 2484000))
-			{
-				var gap = frequency / 1000M - 2412M; // MHz
-				var factor = gap / 5M;
-				if (factor - Math.Floor(factor) == 0)
-					return (int)factor + 1;
-			}
-			if (frequency == 2484000)
-				return 14;
+			band = 0;
+			channel = 0;
 
-			// 3.6GHz
-			if ((3657500 <= frequency) && (frequency <= 3692500))
+			if ((2_412_000 <= frequency) && (frequency <= 2_484_000))
 			{
-				var gap = frequency / 1000M - 3655M; // MHz
+				// 2.4GHz
+				band = 2.4F;
+
+				if (frequency < 2_484_000)
+				{
+					var gap = frequency / 1_000M - 2_412M; // MHz
+					var factor = gap / 5M;
+					if (factor - Math.Floor(factor) == 0)
+						channel = (int)factor + 1;
+				}
+				else
+				{
+					channel = 14;
+				}
+			}
+			else if ((3_657_500 <= frequency) && (frequency <= 3_692_500))
+			{
+				// 3.6GHz
+				band = 3.6F;
+
+				var gap = frequency / 1_000M - 3_655M; // MHz
 				if (gap % 2.5M == 0)
 				{
 					var factor = gap / 5M;
-					return (int)Math.Floor(factor) + 131;
+					channel = (int)Math.Floor(factor) + 131;
 				}
 			}
-
-			// 5GHz
-			if ((5170000 <= frequency) && (frequency <= 5825000))
+			else if ((5_170_000 <= frequency) && (frequency <= 5_825_000))
 			{
-				var gap = frequency / 1000M - 5170M; // MHz
+				// 5GHz
+				band = 5.0F;
+
+				var gap = frequency / 1_000M - 5_170M; // MHz
 				var factor = gap / 5M;
 				if (factor - Math.Floor(factor) == 0)
-					return (int)factor + 34;
+					channel = (int)factor + 34;
 			}
 
-			return 0;
+			return (0 < channel);
 		}
 
 		#endregion
