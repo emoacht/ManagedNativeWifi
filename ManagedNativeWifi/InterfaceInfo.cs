@@ -62,19 +62,13 @@ namespace ManagedNativeWifi
 		public string ProfileName { get; }
 
 		/// <summary>
-		/// Whether automatic configuration service is enabled
-		/// </summary>
-		public bool IsAutoConfigEnabled { get; }
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
-		internal InterfaceInfoExtended(WLAN_INTERFACE_INFO info, ConnectionMode connectionMode, string profileName, bool isAutoConfigEnabled)
+		internal InterfaceInfoExtended(WLAN_INTERFACE_INFO info, ConnectionMode connectionMode, string profileName)
 			: base(info)
 		{
 			this.ConnectionMode = connectionMode;
 			this.ProfileName = profileName;
-			this.IsAutoConfigEnabled = isAutoConfigEnabled;
 		}
 	}
 }

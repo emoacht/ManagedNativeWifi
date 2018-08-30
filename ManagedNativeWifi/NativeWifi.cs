@@ -56,13 +56,10 @@ namespace ManagedNativeWifi
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
 					var connectionMode = ConnectionModeConverter.Convert(connection.wlanConnectionMode);
 
-					var autoConfig = Base.GetAutoConfig(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
 					yield return new InterfaceInfoExtended(
 						info: interfaceInfo,
 						connectionMode: connectionMode,
-						profileName: connection.strProfileName,
-						isAutoConfigEnabled: autoConfig.GetValueOrDefault());
+						profileName: connection.strProfileName);
 				}
 			}
 		}
@@ -388,7 +385,7 @@ namespace ManagedNativeWifi
 						.ToArray();
 
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.Id);
-					
+
 					int position = 0;
 
 					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id))
@@ -850,6 +847,31 @@ namespace ManagedNativeWifi
 				var phyRadioState = new WLAN_PHY_RADIO_STATE { dot11SoftwareRadioState = radioState, };
 
 				return Base.SetPhyRadioState(container.Content.Handle, interfaceId, phyRadioState);
+			}
+		}
+
+		#endregion
+
+		#region Auto config
+
+		/// <summary>
+		/// Gets information on whether automatic configuration is enabled for a specified wireless interface.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <returns>True if enabled. False if disabled or failed to get information.</returns>
+		public static bool GetInterfaceAutoConfig(Guid interfaceId)
+		{
+			return GetInterfaceAutoConfig(null, interfaceId);
+		}
+
+		internal static bool GetInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				return Base.GetAutoConfig(container.Content.Handle, interfaceId).GetValueOrDefault();
 			}
 		}
 
