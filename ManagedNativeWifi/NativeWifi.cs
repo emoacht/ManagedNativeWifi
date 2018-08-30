@@ -39,26 +39,31 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerates wireless interface information (Extended).
+		/// Enumerates wireless interface and related connection information.
 		/// </summary>
-		/// <returns>Wireless interface information (Extended)</returns>
-		public static IEnumerable<InterfaceInfoExtended> EnumerateInterfacesExtended()
+		/// <returns>Wireless interface and related connection information</returns>
+		public static IEnumerable<InterfaceConnectionInfo> EnumerateInterfaceConnections()
 		{
-			return EnumerateInterfacesExtended(null);
+			return EnumerateInterfaceConnections(null);
 		}
 
-		internal static IEnumerable<InterfaceInfoExtended> EnumerateInterfacesExtended(Base.WlanClient client)
+		internal static IEnumerable<InterfaceConnectionInfo> EnumerateInterfaceConnections(Base.WlanClient client)
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
 				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
-					var connectionMode = ConnectionModeConverter.Convert(connection.wlanConnectionMode);
 
-					yield return new InterfaceInfoExtended(
-						info: interfaceInfo,
-						connectionMode: connectionMode,
+					var isConnected = (interfaceInfo.isState == WLAN_INTERFACE_STATE.wlan_interface_state_connected);
+					var isRadioOn = isConnected ||
+						EnumerateInterfaceRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
+
+					yield return new InterfaceConnectionInfo(
+						interfaceInfo,
+						connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
+						isRadioOn: isRadioOn,
+						isConnected: isConnected,
 						profileName: connection.strProfileName);
 				}
 			}
@@ -375,25 +380,10 @@ namespace ManagedNativeWifi
 			{
 				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
-
-					var interfaceIsRadioOn = interfaceIsConnected ||
-						EnumerateInterfaceRadioSets(container.Content, interfaceInfo.Id).Any(x => x.On.GetValueOrDefault());
-
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id)
-						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
-						.ToArray();
-
-					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.Id);
-
 					int position = 0;
 
 					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id))
 					{
-						var availableNetwork = availableNetworkList.FirstOrDefault(x => string.Equals(x.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
-						var signalQuality = (int)availableNetwork.wlanSignalQuality;
-						var profileIsConnected = interfaceIsConnected && string.Equals(connection.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal);
-
 						var profileXml = Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
 						if (string.IsNullOrWhiteSpace(profileXml))
 							continue;
@@ -401,23 +391,17 @@ namespace ManagedNativeWifi
 						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
 							continue;
 
-						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, RadioOn: {3}, Signal: {4}, Connected: {5}",
+						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}",
 						//	interfaceInfo.Description,
 						//	profileInfo.strProfileName,
-						//	position,
-						//	interfaceIsRadioOn,
-						//	signalQuality,
-						//	profileIsConnected);
+						//	position);
 
 						yield return new ProfilePack(
 							name: profileInfo.strProfileName,
 							interfaceInfo: interfaceInfo,
 							profileType: profileType,
 							profileXml: profileXml,
-							position: position++,
-							isRadioOn: interfaceIsRadioOn,
-							signalQuality: signalQuality,
-							isConnected: profileIsConnected);
+							position: position++);
 					}
 				}
 			}
