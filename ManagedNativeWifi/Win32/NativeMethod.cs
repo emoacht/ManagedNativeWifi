@@ -205,7 +205,7 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_INTERFACE_INFO_LIST(IntPtr ppInterfaceList)
 			{
-				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
+				var uintSize = Marshal.SizeOf<uint>(); // 4
 
 				dwNumberOfItems = (uint)Marshal.ReadInt32(ppInterfaceList, 0);
 				dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, uintSize /* Offset for dwNumberOfItems */);
@@ -215,7 +215,7 @@ namespace ManagedNativeWifi.Win32
 				{
 					var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64()
 						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-						+ (Marshal.SizeOf(typeof(WLAN_INTERFACE_INFO)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_INTERFACE_INFO>() * i) /* Offset for preceding items */);
 
 					InterfaceInfo[i] = Marshal.PtrToStructure<WLAN_INTERFACE_INFO>(interfaceInfo);
 				}
@@ -266,7 +266,7 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_RADIO_STATE(IntPtr ppData)
 			{
-				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
+				var uintSize = Marshal.SizeOf<uint>(); // 4
 
 				dwNumberOfPhys = (uint)Marshal.ReadInt32(ppData, 0);
 				PhyRadioState = new WLAN_PHY_RADIO_STATE[dwNumberOfPhys];
@@ -275,7 +275,7 @@ namespace ManagedNativeWifi.Win32
 				{
 					var phyRadioState = new IntPtr(ppData.ToInt64()
 						+ uintSize /* Offset for dwNumberOfPhys */
-						+ (Marshal.SizeOf(typeof(WLAN_PHY_RADIO_STATE)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_PHY_RADIO_STATE>() * i) /* Offset for preceding items */);
 
 					PhyRadioState[i] = Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(phyRadioState);
 				}
@@ -315,7 +315,7 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_AVAILABLE_NETWORK_LIST(IntPtr ppAvailableNetworkList)
 			{
-				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
+				var uintSize = Marshal.SizeOf<uint>(); // 4
 
 				dwNumberOfItems = (uint)Marshal.ReadInt32(ppAvailableNetworkList, 0);
 				dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, uintSize /* Offset for dwNumberOfItems */);
@@ -325,7 +325,7 @@ namespace ManagedNativeWifi.Win32
 				{
 					var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64()
 						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-						+ (Marshal.SizeOf(typeof(WLAN_AVAILABLE_NETWORK)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_AVAILABLE_NETWORK>() * i) /* Offset for preceding items */);
 
 					Network[i] = Marshal.PtrToStructure<WLAN_AVAILABLE_NETWORK>(availableNetwork);
 				}
@@ -364,7 +364,7 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_BSS_LIST(IntPtr ppWlanBssList)
 			{
-				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
+				var uintSize = Marshal.SizeOf<uint>(); // 4
 
 				dwTotalSize = (uint)Marshal.ReadInt32(ppWlanBssList, 0);
 				dwNumberOfItems = (uint)Marshal.ReadInt32(ppWlanBssList, uintSize /* Offset for dwTotalSize */);
@@ -374,7 +374,7 @@ namespace ManagedNativeWifi.Win32
 				{
 					var wlanBssEntry = new IntPtr(ppWlanBssList.ToInt64()
 						+ (uintSize * 2) /* Offset for dwTotalSize and dwNumberOfItems */
-						+ (Marshal.SizeOf(typeof(WLAN_BSS_ENTRY)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_BSS_ENTRY>() * i) /* Offset for preceding items */);
 
 					wlanBssEntries[i] = Marshal.PtrToStructure<WLAN_BSS_ENTRY>(wlanBssEntry);
 				}
@@ -398,7 +398,7 @@ namespace ManagedNativeWifi.Win32
 
 			public WLAN_PROFILE_INFO_LIST(IntPtr ppProfileList)
 			{
-				var uintSize = Marshal.SizeOf(typeof(uint)); // 4
+				var uintSize = Marshal.SizeOf<uint>(); // 4
 
 				dwNumberOfItems = (uint)Marshal.ReadInt32(ppProfileList, 0);
 				dwIndex = (uint)Marshal.ReadInt32(ppProfileList, uintSize /* Offset for dwNumberOfItems */);
@@ -408,7 +408,7 @@ namespace ManagedNativeWifi.Win32
 				{
 					var profileInfo = new IntPtr(ppProfileList.ToInt64()
 						+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-						+ (Marshal.SizeOf(typeof(WLAN_PROFILE_INFO)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_PROFILE_INFO>() * i) /* Offset for preceding items */);
 
 					ProfileInfo[i] = Marshal.PtrToStructure<WLAN_PROFILE_INFO>(profileInfo);
 				}
