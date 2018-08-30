@@ -12,6 +12,8 @@ namespace ManagedNativeWifi.Win32
 {
 	internal static class BaseMethod
 	{
+		#region Client
+
 		public class WlanClient : IDisposable
 		{
 			private SafeClientHandle _clientHandle = null;
@@ -132,6 +134,8 @@ namespace ManagedNativeWifi.Win32
 
 			#endregion
 		}
+
+		#endregion
 
 		public static IEnumerable<WLAN_INTERFACE_INFO> GetInterfaceInfoList(SafeClientHandle clientHandle)
 		{

@@ -204,14 +204,7 @@ namespace ManagedNativeWifi
 				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid))
-					{
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
-						//	interfaceInfo.strInterfaceDescription,
-						//	availableNetwork.dot11Ssid,
-						//	availableNetwork.wlanSignalQuality);
-
 						yield return new NetworkIdentifier(availableNetwork.dot11Ssid);
-					}
 				}
 			}
 		}
@@ -237,12 +230,6 @@ namespace ManagedNativeWifi
 
 					var association = connection.wlanAssociationAttributes;
 
-					//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3}",
-					//	interfaceInfo.strInterfaceDescription,
-					//	association.dot11Ssid,
-					//	association.dot11Bssid,
-					//	association.wlanSignalQuality);
-
 					yield return new NetworkIdentifier(association.dot11Ssid);
 				}
 			}
@@ -251,7 +238,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
-		/// <returns>Wireless LAN information</returns>
+		/// <returns>Wireless LAN information on available networks</returns>
 		/// <remarks>
 		/// If multiple profiles are associated with a same network, there will be multiple entries with
 		/// the same SSID.
@@ -272,12 +259,6 @@ namespace ManagedNativeWifi
 						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 							continue;
 
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
-						//	interfaceInfo.Description,
-						//	availableNetwork.dot11Ssid,
-						//	availableNetwork.wlanSignalQuality,
-						//	availableNetwork.bSecurityEnabled);
-
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
@@ -293,7 +274,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
 		/// </summary>
-		/// <returns>Wireless LAN information</returns>
+		/// <returns>Wireless LAN information on available networks and group of associated BSS networks</returns>
 		/// <remarks>
 		/// If multiple profiles are associated with a same network, there will be multiple entries with
 		/// the same SSID.
@@ -341,7 +322,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Enumerates wireless LAN information on BSS networks.
 		/// </summary>
-		/// <returns>Wireless LAN information</returns>
+		/// <returns>Wireless LAN information on BSS networks</returns>
 		public static IEnumerable<BssNetworkPack> EnumerateBssNetworks()
 		{
 			return EnumerateBssNetworks(null);
@@ -405,13 +386,7 @@ namespace ManagedNativeWifi
 				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.InterfaceGuid))
-					{
-						//Debug.WriteLine("Interface: {0}, Profile: {1}",
-						//	interfaceInfo.strInterfaceDescription,
-						//	profileInfo.strProfileName);
-
 						yield return profileInfo.strProfileName;
-					}
 				}
 			}
 		}
@@ -441,11 +416,6 @@ namespace ManagedNativeWifi
 
 						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
 							continue;
-
-						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}",
-						//	interfaceInfo.Description,
-						//	profileInfo.strProfileName,
-						//	position);
 
 						yield return new ProfilePack(
 							name: profileInfo.strProfileName,
@@ -518,7 +488,7 @@ namespace ManagedNativeWifi
 		/// <param name="profileXml">Profile XML</param>
 		/// <param name="profileSecurity">Security descriptor for all-user profile</param>
 		/// <param name="overwrite">Whether to overwrite an existing profile</param>
-		/// <returns>True if successfully set. False if not.</returns>
+		/// <returns>True if successfully set. False if failed.</returns>
 		/// <remarks>
 		/// If the content of the profile XML is not valid, a Win32Exception will be thrown.
 		/// In such case, check the reason code in the message and see
@@ -552,7 +522,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="position">Position (starting at 0)</param>
-		/// <returns>True if successfully set. False if not.</returns>
+		/// <returns>True if successfully set. False if failed.</returns>
 		public static bool SetProfilePosition(Guid interfaceId, string profileName, int position)
 		{
 			return SetProfilePosition(null, interfaceId, profileName, position);
@@ -581,7 +551,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="oldProfileName">Old profile name</param>
 		/// <param name="newProfileName">New profile name</param>
-		/// <returns>True if successfully renamed. False if not.</returns>
+		/// <returns>True if successfully renamed. False if failed.</returns>
 		public static bool RenameProfile(Guid interfaceId, string oldProfileName, string newProfileName)
 		{
 			return RenameProfile(null, interfaceId, oldProfileName, newProfileName);
@@ -609,7 +579,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
-		/// <returns>True if successfully deleted. False if could not delete.</returns>
+		/// <returns>True if successfully deleted. False if failed.</returns>
 		public static bool DeleteProfile(Guid interfaceId, string profileName)
 		{
 			return DeleteProfile(null, interfaceId, profileName);
@@ -838,7 +808,7 @@ namespace ManagedNativeWifi
 		/// Gets wireless interface radio information of a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>Wireless interface radio information if succeeded. Null if not.</returns>
+		/// <returns>Wireless interface radio information if succeeded. Null if failed.</returns>
 		public static RadioInfo GetInterfaceRadio(Guid interfaceId)
 		{
 			return GetInterfaceRadio(null, interfaceId);
@@ -896,11 +866,10 @@ namespace ManagedNativeWifi
 		/// Turns on the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>
-		/// If the user is not logged on as a member of Administrators group,
-		/// an UnauthorizedAccessException should be thrown.
-		/// </remarks>
+		/// <returns>True if successfully changed radio state. False if failed.</returns>
+		/// <exception cref="UnauthorizedAccessException">
+		/// If the user is not logged on as a member of Administrators group.
+		/// </exception>
 		public static bool TurnOnInterfaceRadio(Guid interfaceId)
 		{
 			return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_on);
@@ -910,11 +879,10 @@ namespace ManagedNativeWifi
 		/// Turns off the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>
-		/// If the user is not logged on as a member of Administrators group,
-		/// an UnauthorizedAccessException should be thrown.
-		/// </remarks>
+		/// <returns>True if successfully changed radio state. False if failed.</returns>
+		/// <exception cref="UnauthorizedAccessException">
+		/// If the user is not logged on as a member of Administrators group.
+		/// </exception>
 		public static bool TurnOffInterfaceRadio(Guid interfaceId)
 		{
 			return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
@@ -968,7 +936,7 @@ namespace ManagedNativeWifi
 		/// <param name="frequency">Center frequency (KHz)</param>
 		/// <param name="band">Frequency band (GHz)</param>
 		/// <param name="channel">Channel</param>
-		/// <returns>True if succeeded. False if failed.</returns>
+		/// <returns>True if successfully detected. False if failed.</returns>
 		/// <remarks>
 		/// This method is marked as internal for unit test.
 		/// As for 5GHz, this method may produce a channel number which is not actually in use.
