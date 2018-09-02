@@ -144,6 +144,17 @@ public static async Task<bool> TurnOnAsync()
 
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
+## History
+
+Ver 1.4.0 2018-9-2
+
+ - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios.
+ - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles.
+
+Ver 1.0.0 2015-1-30
+
+ - Initial commit
+
 ## License
 
  - MIT License

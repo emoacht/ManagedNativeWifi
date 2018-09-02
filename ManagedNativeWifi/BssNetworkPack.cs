@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Wireless LAN information
+	/// Wireless LAN information on BSS network
 	/// </summary>
 	public class BssNetworkPack
 	{
@@ -42,12 +42,17 @@ namespace ManagedNativeWifi
 		public int LinkQuality { get; }
 
 		/// <summary>
-		/// Wireless LAN frequency (KHz)
+		/// Frequency (KHz)
 		/// </summary>
 		public int Frequency { get; }
 
 		/// <summary>
-		/// Wireless LAN channel
+		/// Frequency band (GHz)
+		/// </summary>
+		public float Band { get; }
+
+		/// <summary>
+		/// Channel
 		/// </summary>
 		public int Channel { get; }
 
@@ -62,6 +67,7 @@ namespace ManagedNativeWifi
 			int signalStrength,
 			int linkQuality,
 			int frequency,
+			float band,
 			int channel)
 		{
 			this.Interface = interfaceInfo;
@@ -71,6 +77,7 @@ namespace ManagedNativeWifi
 			this.SignalStrength = signalStrength;
 			this.LinkQuality = linkQuality;
 			this.Frequency = frequency;
+			this.Band = band;
 			this.Channel = channel;
 		}
 	}

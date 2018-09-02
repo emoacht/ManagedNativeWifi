@@ -12,9 +12,11 @@ namespace ManagedNativeWifi.Win32
 {
 	internal static class BaseMethod
 	{
+		#region Client
+
 		public class WlanClient : IDisposable
 		{
-			private SafeClientHandle _clientHandle = null;
+			private readonly SafeClientHandle _clientHandle = null;
 
 			public SafeClientHandle Handle => _clientHandle;
 
@@ -23,7 +25,7 @@ namespace ManagedNativeWifi.Win32
 				var result = WlanOpenHandle(
 					2, // Client version for Windows Vista and Windows Server 2008
 					IntPtr.Zero,
-					out uint negotiatedVersion,
+					out _,
 					out _clientHandle);
 
 				CheckResult(nameof(WlanOpenHandle), result, true);
@@ -133,6 +135,8 @@ namespace ManagedNativeWifi.Win32
 			#endregion
 		}
 
+		#endregion
+
 		public static IEnumerable<WLAN_INTERFACE_INFO> GetInterfaceInfoList(SafeClientHandle clientHandle)
 		{
 			var interfaceList = IntPtr.Zero;
@@ -217,6 +221,38 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
+		public static WLAN_BSS_ENTRY[] GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid, DOT11_BSS_TYPE bssType, bool isSecurityEnabled)
+		{
+			var queryData = IntPtr.Zero;
+			var wlanBssList = IntPtr.Zero;
+			try
+			{
+				queryData = Marshal.AllocHGlobal(Marshal.SizeOf(ssid));
+				Marshal.StructureToPtr(ssid, queryData, false);
+
+				var result = WlanGetNetworkBssList(
+					clientHandle,
+					interfaceId,
+					queryData,
+					bssType,
+					isSecurityEnabled,
+					IntPtr.Zero,
+					out wlanBssList);
+
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				return CheckResult(nameof(WlanGetNetworkBssList), result, false)
+					? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+					: new WLAN_BSS_ENTRY[0];
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(queryData);
+
+				if (wlanBssList != IntPtr.Zero)
+					WlanFreeMemory(wlanBssList);
+			}
+		}
+
 		public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var queryData = IntPtr.Zero;
@@ -227,7 +263,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 
@@ -408,7 +444,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 
@@ -472,7 +508,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					wlanIntfOpcode,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 

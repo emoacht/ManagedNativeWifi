@@ -121,6 +121,12 @@ namespace ManagedNativeWifi
 			NativeWifi.EnumerateInterfaces(_client);
 
 		/// <summary>
+		/// Enumerates wireless interface and related connection information.
+		/// </summary>
+		public IEnumerable<InterfaceConnectionInfo> EnumerateInterfaceConnections() =>
+			NativeWifi.EnumerateInterfaceConnections(_client);
+
+		/// <summary>
 		/// Asynchronously requests wireless interfaces to scan wireless LANs.
 		/// </summary>
 		public Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken) =>
@@ -139,10 +145,16 @@ namespace ManagedNativeWifi
 			NativeWifi.EnumerateConnectedNetworkSsids(_client);
 
 		/// <summary>
-		/// Enumerates wireless LAN information on available wireless LANs.
+		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
 		public IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks() =>
 			NativeWifi.EnumerateAvailableNetworks(_client);
+
+		/// <summary>
+		/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
+		/// </summary>
+		public IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups() =>
+			NativeWifi.EnumerateAvailableNetworkGroups(_client);
 
 		/// <summary>
 		/// Enumerates wireless LAN information on BSS networks.
@@ -155,6 +167,12 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public IEnumerable<ProfilePack> EnumerateProfiles() =>
 			NativeWifi.EnumerateProfiles(_client);
+
+		/// <summary>
+		/// Enumerates wireless profile and related radio information in preference order.
+		/// </summary>
+		public IEnumerable<ProfileRadioPack> EnumerateProfileRadios() =>
+			NativeWifi.EnumerateProfileRadios(_client);
 
 		/// <summary>
 		/// Sets (adds or overwrites) the content of a specified wireless profile.

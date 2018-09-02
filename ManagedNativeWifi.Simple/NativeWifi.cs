@@ -82,7 +82,7 @@ namespace ManagedNativeWifi.Simple
 				{
 					var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64()
 						+ 8 /* Offset for dwNumberOfItems and dwIndex */
-						+ (Marshal.SizeOf(typeof(WLAN_INTERFACE_INFO)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_INTERFACE_INFO>() * i) /* Offset for preceding items */);
 
 					InterfaceInfo[i] = Marshal.PtrToStructure<WLAN_INTERFACE_INFO>(interfaceInfo);
 				}
@@ -131,7 +131,7 @@ namespace ManagedNativeWifi.Simple
 				{
 					var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64()
 						+ 8 /* Offset for dwNumberOfItems and dwIndex */
-						+ (Marshal.SizeOf(typeof(WLAN_AVAILABLE_NETWORK)) * i) /* Offset for preceding items */);
+						+ (Marshal.SizeOf<WLAN_AVAILABLE_NETWORK>() * i) /* Offset for preceding items */);
 
 					Network[i] = Marshal.PtrToStructure<WLAN_AVAILABLE_NETWORK>(availableNetwork);
 				}

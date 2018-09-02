@@ -47,9 +47,9 @@ namespace ManagedNativeWifi
 	}
 
 	/// <summary>
-	/// Wireless interface information (Extended)
+	/// Wireless interface and related connection information
 	/// </summary>
-	public class InterfaceInfoExtended : InterfaceInfo
+	public class InterfaceConnectionInfo : InterfaceInfo
 	{
 		/// <summary>
 		/// Connection mode
@@ -57,24 +57,34 @@ namespace ManagedNativeWifi
 		public ConnectionMode ConnectionMode { get; }
 
 		/// <summary>
-		/// The name of a wireless profile used for the connection, if connected
+		/// Whether the radio of the wireless interface is on
+		/// </summary>
+		public bool IsRadioOn { get; }
+
+		/// <summary>
+		/// Whether the wireless interface is connected to a wireless LAN
+		/// </summary>
+		public bool IsConnected { get; }
+
+		/// <summary>
+		/// Wireless profile name when the wireless profile is used for the connection
 		/// </summary>
 		public string ProfileName { get; }
 
 		/// <summary>
-		/// Whether automatic configuration service is enabled
-		/// </summary>
-		public bool IsAutoConfigEnabled { get; }
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
-		internal InterfaceInfoExtended(WLAN_INTERFACE_INFO info, ConnectionMode connectionMode, string profileName, bool isAutoConfigEnabled)
-			: base(info)
+		internal InterfaceConnectionInfo(
+			WLAN_INTERFACE_INFO info,
+			ConnectionMode connectionMode,
+			bool isRadioOn,
+			bool isConnected,
+			string profileName) : base(info)
 		{
 			this.ConnectionMode = connectionMode;
+			this.IsRadioOn = isRadioOn;
+			this.IsConnected = isConnected;
 			this.ProfileName = profileName;
-			this.IsAutoConfigEnabled = isAutoConfigEnabled;
 		}
 	}
 }

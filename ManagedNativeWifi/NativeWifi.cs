@@ -39,32 +39,32 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Enumerates wireless interface information (Extended).
+		/// Enumerates wireless interface and related connection information.
 		/// </summary>
-		/// <returns>Wireless interface information (Extended)</returns>
-		public static IEnumerable<InterfaceInfoExtended> EnumerateInterfacesExtended()
+		/// <returns>Wireless interface and related connection information</returns>
+		public static IEnumerable<InterfaceConnectionInfo> EnumerateInterfaceConnections()
 		{
-			return EnumerateInterfacesExtended(null);
+			return EnumerateInterfaceConnections(null);
 		}
 
-		internal static IEnumerable<InterfaceInfoExtended> EnumerateInterfacesExtended(Base.WlanClient client)
+		internal static IEnumerable<InterfaceConnectionInfo> EnumerateInterfaceConnections(Base.WlanClient client)
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
-					var connectionMode = ConnectionModeConverter.Convert(connection.wlanConnectionMode);
 
-					var autoConfig = Base.GetAutoConfig(container.Content.Handle, interfaceInfo.InterfaceGuid);
+					var isConnected = (interfaceInfo.isState == WLAN_INTERFACE_STATE.wlan_interface_state_connected);
+					var isRadioOn = isConnected ||
+						EnumerateInterfaceRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
 
-					yield return new InterfaceInfoExtended(
-						info: interfaceInfo,
-						connectionMode: connectionMode,
-						profileName: connection.strProfileName,
-						isAutoConfigEnabled: autoConfig.GetValueOrDefault());
+					yield return new InterfaceConnectionInfo(
+						interfaceInfo,
+						connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
+						isRadioOn: isRadioOn,
+						isConnected: isConnected,
+						profileName: connection.strProfileName);
 				}
 			}
 		}
@@ -101,8 +101,9 @@ namespace ManagedNativeWifi
 
 			using (var container = new DisposableContainer<Base.WlanNotificationClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-				var interfaceIds = interfaceInfoList.Select(x => x.InterfaceGuid).ToArray();
+				var interfaceIds = Base.GetInterfaceInfoList(container.Content.Handle)
+					.Select(x => x.InterfaceGuid)
+					.ToArray();
 
 				var tcs = new TaskCompletionSource<bool>();
 				var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), interfaceIds);
@@ -127,10 +128,13 @@ namespace ManagedNativeWifi
 						counter.SetFailure(interfaceId);
 				}
 
-				var scanTask = tcs.Task;
-				await Task.WhenAny(scanTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var scanTask = tcs.Task;
+					await Task.WhenAny(scanTask, Task.Delay(timeout, cancellationToken));
 
-				return counter.Results;
+					return counter.Results;
+				}
 			}
 		}
 
@@ -197,21 +201,10 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
-					foreach (var availableNetwork in availableNetworkList)
-					{
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}",
-						//	interfaceInfo.strInterfaceDescription,
-						//	availableNetwork.dot11Ssid,
-						//	availableNetwork.wlanSignalQuality);
-
-						yield return new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString());
-					}
+					foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid))
+						yield return new NetworkIdentifier(availableNetwork.dot11Ssid);
 				}
 			}
 		}
@@ -229,9 +222,7 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
 					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
 					if (connection.isState != WLAN_INTERFACE_STATE.wlan_interface_state_connected)
@@ -239,13 +230,7 @@ namespace ManagedNativeWifi
 
 					var association = connection.wlanAssociationAttributes;
 
-					//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3}",
-					//	interfaceInfo.strInterfaceDescription,
-					//	association.dot11Ssid,
-					//	association.dot11Bssid,
-					//	association.wlanSignalQuality);
-
-					yield return new NetworkIdentifier(association.dot11Ssid.ToBytes(), association.dot11Ssid.ToString());
+					yield return new NetworkIdentifier(association.dot11Ssid);
 				}
 			}
 		}
@@ -253,9 +238,11 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
-		/// <returns>Wireless LAN information</returns>
-		/// <remarks>If multiple profiles are associated with a same network, there will be multiple
-		/// entries with the same SSID.</remarks>
+		/// <returns>Wireless LAN information on available networks</returns>
+		/// <remarks>
+		/// If multiple profiles are associated with a same network, there will be multiple entries with
+		/// the same SSID.
+		/// </remarks>
 		public static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks()
 		{
 			return EnumerateAvailableNetworks(null);
@@ -265,26 +252,16 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
-
-					foreach (var availableNetwork in availableNetworkList)
+					foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id))
 					{
 						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 							continue;
 
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, Signal: {2}, Security: {3}",
-						//	interfaceInfo.Description,
-						//	availableNetwork.dot11Ssid,
-						//	availableNetwork.wlanSignalQuality,
-						//	availableNetwork.bSecurityEnabled);
-
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
-							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid.ToBytes(), availableNetwork.dot11Ssid.ToString()),
+							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
 							bssType: bssType,
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
@@ -295,9 +272,57 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
+		/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
+		/// </summary>
+		/// <returns>Wireless LAN information on available networks and group of associated BSS networks</returns>
+		/// <remarks>
+		/// If multiple profiles are associated with a same network, there will be multiple entries with
+		/// the same SSID.
+		/// </remarks>
+		public static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups()
+		{
+			return EnumerateAvailableNetworkGroups(null);
+		}
+
+		internal static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups(Base.WlanClient client)
+		{
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
+				{
+					foreach (var availableNetworkGroup in EnumerateAvailableNetworkGroups(container.Content, interfaceInfo))
+						yield return availableNetworkGroup;
+				}
+			}
+		}
+
+		private static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups(Base.WlanClient client, InterfaceInfo interfaceInfo)
+		{
+			foreach (var availableNetwork in Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id))
+			{
+				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
+					continue;
+
+				var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
+					availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled)
+					.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
+					.Where(x => x != null);
+
+				yield return new AvailableNetworkGroupPack(
+					interfaceInfo: interfaceInfo,
+					ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
+					bssType: bssType,
+					signalQuality: (int)availableNetwork.wlanSignalQuality,
+					isSecurityEnabled: availableNetwork.bSecurityEnabled,
+					profileName: availableNetwork.strProfileName,
+					bssNetworks: bssNetworks);
+			}
+		}
+
+		/// <summary>
 		/// Enumerates wireless LAN information on BSS networks.
 		/// </summary>
-		/// <returns>Wireless LAN information</returns>
+		/// <returns>Wireless LAN information on BSS networks</returns>
 		public static IEnumerable<BssNetworkPack> EnumerateBssNetworks()
 		{
 			return EnumerateBssNetworks(null);
@@ -307,37 +332,38 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var networkBssEntryList = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id);
-
-					foreach (var networkBssEntry in networkBssEntryList)
+					foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id))
 					{
-						if (!BssTypeConverter.TryConvert(networkBssEntry.dot11BssType, out BssType bssType))
-							continue;
-
-						//Debug.WriteLine("Interface: {0}, SSID: {1}, BSSID: {2}, Signal: {3} Link: {4}, Frequency: {5}",
-						//	interfaceInfo.Description,
-						//	networkBssEntry.dot11Ssid,
-						//	networkBssEntry.dot11Bssid,
-						//	networkBssEntry.lRssi,
-						//	networkBssEntry.uLinkQuality,
-						//	networkBssEntry.ulChCenterFrequency);
-
-						yield return new BssNetworkPack(
-							interfaceInfo: interfaceInfo,
-							ssid: new NetworkIdentifier(networkBssEntry.dot11Ssid.ToBytes(), networkBssEntry.dot11Ssid.ToString()),
-							bssType: bssType,
-							bssid: new NetworkIdentifier(networkBssEntry.dot11Bssid.ToBytes(), networkBssEntry.dot11Bssid.ToString()),
-							signalStrength: networkBssEntry.lRssi,
-							linkQuality: (int)networkBssEntry.uLinkQuality,
-							frequency: (int)networkBssEntry.ulChCenterFrequency,
-							channel: DetectChannel(networkBssEntry.ulChCenterFrequency));
+						if (TryConvertBssNetwork(interfaceInfo, networkBssEntry, out BssNetworkPack bssNetwork))
+							yield return bssNetwork;
 					}
 				}
 			}
+		}
+
+		private static bool TryConvertBssNetwork(InterfaceInfo interfaceInfo, WLAN_BSS_ENTRY bssEntry, out BssNetworkPack bssNetwork)
+		{
+			bssNetwork = null;
+
+			if (!BssTypeConverter.TryConvert(bssEntry.dot11BssType, out BssType bssType))
+				return false;
+
+			if (!TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel))
+				return false;
+
+			bssNetwork = new BssNetworkPack(
+				interfaceInfo: interfaceInfo,
+				ssid: new NetworkIdentifier(bssEntry.dot11Ssid),
+				bssType: bssType,
+				bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
+				signalStrength: bssEntry.lRssi,
+				linkQuality: (int)bssEntry.uLinkQuality,
+				frequency: (int)bssEntry.ulChCenterFrequency,
+				band: band,
+				channel: channel);
+			return true;
 		}
 
 		#endregion
@@ -357,20 +383,10 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList)
+				foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 				{
-					var profileInfoList = Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
-					foreach (var profileInfo in profileInfoList)
-					{
-						//Debug.WriteLine("Interface: {0}, Profile: {1}",
-						//	interfaceInfo.strInterfaceDescription,
-						//	profileInfo.strProfileName);
-
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.InterfaceGuid))
 						yield return profileInfo.strProfileName;
-					}
 				}
 			}
 		}
@@ -388,30 +404,12 @@ namespace ManagedNativeWifi
 		{
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var interfaceInfoList = Base.GetInterfaceInfoList(container.Content.Handle);
-
-				foreach (var interfaceInfo in interfaceInfoList.Select(x => new InterfaceInfo(x)))
+				foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 				{
-					var interfaceIsConnected = (interfaceInfo.State == InterfaceState.Connected);
-
-					var interfaceIsRadioOn = interfaceIsConnected || IsInterfaceRadioOn(container.Content, interfaceInfo.Id);
-
-					var availableNetworkList = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id)
-						.Where(x => !string.IsNullOrWhiteSpace(x.strProfileName))
-						.ToArray();
-
-					var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.Id);
-
-					var profileInfoList = Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id);
-
 					int position = 0;
 
-					foreach (var profileInfo in profileInfoList)
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceInfo.Id))
 					{
-						var availableNetwork = availableNetworkList.FirstOrDefault(x => string.Equals(x.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
-						var signalQuality = (int)availableNetwork.wlanSignalQuality;
-						var profileIsConnected = interfaceIsConnected && string.Equals(connection.strProfileName, profileInfo.strProfileName, StringComparison.Ordinal);
-
 						var profileXml = Base.GetProfile(container.Content.Handle, interfaceInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
 						if (string.IsNullOrWhiteSpace(profileXml))
 							continue;
@@ -419,39 +417,63 @@ namespace ManagedNativeWifi
 						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
 							continue;
 
-						//Debug.WriteLine("Interface: {0}, Profile: {1}, Position: {2}, RadioOn: {3}, Signal: {4}, Connected: {5}",
-						//	interfaceInfo.Description,
-						//	profileInfo.strProfileName,
-						//	position,
-						//	interfaceIsRadioOn,
-						//	signalQuality,
-						//	profileIsConnected);
-
 						yield return new ProfilePack(
 							name: profileInfo.strProfileName,
 							interfaceInfo: interfaceInfo,
 							profileType: profileType,
 							profileXml: profileXml,
-							position: position++,
-							isRadioOn: interfaceIsRadioOn,
-							signalQuality: signalQuality,
-							isConnected: profileIsConnected);
+							position: position++);
 					}
 				}
 			}
 		}
 
-		private static bool IsInterfaceRadioOn(Base.WlanClient client, Guid interfaceId)
+		/// <summary>
+		/// Enumerates wireless profile and related radio information in preference order.
+		/// </summary>
+		/// <returns>Wireless profile and related radio information</returns>
+		public static IEnumerable<ProfileRadioPack> EnumerateProfileRadios()
 		{
-			var states = Base.GetPhyRadioStates(client.Handle, interfaceId);
-			if (!states.Any())
-				return false;
+			return EnumerateProfileRadios(null);
+		}
 
-			var hardwareOn = ConvertToNullableBoolean(states.First().dot11HardwareRadioState);
-			var softwareOn = ConvertToNullableBoolean(states.First().dot11SoftwareRadioState);
+		internal static IEnumerable<ProfileRadioPack> EnumerateProfileRadios(Base.WlanClient client)
+		{
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
+			{
+				foreach (var interfaceConnectionInfo in EnumerateInterfaceConnections(container.Content))
+				{
+					var availableNetworkGroups = EnumerateAvailableNetworkGroups(container.Content, interfaceConnectionInfo)
+						.Where(x => !string.IsNullOrWhiteSpace(x.ProfileName))
+						.ToArray();
 
-			return hardwareOn.GetValueOrDefault()
-				&& softwareOn.GetValueOrDefault();
+					int position = 0;
+
+					foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceConnectionInfo.Id))
+					{
+						var profileXml = Base.GetProfile(container.Content.Handle, interfaceConnectionInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
+						if (string.IsNullOrWhiteSpace(profileXml))
+							continue;
+
+						if (!ProfileTypeConverter.TryConvert(profileTypeFlag, out ProfileType profileType))
+							continue;
+
+						var availableNetworkGroup = availableNetworkGroups.FirstOrDefault(x => string.Equals(x.ProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
+
+						yield return new ProfileRadioPack(
+							name: profileInfo.strProfileName,
+							interfaceInfo: interfaceConnectionInfo,
+							profileType: profileType,
+							profileXml: profileXml,
+							position: position++,
+							signalQuality: (availableNetworkGroup?.SignalQuality ?? 0),
+							linkQuality: (availableNetworkGroup?.LinkQuality ?? 0),
+							frequency: (availableNetworkGroup?.Frequency ?? 0),
+							band: (availableNetworkGroup?.Band ?? 0),
+							channel: (availableNetworkGroup?.Channel ?? 0));
+					}
+				}
+			}
 		}
 
 		#endregion
@@ -466,7 +488,7 @@ namespace ManagedNativeWifi
 		/// <param name="profileXml">Profile XML</param>
 		/// <param name="profileSecurity">Security descriptor for all-user profile</param>
 		/// <param name="overwrite">Whether to overwrite an existing profile</param>
-		/// <returns>True if successfully set. False if not.</returns>
+		/// <returns>True if successfully set. False if failed.</returns>
 		/// <remarks>
 		/// If the content of the profile XML is not valid, a Win32Exception will be thrown.
 		/// In such case, check the reason code in the message and see
@@ -500,7 +522,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="position">Position (starting at 0)</param>
-		/// <returns>True if successfully set. False if not.</returns>
+		/// <returns>True if successfully set. False if failed.</returns>
 		public static bool SetProfilePosition(Guid interfaceId, string profileName, int position)
 		{
 			return SetProfilePosition(null, interfaceId, profileName, position);
@@ -529,7 +551,7 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="oldProfileName">Old profile name</param>
 		/// <param name="newProfileName">New profile name</param>
-		/// <returns>True if successfully renamed. False if not.</returns>
+		/// <returns>True if successfully renamed. False if failed.</returns>
 		public static bool RenameProfile(Guid interfaceId, string oldProfileName, string newProfileName)
 		{
 			return RenameProfile(null, interfaceId, oldProfileName, newProfileName);
@@ -557,7 +579,7 @@ namespace ManagedNativeWifi
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
-		/// <returns>True if successfully deleted. False if could not delete.</returns>
+		/// <returns>True if successfully deleted. False if failed.</returns>
 		public static bool DeleteProfile(Guid interfaceId, string profileName)
 		{
 			return DeleteProfile(null, interfaceId, profileName);
@@ -685,10 +707,13 @@ namespace ManagedNativeWifi
 				if (!result)
 					tcs.SetResult(false);
 
-				var connectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var connectTask = tcs.Task;
+					var completedTask = await Task.WhenAny(connectTask, Task.Delay(timeout, cancellationToken));
 
-				return (completedTask == connectTask) && connectTask.Result;
+					return (completedTask == connectTask) && connectTask.IsCompleted && connectTask.Result;
+				}
 			}
 		}
 
@@ -765,10 +790,13 @@ namespace ManagedNativeWifi
 				if (!result)
 					tcs.SetResult(false);
 
-				var disconnectTask = tcs.Task;
-				var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeout, cancellationToken));
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					var disconnectTask = tcs.Task;
+					var completedTask = await Task.WhenAny(disconnectTask, Task.Delay(timeout, cancellationToken));
 
-				return (completedTask == disconnectTask) && disconnectTask.Result;
+					return (completedTask == disconnectTask) && disconnectTask.IsCompleted && disconnectTask.Result;
+				}
 			}
 		}
 
@@ -780,37 +808,57 @@ namespace ManagedNativeWifi
 		/// Gets wireless interface radio information of a specified wireless interface.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>Wireless interface radio information if succeeded. Null if not.</returns>
-		public static InterfaceRadio GetInterfaceRadio(Guid interfaceId)
+		/// <returns>Wireless interface radio information if succeeded. Null if failed.</returns>
+		public static RadioInfo GetInterfaceRadio(Guid interfaceId)
 		{
 			return GetInterfaceRadio(null, interfaceId);
 		}
 
-		internal static InterfaceRadio GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
+		internal static RadioInfo GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException(nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				var capability = Base.GetInterfaceCapability(container.Content.Handle, interfaceId);
-				var states = Base.GetPhyRadioStates(container.Content.Handle, interfaceId); // The underlying collection is array.
-
-				if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
-					(capability.dwNumberOfSupportedPhys != states.Count()))
+				var radioSets = EnumerateInterfaceRadioSets(container.Content, interfaceId).ToArray();
+				if (!radioSets.Any())
 					return null;
 
-				var radioSets = Enumerable.Zip(
-					capability.dot11PhyTypes,
-					states.OrderBy(x => x.dwPhyIndex),
-					(x, y) => new RadioSet(
-						type: PhyTypeConverter.Convert(x),
-						softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState),
-						hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState)));
-
-				return new InterfaceRadio(
+				return new RadioInfo(
 					id: interfaceId,
 					radioSets: radioSets);
+			}
+		}
+
+		private static IEnumerable<RadioSet> EnumerateInterfaceRadioSets(Base.WlanClient client, Guid interfaceId)
+		{
+			var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
+			var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
+
+			if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
+				(capability.dwNumberOfSupportedPhys != states.Count()))
+				return Enumerable.Empty<RadioSet>();
+
+			return Enumerable.Zip(
+				capability.dot11PhyTypes,
+				states.OrderBy(x => x.dwPhyIndex),
+				(x, y) => new RadioSet(
+					type: PhyTypeConverter.Convert(x),
+					hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState),
+					softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState)));
+
+			bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
+			{
+				switch (source)
+				{
+					case DOT11_RADIO_STATE.dot11_radio_state_on:
+						return true;
+					case DOT11_RADIO_STATE.dot11_radio_state_off:
+						return false;
+					default:
+						return null;
+				}
 			}
 		}
 
@@ -818,11 +866,10 @@ namespace ManagedNativeWifi
 		/// Turns on the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>
-		/// If the user is not logged on as a member of Administrators group,
-		/// an UnauthorizedAccessException should be thrown.
-		/// </remarks>
+		/// <returns>True if successfully changed radio state. False if failed.</returns>
+		/// <exception cref="UnauthorizedAccessException">
+		/// If the user is not logged on as a member of Administrators group.
+		/// </exception>
 		public static bool TurnOnInterfaceRadio(Guid interfaceId)
 		{
 			return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_on);
@@ -832,11 +879,10 @@ namespace ManagedNativeWifi
 		/// Turns off the radio of a specified wireless interface (software radio state only).
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>True if successfully changed radio state. False if not.</returns>
-		/// <remarks>
-		/// If the user is not logged on as a member of Administrators group,
-		/// an UnauthorizedAccessException should be thrown.
-		/// </remarks>
+		/// <returns>True if successfully changed radio state. False if failed.</returns>
+		/// <exception cref="UnauthorizedAccessException">
+		/// If the user is not logged on as a member of Administrators group.
+		/// </exception>
 		public static bool TurnOffInterfaceRadio(Guid interfaceId)
 		{
 			return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
@@ -857,66 +903,92 @@ namespace ManagedNativeWifi
 
 		#endregion
 
-		#region Helper
+		#region Auto config
 
-		private static bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
+		/// <summary>
+		/// Gets information on whether automatic configuration is enabled for a specified wireless interface.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <returns>True if enabled. False if disabled or failed to get information.</returns>
+		public static bool GetInterfaceAutoConfig(Guid interfaceId)
 		{
-			switch (source)
+			return GetInterfaceAutoConfig(null, interfaceId);
+		}
+
+		internal static bool GetInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
-				case DOT11_RADIO_STATE.dot11_radio_state_on:
-					return true;
-				case DOT11_RADIO_STATE.dot11_radio_state_off:
-					return false;
-				default:
-					return null;
+				return Base.GetAutoConfig(container.Content.Handle, interfaceId).GetValueOrDefault();
 			}
 		}
 
+		#endregion
+
+		#region Helper
+
 		/// <summary>
-		/// Detects wireless LAN channel from center frequency.
+		/// Attempts to detect frequency band and channel from center frequency.
 		/// </summary>
 		/// <param name="frequency">Center frequency (KHz)</param>
-		/// <returns>Channel number if successfully detected. 0 if not.</returns>
+		/// <param name="band">Frequency band (GHz)</param>
+		/// <param name="channel">Channel</param>
+		/// <returns>True if successfully detected. False if failed.</returns>
 		/// <remarks>
 		/// This method is marked as internal for unit test.
 		/// As for 5GHz, this method may produce a channel number which is not actually in use.
-		/// Also, some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer
-		/// the frequency to distinguish them.
+		/// Some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer frequency band
+		/// to distinguish them.
 		/// </remarks>
-		internal static int DetectChannel(uint frequency)
+		internal static bool TryDetectBandChannel(uint frequency, out float band, out int channel)
 		{
-			// 2.4GHz
-			if ((2412000 <= frequency) && (frequency < 2484000))
-			{
-				var gap = frequency / 1000M - 2412M; // MHz
-				var factor = gap / 5M;
-				if (factor - Math.Floor(factor) == 0)
-					return (int)factor + 1;
-			}
-			if (frequency == 2484000)
-				return 14;
+			band = 0;
+			channel = 0;
 
-			// 3.6GHz
-			if ((3657500 <= frequency) && (frequency <= 3692500))
+			if ((2_412_000 <= frequency) && (frequency <= 2_484_000))
 			{
-				var gap = frequency / 1000M - 3655M; // MHz
+				// 2.4GHz
+				band = 2.4F;
+
+				if (frequency < 2_484_000)
+				{
+					var gap = frequency / 1_000M - 2_412M; // MHz
+					var factor = gap / 5M;
+					if (factor - Math.Floor(factor) == 0)
+						channel = (int)factor + 1;
+				}
+				else
+				{
+					channel = 14;
+				}
+			}
+			else if ((3_657_500 <= frequency) && (frequency <= 3_692_500))
+			{
+				// 3.6GHz
+				band = 3.6F;
+
+				var gap = frequency / 1_000M - 3_655M; // MHz
 				if (gap % 2.5M == 0)
 				{
 					var factor = gap / 5M;
-					return (int)Math.Floor(factor) + 131;
+					channel = (int)Math.Floor(factor) + 131;
 				}
 			}
-
-			// 5GHz
-			if ((5170000 <= frequency) && (frequency <= 5825000))
+			else if ((5_170_000 <= frequency) && (frequency <= 5_825_000))
 			{
-				var gap = frequency / 1000M - 5170M; // MHz
+				// 5GHz
+				band = 5.0F;
+
+				var gap = frequency / 1_000M - 5_170M; // MHz
 				var factor = gap / 5M;
 				if (factor - Math.Floor(factor) == 0)
-					return (int)factor + 34;
+					channel = (int)factor + 34;
 			}
 
-			return 0;
+			return (0 < channel);
 		}
 
 		#endregion

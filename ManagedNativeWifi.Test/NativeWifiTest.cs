@@ -92,69 +92,81 @@ namespace ManagedNativeWifi.Test
 		/// Detects channels of 2.4GHz.
 		/// </summary>
 		[TestMethod]
-		public void DetectChannel24000Test()
+		public void TryDetectChannel24000Test()
 		{
 			// Valid cases
-			Assert.AreEqual(1, NativeWifi.DetectChannel(2412000));
-			Assert.AreEqual(2, NativeWifi.DetectChannel(2417000));
-			Assert.AreEqual(5, NativeWifi.DetectChannel(2432000));
-			Assert.AreEqual(6, NativeWifi.DetectChannel(2437000));
-			Assert.AreEqual(12, NativeWifi.DetectChannel(2467000));
-			Assert.AreEqual(13, NativeWifi.DetectChannel(2472000));
-			Assert.AreEqual(14, NativeWifi.DetectChannel(2484000));
+			TryDetectChannelValidTestBase(2_412_000, 2.4F, 1);
+			TryDetectChannelValidTestBase(2_417_000, 2.4F, 2);
+			TryDetectChannelValidTestBase(2_432_000, 2.4F, 5);
+			TryDetectChannelValidTestBase(2_437_000, 2.4F, 6);
+			TryDetectChannelValidTestBase(2_467_000, 2.4F, 12);
+			TryDetectChannelValidTestBase(2_472_000, 2.4F, 13);
+			TryDetectChannelValidTestBase(2_484_000, 2.4F, 14);
 
 			// Invalid cases
-			Assert.AreEqual(0, NativeWifi.DetectChannel(2411000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(2485000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(2453000));
+			TryDetectChannelInvalidTestBase(2_411_000);
+			TryDetectChannelInvalidTestBase(2_485_000);
+			TryDetectChannelInvalidTestBase(2_453_000);
 		}
 
 		/// <summary>
 		/// Detects channels of 3.6GHz.
 		/// </summary>
 		[TestMethod]
-		public void DetectChannel36000Test()
+		public void TryDetectChannel36000Test()
 		{
-			// Valid cases
-			Assert.AreEqual(131, NativeWifi.DetectChannel(3657500));
-			Assert.AreEqual(132, NativeWifi.DetectChannel(3660000));
-			Assert.AreEqual(132, NativeWifi.DetectChannel(3662500));
-			Assert.AreEqual(133, NativeWifi.DetectChannel(3665000));
-			Assert.AreEqual(133, NativeWifi.DetectChannel(3667500));
-			Assert.AreEqual(135, NativeWifi.DetectChannel(3675000));
-			Assert.AreEqual(135, NativeWifi.DetectChannel(3677500));
-			Assert.AreEqual(138, NativeWifi.DetectChannel(3690000));
-			Assert.AreEqual(138, NativeWifi.DetectChannel(3692500));
+			// Valid cases			
+			TryDetectChannelValidTestBase(3_657_500, 3.6F, 131);
+			TryDetectChannelValidTestBase(3_660_000, 3.6F, 132);
+			TryDetectChannelValidTestBase(3_662_500, 3.6F, 132);
+			TryDetectChannelValidTestBase(3_665_000, 3.6F, 133);
+			TryDetectChannelValidTestBase(3_667_500, 3.6F, 133);
+			TryDetectChannelValidTestBase(3_675_000, 3.6F, 135);
+			TryDetectChannelValidTestBase(3_677_500, 3.6F, 135);
+			TryDetectChannelValidTestBase(3_690_000, 3.6F, 138);
+			TryDetectChannelValidTestBase(3_692_500, 3.6F, 138);
 
 			// Invalid cases
-			Assert.AreEqual(0, NativeWifi.DetectChannel(3657000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(3695000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(3673000));
+			TryDetectChannelInvalidTestBase(3_657_000);
+			TryDetectChannelInvalidTestBase(3_695_000);
+			TryDetectChannelInvalidTestBase(3_673_000);
 		}
 
 		/// <summary>
 		/// Detects channels of 5GHz.
 		/// </summary>
 		[TestMethod]
-		public void DetectChannel50000Test()
+		public void TryDetectChannel50000Test()
 		{
 			// Valid cases
-			Assert.AreEqual(34, NativeWifi.DetectChannel(5170000));
-			Assert.AreEqual(36, NativeWifi.DetectChannel(5180000));
-			Assert.AreEqual(40, NativeWifi.DetectChannel(5200000));
-			Assert.AreEqual(52, NativeWifi.DetectChannel(5260000));
-			Assert.AreEqual(56, NativeWifi.DetectChannel(5280000));
-			Assert.AreEqual(140, NativeWifi.DetectChannel(5700000));
-			Assert.AreEqual(144, NativeWifi.DetectChannel(5720000));
-			Assert.AreEqual(149, NativeWifi.DetectChannel(5745000));
-			Assert.AreEqual(151, NativeWifi.DetectChannel(5755000));
-			Assert.AreEqual(161, NativeWifi.DetectChannel(5805000));
-			Assert.AreEqual(165, NativeWifi.DetectChannel(5825000));
+			TryDetectChannelValidTestBase(5_170_000, 5F, 34);
+			TryDetectChannelValidTestBase(5_180_000, 5F, 36);
+			TryDetectChannelValidTestBase(5_200_000, 5F, 40);
+			TryDetectChannelValidTestBase(5_260_000, 5F, 52);
+			TryDetectChannelValidTestBase(5_280_000, 5F, 56);
+			TryDetectChannelValidTestBase(5_700_000, 5F, 140);
+			TryDetectChannelValidTestBase(5_720_000, 5F, 144);
+			TryDetectChannelValidTestBase(5_745_000, 5F, 149);
+			TryDetectChannelValidTestBase(5_755_000, 5F, 151);
+			TryDetectChannelValidTestBase(5_805_000, 5F, 161);
+			TryDetectChannelValidTestBase(5_825_000, 5F, 165);
 
 			// Invalid cases
-			Assert.AreEqual(0, NativeWifi.DetectChannel(5160000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(5850000));
-			Assert.AreEqual(0, NativeWifi.DetectChannel(5651000));
+			TryDetectChannelInvalidTestBase(5_160_000);
+			TryDetectChannelInvalidTestBase(5_850_000);
+			TryDetectChannelInvalidTestBase(5_651_000);
+		}
+
+		private void TryDetectChannelValidTestBase(uint frequency, float expectedBand, int expectedChannel)
+		{
+			Assert.IsTrue(NativeWifi.TryDetectBandChannel(frequency, out var band, out var channel));
+			Assert.AreEqual(expectedBand, band);
+			Assert.AreEqual(expectedChannel, channel);
+		}
+
+		private void TryDetectChannelInvalidTestBase(uint frequency)
+		{
+			Assert.IsFalse(NativeWifi.TryDetectBandChannel(frequency, out _, out _));
 		}
 
 		#endregion
