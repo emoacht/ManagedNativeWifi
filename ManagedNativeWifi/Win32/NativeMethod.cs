@@ -441,20 +441,19 @@ namespace ManagedNativeWifi.Win32
 			/// <summary>
 			/// Returns the UTF-8 string representation of SSID
 			/// </summary>
-			/// <returns>If successfully converted the byte array of SSID, UTF-8 string. If not, null.</returns>
+			/// <returns>UTF-8 string if successfully converted the byte array of SSID. Null if failed.</returns>
 			public override string ToString()
 			{
-				if (ucSSID == null)
-					return null;
-
-				try
+				if (ucSSID != null)
 				{
-					return _encoding.Value.GetString(ToBytes());
+					try
+					{
+						return _encoding.Value.GetString(ToBytes());
+					}
+					catch (DecoderFallbackException)
+					{ }
 				}
-				catch (DecoderFallbackException)
-				{
-					return null;
-				}
+				return null;
 			}
 		}
 

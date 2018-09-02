@@ -16,7 +16,7 @@ namespace ManagedNativeWifi.Win32
 
 		public class WlanClient : IDisposable
 		{
-			private SafeClientHandle _clientHandle = null;
+			private readonly SafeClientHandle _clientHandle = null;
 
 			public SafeClientHandle Handle => _clientHandle;
 
@@ -25,7 +25,7 @@ namespace ManagedNativeWifi.Win32
 				var result = WlanOpenHandle(
 					2, // Client version for Windows Vista and Windows Server 2008
 					IntPtr.Zero,
-					out uint negotiatedVersion,
+					out _,
 					out _clientHandle);
 
 				CheckResult(nameof(WlanOpenHandle), result, true);
@@ -263,7 +263,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 
@@ -444,7 +444,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 
@@ -508,7 +508,7 @@ namespace ManagedNativeWifi.Win32
 					interfaceId,
 					wlanIntfOpcode,
 					IntPtr.Zero,
-					out uint dataSize,
+					out _,
 					out queryData,
 					IntPtr.Zero);
 
