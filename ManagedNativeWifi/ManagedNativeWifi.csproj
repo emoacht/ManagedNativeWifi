@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthAlgorithm.cs" />
+    <Compile Include="CipherAlgorithm.cs" />
     <Compile Include="Common\DisposableContainer.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
