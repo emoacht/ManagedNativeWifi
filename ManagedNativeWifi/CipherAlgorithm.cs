@@ -65,39 +65,39 @@ namespace ManagedNativeWifi
 
 	internal static class CipherAlgorithmConverter
 	{
-		public static bool TryConvert(DOT11_CIPHER_ALGORITHM source, out CipherAlgorithm authAlgorithm)
+		public static bool TryConvert(DOT11_CIPHER_ALGORITHM source, out CipherAlgorithm cipherAlgorithm)
 		{
 			switch (source)
 			{
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_NONE:
-					authAlgorithm = CipherAlgorithm.None;
+					cipherAlgorithm = CipherAlgorithm.None;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WEP40:
-					authAlgorithm = CipherAlgorithm.WEP40;
+					cipherAlgorithm = CipherAlgorithm.WEP40;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_TKIP:
-					authAlgorithm = CipherAlgorithm.TKIP;
+					cipherAlgorithm = CipherAlgorithm.TKIP;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_CCMP:
-					authAlgorithm = CipherAlgorithm.CCMP;
+					cipherAlgorithm = CipherAlgorithm.CCMP;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WEP104:
-					authAlgorithm = CipherAlgorithm.WEP104;
+					cipherAlgorithm = CipherAlgorithm.WEP104;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WPA_USE_GROUP:
-					authAlgorithm = CipherAlgorithm.WPA_USE_GROUP;
+					cipherAlgorithm = CipherAlgorithm.WPA_USE_GROUP;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WEP:
-					authAlgorithm = CipherAlgorithm.WEP;
+					cipherAlgorithm = CipherAlgorithm.WEP;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_IHV_START:
-					authAlgorithm = CipherAlgorithm.IHV_START;
+					cipherAlgorithm = CipherAlgorithm.IHV_START;
 					return true;
 				case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_IHV_END:
-					authAlgorithm = CipherAlgorithm.IHV_END;
+					cipherAlgorithm = CipherAlgorithm.IHV_END;
 					return true;
 			}
-			authAlgorithm = default;
+			cipherAlgorithm = default;
 			return false;
 		}
 	}
