@@ -13,6 +13,11 @@ namespace ManagedNativeWifi
 	public enum AuthenticationAlgorithm
 	{
 		/// <summary>
+		/// None (invalid value)
+		/// </summary>
+		None = 0,
+
+		/// <summary>
 		/// Specifies an IEEE 802.11 Open System authentication algorithm
 		/// </summary>
 		Open,
