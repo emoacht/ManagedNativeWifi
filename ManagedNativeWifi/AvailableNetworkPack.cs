@@ -42,6 +42,16 @@ namespace ManagedNativeWifi
 		public string ProfileName { get; }
 
 		/// <summary>
+		/// Default authentication algorithm used to join this network for the first time
+		/// </summary>
+		public AuthAlgorithm AuthAlgorithm { get; }
+
+		/// <summary>
+		/// Default cipher algorithm to be used when joining this network
+		/// </summary>
+		public CipherAlgorithm CipherAlgorithm { get; }
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		public AvailableNetworkPack(
@@ -50,7 +60,9 @@ namespace ManagedNativeWifi
 			BssType bssType,
 			int signalQuality,
 			bool isSecurityEnabled,
-			string profileName)
+			string profileName,
+			AuthAlgorithm authAlgorithm,
+			CipherAlgorithm cipherAlgorithm)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
@@ -58,6 +70,8 @@ namespace ManagedNativeWifi
 			this.SignalQuality = signalQuality;
 			this.IsSecurityEnabled = isSecurityEnabled;
 			this.ProfileName = profileName;
+			this.AuthAlgorithm = authAlgorithm;
+			this.CipherAlgorithm = cipherAlgorithm;
 		}
 	}
 
@@ -102,13 +116,17 @@ namespace ManagedNativeWifi
 			int signalQuality,
 			bool isSecurityEnabled,
 			string profileName,
+			AuthAlgorithm authAlgorithm,
+			CipherAlgorithm cipherAlgorithm,
 			IEnumerable<BssNetworkPack> bssNetworks) : base(
 				interfaceInfo: interfaceInfo,
 				ssid: ssid,
 				bssType: bssType,
 				signalQuality: signalQuality,
 				isSecurityEnabled: isSecurityEnabled,
-				profileName: profileName)
+				profileName: profileName,
+				authAlgorithm: authAlgorithm,
+				cipherAlgorithm: cipherAlgorithm)
 		{
 			this._bssNetworks = bssNetworks.OrderByDescending(x => x.LinkQuality).ToArray();
 

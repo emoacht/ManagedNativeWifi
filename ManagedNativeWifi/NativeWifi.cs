@@ -259,13 +259,21 @@ namespace ManagedNativeWifi
 						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 							continue;
 
+						if (!AuthAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthAlgorithm authAlgorithm))
+							continue;
+
+						if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+							continue;
+
 						yield return new AvailableNetworkPack(
 							interfaceInfo: interfaceInfo,
 							ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
 							bssType: bssType,
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
-							profileName: availableNetwork.strProfileName);
+							profileName: availableNetwork.strProfileName,
+							authAlgorithm: authAlgorithm,
+							cipherAlgorithm: cipherAlgorithm);
 					}
 				}
 			}
@@ -303,6 +311,12 @@ namespace ManagedNativeWifi
 				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 					continue;
 
+				if (!AuthAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthAlgorithm authAlgorithm))
+					continue;
+
+				if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+					continue;
+
 				var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
 					availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled)
 					.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
@@ -315,6 +329,8 @@ namespace ManagedNativeWifi
 					signalQuality: (int)availableNetwork.wlanSignalQuality,
 					isSecurityEnabled: availableNetwork.bSecurityEnabled,
 					profileName: availableNetwork.strProfileName,
+					authAlgorithm: authAlgorithm,
+					cipherAlgorithm: cipherAlgorithm,
 					bssNetworks: bssNetworks);
 			}
 		}
