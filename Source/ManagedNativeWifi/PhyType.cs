@@ -11,6 +11,10 @@ namespace ManagedNativeWifi
 	/// <summary>
 	/// 802.11 PHY and media type
 	/// </summary>
+	/// <remarks>
+	/// Equivalent to DOT11_PHY_TYPE:
+	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-phy-type
+	/// </remarks>
 	public enum PhyType
 	{
 		/// <summary>

@@ -3,62 +3,67 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using static ManagedNativeWifi.Win32.NativeMethod;
 
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Enumerated type defines a cipher algorithm for data encryption and decryption
+	/// Cipher algorithm for data encryption and decryption
 	/// </summary>
+	/// <remarks>
+	/// Equivalent to DOT11_CIPHER_ALGORITHM:
+	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-cipher-algorithm
+	/// </remarks>
 	public enum CipherAlgorithm
 	{
 		/// <summary>
-		/// Specifies that no cipher algorithm is enabled or supported
+		/// No cipher algorithm is enabled or supported.
 		/// </summary>
 		None = 0,
 
 		/// <summary>
-		/// Specifies a WEP cipher algorithm with a cipher key of any length
+		/// Wired Equivalent Privacy (WEP) algorithm with a cipher key of any length
 		/// </summary>
 		WEP,
 
 		/// <summary>
-		/// Specifies a Wired Equivalent Privacy (WEP) algorithm, which is the RC4-based algorithm that is specified in the 802.11-1999 standard
+		/// WEP algorithm with a 40-bit cipher key
 		/// </summary>
 		WEP40,
 
 		/// <summary>
-		/// Specifies a WEP cipher algorithm with a 104-bit cipher key
+		/// WEP algorithm with a 104-bit cipher key
 		/// </summary>
 		WEP104,
 
 		/// <summary>
-		/// Specifies a Temporal Key Integrity Protocol (TKIP) algorithm, which is the RC4-based cipher suite that is based on the algorithms that are defined in the WPA specification and IEEE 802.11i-2004 standard
+		/// Temporal Key Integrity Protocol (TKIP) algorithm
 		/// </summary>
 		TKIP,
 
 		/// <summary>
-		/// Specifies an AES-CCMP algorithm, as specified in the IEEE 802.11i-2004 standard and RFC 3610
+		/// AES-CCMP algorithm
 		/// </summary>
 		CCMP,
 
 		/// <summary>
-		/// Specifies a Wi-Fi Protected Access (WPA) Use Group Key cipher suite
+		/// Wi-Fi Protected Access (WPA) Use Group Key cipher suite
 		/// </summary>
 		WPA_USE_GROUP,
 
 		/// <summary>
-		/// Specifies a Robust Security Network (RSN) Use Group Key cipher suite
+		/// Robust Security Network (RSN) Use Group Key cipher suite (not used)
 		/// </summary>
 		RSN_USE_GROUP,
 
 		/// <summary>
-		/// Specifies the start of the range that is used to define proprietary cipher algorithms that are developed by an independent hardware vendor (IHV)
+		/// Indicates the start of the range that specifies proprietary cipher algorithms developed by an independent hardware vendor (IHV).
 		/// </summary>
 		IHV_START,
 
 		/// <summary>
-		/// Specifies the end of the range that is used to define proprietary cipher algorithms that are developed by an independent hardware vendor (IHV)
+		/// Indicates the end of the range that specifies proprietary cipher algorithms developed by an independent hardware vendor (IHV).
 		/// </summary>
 		IHV_END
 	}

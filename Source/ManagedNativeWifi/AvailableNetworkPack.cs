@@ -42,12 +42,12 @@ namespace ManagedNativeWifi
 		public string ProfileName { get; }
 
 		/// <summary>
-		/// Default authentication algorithm used to join this network for the first time
+		/// Default authentication algorithm to be used to connect to this network for the first time
 		/// </summary>
 		public AuthenticationAlgorithm AuthenticationAlgorithm { get; }
 
 		/// <summary>
-		/// Default cipher algorithm to be used when joining this network
+		/// Default cipher algorithm to be used to connect to this network
 		/// </summary>
 		public CipherAlgorithm CipherAlgorithm { get; }
 

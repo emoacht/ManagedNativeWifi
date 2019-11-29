@@ -10,7 +10,8 @@ namespace ManagedNativeWifi
 	/// Authentication method to be used to connect to wireless LAN
 	/// </summary>
 	/// <remarks>
-	/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms706933.aspx
+	/// Equivalent to authentication element in profile XML:
+	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-authentication-authencryption-element
 	/// </remarks>
 	public enum AuthenticationMethod
 	{

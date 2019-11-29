@@ -11,7 +11,10 @@ namespace ManagedNativeWifi
 	/// <summary>
 	/// Wireless interface state
 	/// </summary>
-	/// <remarks>Equivalent to WLAN_INTERFACE_STATE</remarks>
+	/// <remarks>
+	/// Equivalent to WLAN_INTERFACE_STATE:
+	/// https://docs.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_interface_state
+	/// </remarks>
 	public enum InterfaceState
 	{
 		/// <summary>

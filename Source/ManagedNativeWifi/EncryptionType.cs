@@ -10,7 +10,8 @@ namespace ManagedNativeWifi
 	/// Data encryption type to be used to connect to wireless LAN
 	/// </summary>
 	/// <remarks>
-	/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms706969.aspx
+	/// Equivalent to encryption element in profile XML:
+	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-encryption-authencryption-element
 	/// </remarks>
 	public enum EncryptionType
 	{

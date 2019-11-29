@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using static ManagedNativeWifi.Win32.NativeMethod;
 
 namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Enumerated type defines a wireless LAN authentication algorithm
+	/// Authentication algorithm
 	/// </summary>
+	/// <remarks>
+	/// Equivalent to DOT11_AUTH_ALGORITHM:
+	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-auth-algorithm
+	/// </remarks>
 	public enum AuthenticationAlgorithm
 	{
 		/// <summary>
@@ -18,47 +23,47 @@ namespace ManagedNativeWifi
 		None = 0,
 
 		/// <summary>
-		/// Specifies an IEEE 802.11 Open System authentication algorithm
+		/// 802.11 Open System authentication algorithm
 		/// </summary>
 		Open,
 
 		/// <summary>
-		/// Specifies an 802.11 Shared Key authentication algorithm that requires the use of a pre-shared Wired Equivalent Privacy (WEP) key for the 802.11 authentication
+		/// 802.11 Shared Key authentication algorithm that uses pre-shared Wired Equivalent Privacy (WEP) key
 		/// </summary>
 		Shared,
 
 		/// <summary>
-		/// Specifies a Wi-Fi Protected Access (WPA) algorithm
+		/// Wi-Fi Protected Access (WPA) algorithm
 		/// </summary>
 		WPA,
 
 		/// <summary>
-		/// Specifies a WPA algorithm that uses preshared keys (PSK)
+		/// WPA algorithm that uses pre-shared keys (PSK)
 		/// </summary>
 		WPA_PSK,
 
 		/// <summary>
-		/// This value is not supported
+		/// Note supported
 		/// </summary>
 		WPA_NONE,
 
 		/// <summary>
-		/// Specifies an 802.11i Robust Security Network Association (RSNA) algorithm. WPA2 is one such algorithm
+		/// 802.11i Robust Security Network Association (RSNA) algorithm (WPA2 is one such algorithm.)
 		/// </summary>
 		RSNA,
 
 		/// <summary>
-		/// Specifies an 802.11i RSNA algorithm that uses PSK
+		/// 802.11i RSNA algorithm that uses PSK
 		/// </summary>
 		RSNA_PSK,
 
 		/// <summary>
-		/// Indicates the start of the range that specifies proprietary authentication algorithms that are developed by an independent hardware vendor (IHV)
+		/// Indicates the start of the range that specifies proprietary authentication algorithms developed by an independent hardware vendor (IHV).
 		/// </summary>
 		IHV_START,
 
 		/// <summary>
-		/// Indicates the end of the range that specifies proprietary authentication algorithms that are developed by an independent hardware vendor (IHV)
+		/// Indicates the end of the range that specifies proprietary authentication algorithms developed by an independent hardware vendor (IHV).
 		/// </summary>
 		IHV_END
 	}

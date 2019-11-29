@@ -508,7 +508,7 @@ namespace ManagedNativeWifi
 		/// <remarks>
 		/// If the content of the profile XML is not valid, a Win32Exception will be thrown.
 		/// In such case, check the reason code in the message and see
-		/// https://msdn.microsoft.com/en-us/library/windows/desktop/ms707394.aspx
+		/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-reason-code
 		/// https://technet.microsoft.com/en-us/library/3ed3d027-5ae8-4cb0-ade5-0a7c446cd4f7#BKMK_AppndxE
 		/// </remarks>
 		public static bool SetProfile(Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)

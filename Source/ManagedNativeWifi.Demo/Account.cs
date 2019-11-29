@@ -13,8 +13,10 @@ namespace ManagedNativeWifi.Demo
 		/// Checks if current user is a member of Administrators group.
 		/// </summary>
 		/// <returns>True if a member of the Administrators group</returns>
-		/// <remarks>This method can tell whether current user is a member of Administrators group under UAC,
-		/// even if current process is not elevated.</remarks>
+		/// <remarks>
+		/// This method can tell whether current user is a member of Administrators group under UAC,
+		/// even if current process is not elevated.
+		/// </remarks>
 		public static bool IsUserIsMemberOfAdmin()
 		{
 			using (var context = new PrincipalContext(ContextType.Machine))

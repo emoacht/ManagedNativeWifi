@@ -11,7 +11,7 @@ namespace ManagedNativeWifi
 	/// <summary>
 	/// Identifier of wireless LAN
 	/// </summary>
-	/// <remarks>This class is immutable.</remarks>
+	/// <remarks>This class is designed as immutable.</remarks>
 	public class NetworkIdentifier
 	{
 		private readonly byte[] _rawBytes;
