@@ -13,6 +13,8 @@ namespace ManagedNativeWifi.Test
 		#region Set/Delete Profile
 
 		private static Guid _interfaceId;
+		private static readonly string _profileName = $"TestProfile{DateTime.Today.Year}";
+		private static readonly string _ssidString = $"TestSsidString{DateTime.Today.DayOfYear}";
 
 		[ClassInitialize]
 		public static void Initialize(TestContext context)
@@ -23,41 +25,38 @@ namespace ManagedNativeWifi.Test
 		}
 
 		[TestMethod]
+		public void SetDeleteProfileTest()
+		{
+			SetProfileTest();
+			DeletProfileTest();
+		}
+
 		public void SetProfileTest()
 		{
-			var testProfileName = $"TestProfile{DateTime.Today.Year}";
-			var testSsidString = $"TestSsidString{DateTime.Today.DayOfYear}";
+			Assert.IsNotNull(_interfaceId, "No wireless interface is connected.");
 
-			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
-
-			var profileXml = CreateProfileXml(testProfileName, testSsidString);
+			var profileXml = CreateProfileXml(_profileName, _ssidString);
 
 			var result = NativeWifi.SetProfile(_interfaceId, ProfileType.AllUser, profileXml, null, true);
 			Assert.IsTrue(result, "Failed to set the wireless profile for test.");
 
-			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
-				"The wireless profile for test doesn't appear.");
+			result = NativeWifi.EnumerateProfileNames().Contains(_profileName);
+			Assert.IsTrue(result, "The wireless profile for test doesn't appear.");
 		}
 
-		[TestMethod]
 		public void DeletProfileTest()
 		{
-			var testProfileName = $"TestProfile{DateTime.Today.Year}";
-			var testSsidString = $"TestSsidString{DateTime.Today.DayOfYear}";
+			Assert.IsNotNull(_interfaceId, "No wireless interface is connected.");
 
-			Assert.IsTrue(_interfaceId != null, "No wireless interface is connected.");
+			var result = NativeWifi.EnumerateProfileNames().Contains(_profileName);
+			Assert.IsTrue(result, "The wireless profile for test doesn't exist.");
 
-			Assert.IsTrue(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
-				"The wireless profile for test doesn't exist.");
-
-			var result = NativeWifi.DeleteProfile(_interfaceId, testProfileName);
+			result = NativeWifi.DeleteProfile(_interfaceId, _profileName);
 			Assert.IsTrue(result, "Failed to delete the wireless profile for test.");
 
-			Assert.IsFalse(NativeWifi.EnumerateProfileNames().Contains(testProfileName),
-				"The wireless profile for test remains.");
+			result = NativeWifi.EnumerateProfileNames().Contains(_profileName);
+			Assert.IsFalse(result, "The wireless profile for test remains.");
 		}
-
-		#region Helper
 
 		private static string CreateProfileXml(string profileName, string ssidString) =>
 			$@"<?xml version=""1.0""?>
@@ -81,8 +80,6 @@ namespace ManagedNativeWifi.Test
 		</security>
 	</MSM>
 </WLANProfile>";
-
-		#endregion
 
 		#endregion
 
