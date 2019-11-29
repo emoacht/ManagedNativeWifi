@@ -42,16 +42,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AuthAlgorithm.cs" />
-    <Compile Include="CipherAlgorithm.cs" />
     <Compile Include="Common\DisposableContainer.cs" />
     <Compile Include="Win32\BaseMethod.cs" />
     <Compile Include="Win32\NativeMethod.cs" />
     <Compile Include="Win32\SafeClientHandle.cs" />
+    <Compile Include="AuthenticationAlgorithm.cs" />
     <Compile Include="AuthenticationMethod.cs" />
     <Compile Include="AvailableNetworkPack.cs" />
     <Compile Include="BssNetworkPack.cs" />
     <Compile Include="BssType.cs" />
+    <Compile Include="CipherAlgorithm.cs" />
     <Compile Include="ConnectionMode.cs" />
     <Compile Include="EncryptionType.cs" />
     <Compile Include="InterfaceInfo.cs" />

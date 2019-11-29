@@ -10,7 +10,7 @@ namespace ManagedNativeWifi
 	/// <summary>
 	/// Enumerated type defines a wireless LAN authentication algorithm
 	/// </summary>
-	public enum AuthAlgorithm
+	public enum AuthenticationAlgorithm
 	{
 		/// <summary>
 		/// Specifies an IEEE 802.11 Open System authentication algorithm
@@ -58,41 +58,41 @@ namespace ManagedNativeWifi
 		IHV_END
 	}
 
-	internal static class AuthAlgorithmConverter
+	internal static class AuthenticationAlgorithmConverter
 	{
-		public static bool TryConvert(DOT11_AUTH_ALGORITHM source, out AuthAlgorithm authAlgorithm)
+		public static bool TryConvert(DOT11_AUTH_ALGORITHM source, out AuthenticationAlgorithm authenticationAlgorithm)
 		{
 			switch (source)
 			{
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_80211_OPEN:
-					authAlgorithm = AuthAlgorithm.Open;
+					authenticationAlgorithm = AuthenticationAlgorithm.Open;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_80211_SHARED_KEY:
-					authAlgorithm = AuthAlgorithm.SharedKey;
+					authenticationAlgorithm = AuthenticationAlgorithm.SharedKey;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA:
-					authAlgorithm = AuthAlgorithm.WPA;
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA_PSK:
-					authAlgorithm = AuthAlgorithm.WPA_PSK;
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA_PSK;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA_NONE:
-					authAlgorithm = AuthAlgorithm.WPA_NONE;
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA_NONE;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA:
-					authAlgorithm = AuthAlgorithm.RSNA;
+					authenticationAlgorithm = AuthenticationAlgorithm.RSNA;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA_PSK:
-					authAlgorithm = AuthAlgorithm.RSNA_PSK;
+					authenticationAlgorithm = AuthenticationAlgorithm.RSNA_PSK;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_IHV_START:
-					authAlgorithm = AuthAlgorithm.IHV_START;
+					authenticationAlgorithm = AuthenticationAlgorithm.IHV_START;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_IHV_END:
-					authAlgorithm = AuthAlgorithm.IHV_END;
+					authenticationAlgorithm = AuthenticationAlgorithm.IHV_END;
 					return true;
 			}
-			authAlgorithm = default;
+			authenticationAlgorithm = default;
 			return false;
 		}
 	}

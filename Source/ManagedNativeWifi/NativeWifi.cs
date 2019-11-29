@@ -259,7 +259,7 @@ namespace ManagedNativeWifi
 						if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 							continue;
 
-						if (!AuthAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthAlgorithm authAlgorithm))
+						if (!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm))
 							continue;
 
 						if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
@@ -272,7 +272,7 @@ namespace ManagedNativeWifi
 							signalQuality: (int)availableNetwork.wlanSignalQuality,
 							isSecurityEnabled: availableNetwork.bSecurityEnabled,
 							profileName: availableNetwork.strProfileName,
-							authAlgorithm: authAlgorithm,
+							authenticationAlgorithm: authenticationAlgorithm,
 							cipherAlgorithm: cipherAlgorithm);
 					}
 				}
@@ -311,7 +311,7 @@ namespace ManagedNativeWifi
 				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
 					continue;
 
-				if (!AuthAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthAlgorithm authAlgorithm))
+				if (!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm))
 					continue;
 
 				if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
@@ -329,7 +329,7 @@ namespace ManagedNativeWifi
 					signalQuality: (int)availableNetwork.wlanSignalQuality,
 					isSecurityEnabled: availableNetwork.bSecurityEnabled,
 					profileName: availableNetwork.strProfileName,
-					authAlgorithm: authAlgorithm,
+					authenticationAlgorithm: authenticationAlgorithm,
 					cipherAlgorithm: cipherAlgorithm,
 					bssNetworks: bssNetworks);
 			}
