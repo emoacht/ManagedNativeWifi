@@ -38,7 +38,7 @@ namespace ManagedNativeWifi
 				profileType = (ProfileType)source;
 				return true;
 			}
-			profileType = default(ProfileType);
+			profileType = default;
 			return false;
 		}
 

@@ -79,7 +79,7 @@ namespace ManagedNativeWifi
 					authentication = AuthenticationMethod.WPA2_Personal;
 					return true;
 			}
-			authentication = default(AuthenticationMethod);
+			authentication = default;
 			return false;
 		}
 	}

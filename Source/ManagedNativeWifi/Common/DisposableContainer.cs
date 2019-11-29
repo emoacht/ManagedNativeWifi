@@ -24,7 +24,7 @@ namespace ManagedNativeWifi.Common
 
 		public DisposableContainer(T content)
 		{
-			_isDefault = EqualityComparer<T>.Default.Equals(content, default(T));
+			_isDefault = EqualityComparer<T>.Default.Equals(content, default);
 			this.Content = _isDefault ? new T() : content;
 		}
 

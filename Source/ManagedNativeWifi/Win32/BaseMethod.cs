@@ -270,7 +270,7 @@ namespace ManagedNativeWifi.Win32
 				// ERROR_INVALID_STATE will be returned if the client is not connected to a network.
 				return CheckResult(nameof(WlanQueryInterface), result, false)
 					? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
-					: default(WLAN_CONNECTION_ATTRIBUTES);
+					: default;
 			}
 			finally
 			{
@@ -425,7 +425,7 @@ namespace ManagedNativeWifi.Win32
 
 				return CheckResult(nameof(WlanGetInterfaceCapability), result, false)
 					? Marshal.PtrToStructure<WLAN_INTERFACE_CAPABILITY>(capability)
-					: default(WLAN_INTERFACE_CAPABILITY);
+					: default;
 			}
 			finally
 			{

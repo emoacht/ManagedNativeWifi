@@ -42,7 +42,7 @@ namespace ManagedNativeWifi
 					bssType = BssType.Independent;
 					return true;
 			}
-			bssType = default(BssType);
+			bssType = default;
 			return false;
 		}
 
@@ -58,7 +58,7 @@ namespace ManagedNativeWifi
 				bssType = BssType.Independent;
 				return true;
 			}
-			bssType = default(BssType);
+			bssType = default;
 			return false;
 		}
 

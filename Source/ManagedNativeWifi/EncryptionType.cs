@@ -54,7 +54,7 @@ namespace ManagedNativeWifi
 					encryption = EncryptionType.None;
 					return true;
 			}
-			encryption = default(EncryptionType);
+			encryption = default;
 			return true;
 		}
 	}
