@@ -15,12 +15,22 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Specifies that no cipher algorithm is enabled or supported
 		/// </summary>
-		None,
+		None = 0,
+
+		/// <summary>
+		/// Specifies a WEP cipher algorithm with a cipher key of any length
+		/// </summary>
+		WEP,
 
 		/// <summary>
 		/// Specifies a Wired Equivalent Privacy (WEP) algorithm, which is the RC4-based algorithm that is specified in the 802.11-1999 standard
 		/// </summary>
 		WEP40,
+
+		/// <summary>
+		/// Specifies a WEP cipher algorithm with a 104-bit cipher key
+		/// </summary>
+		WEP104,
 
 		/// <summary>
 		/// Specifies a Temporal Key Integrity Protocol (TKIP) algorithm, which is the RC4-based cipher suite that is based on the algorithms that are defined in the WPA specification and IEEE 802.11i-2004 standard
@@ -33,11 +43,6 @@ namespace ManagedNativeWifi
 		CCMP,
 
 		/// <summary>
-		/// Specifies a WEP cipher algorithm with a 104-bit cipher key
-		/// </summary>
-		WEP104,
-
-		/// <summary>
 		/// Specifies a Wi-Fi Protected Access (WPA) Use Group Key cipher suite
 		/// </summary>
 		WPA_USE_GROUP,
@@ -46,11 +51,6 @@ namespace ManagedNativeWifi
 		/// Specifies a Robust Security Network (RSN) Use Group Key cipher suite
 		/// </summary>
 		RSN_USE_GROUP,
-
-		/// <summary>
-		/// Specifies a WEP cipher algorithm with a cipher key of any length
-		/// </summary>
-		WEP,
 
 		/// <summary>
 		/// Specifies the start of the range that is used to define proprietary cipher algorithms that are developed by an independent hardware vendor (IHV)
