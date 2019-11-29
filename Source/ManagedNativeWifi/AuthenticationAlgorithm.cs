@@ -25,7 +25,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Specifies an 802.11 Shared Key authentication algorithm that requires the use of a pre-shared Wired Equivalent Privacy (WEP) key for the 802.11 authentication
 		/// </summary>
-		SharedKey,
+		Shared,
 
 		/// <summary>
 		/// Specifies a Wi-Fi Protected Access (WPA) algorithm
@@ -73,7 +73,7 @@ namespace ManagedNativeWifi
 					authenticationAlgorithm = AuthenticationAlgorithm.Open;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_80211_SHARED_KEY:
-					authenticationAlgorithm = AuthenticationAlgorithm.SharedKey;
+					authenticationAlgorithm = AuthenticationAlgorithm.Shared;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA:
 					authenticationAlgorithm = AuthenticationAlgorithm.WPA;
