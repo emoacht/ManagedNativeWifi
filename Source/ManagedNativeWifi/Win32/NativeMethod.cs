@@ -38,7 +38,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanQueryInterface(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			WLAN_INTF_OPCODE OpCode,
 			IntPtr pReserved,
 			out uint pdwDataSize,
@@ -48,14 +48,14 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetInterfaceCapability(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			IntPtr pReserved,
 			out IntPtr ppCapability); // Pointer to WLAN_INTERFACE_CAPABILITY
 
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetInterface(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			WLAN_INTF_OPCODE OpCode,
 			uint dwDataSize,
 			IntPtr pData, // Pointer to data to be set
@@ -64,7 +64,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanScan(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			IntPtr pDot11Ssid,
 			IntPtr pIeData,
 			IntPtr pReserved);
@@ -72,7 +72,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetAvailableNetworkList(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			uint dwFlags,
 			IntPtr pReserved,
 			out IntPtr ppAvailableNetworkList); // Pointer to WLAN_AVAILABLE_NETWORK_LIST
@@ -80,7 +80,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetNetworkBssList(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			IntPtr pDot11Ssid,
 			DOT11_BSS_TYPE dot11BssType,
 			[MarshalAs(UnmanagedType.Bool)] bool bSecurityEnabled,
@@ -90,14 +90,14 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetProfileList(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			IntPtr pReserved,
 			out IntPtr ppProfileList); // Pointer to WLAN_PROFILE_INFO_LIST
 
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanGetProfile(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved,
 			[MarshalAs(UnmanagedType.LPWStr)] out string pstrProfileXml,
@@ -107,7 +107,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetProfile(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			uint dwFlags,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileXml,
 			[MarshalAs(UnmanagedType.LPWStr)] string strAllUserProfileSecurity,
@@ -118,7 +118,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetProfilePosition(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			uint dwPosition,
 			IntPtr pReserved);
@@ -126,7 +126,7 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanRenameProfile(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strOldProfileName,
 			[MarshalAs(UnmanagedType.LPWStr)] string strNewProfileName,
 			IntPtr pReserved);
@@ -134,21 +134,21 @@ namespace ManagedNativeWifi.Win32
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanDeleteProfile(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanConnect(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			[In] ref WLAN_CONNECTION_PARAMETERS pConnectionParameters,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanDisconnect(
 			SafeClientHandle hClientHandle,
-			[MarshalAs(UnmanagedType.LPStruct)] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
 			IntPtr pReserved);
 
 		[DllImport("Wlanapi.dll")]
@@ -433,7 +433,7 @@ namespace ManagedNativeWifi.Win32
 			/// <returns>Byte array</returns>
 			public byte[] ToBytes() => ucSSID?.Take((int)uSSIDLength).ToArray();
 
-			private static Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
+			private static readonly Lazy<Encoding> _encoding = new Lazy<Encoding>(() =>
 				Encoding.GetEncoding(65001, // UTF-8 code page
 					EncoderFallback.ReplacementFallback,
 					DecoderFallback.ExceptionFallback));

@@ -83,8 +83,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Associated BSS networks information
 		/// </summary>
-		public IReadOnlyCollection<BssNetworkPack> BssNetworks => Array.AsReadOnly(_bssNetworks);
-		private readonly BssNetworkPack[] _bssNetworks;
+		public IReadOnlyCollection<BssNetworkPack> BssNetworks { get; }
 
 		/// <summary>
 		/// Link quality of associated BSS network which is the highest link quality
@@ -128,16 +127,16 @@ namespace ManagedNativeWifi
 				authenticationAlgorithm: authenticationAlgorithm,
 				cipherAlgorithm: cipherAlgorithm)
 		{
-			this._bssNetworks = bssNetworks.OrderByDescending(x => x.LinkQuality).ToArray();
+			this.BssNetworks = Array.AsReadOnly(bssNetworks?.OrderByDescending(x => x.LinkQuality).ToArray() ?? new BssNetworkPack[0]);
+			if (!this.BssNetworks.Any())
+				return;
 
-			var highestLinkQualityNetwork = _bssNetworks.FirstOrDefault();
-			if (highestLinkQualityNetwork != null)
-			{
-				LinkQuality = highestLinkQualityNetwork.LinkQuality;
-				Frequency = highestLinkQualityNetwork.Frequency;
-				Band = highestLinkQualityNetwork.Band;
-				Channel = highestLinkQualityNetwork.Channel;
-			}
+			var highestLinkQualityNetwork = this.BssNetworks.First();
+
+			LinkQuality = highestLinkQualityNetwork.LinkQuality;
+			Frequency = highestLinkQualityNetwork.Frequency;
+			Band = highestLinkQualityNetwork.Band;
+			Channel = highestLinkQualityNetwork.Channel;
 		}
 	}
 }

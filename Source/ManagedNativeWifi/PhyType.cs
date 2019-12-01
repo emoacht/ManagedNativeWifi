@@ -84,64 +84,40 @@ namespace ManagedNativeWifi
 	{
 		public static PhyType Convert(DOT11_PHY_TYPE source)
 		{
-			switch (source)
+			return source switch
 			{
-				case DOT11_PHY_TYPE.dot11_phy_type_any:
-					return PhyType.Any;
-				case DOT11_PHY_TYPE.dot11_phy_type_fhss:
-					return PhyType.Fhss;
-				case DOT11_PHY_TYPE.dot11_phy_type_dsss:
-					return PhyType.Dsss;
-				case DOT11_PHY_TYPE.dot11_phy_type_irbaseband:
-					return PhyType.IrBaseband;
-				case DOT11_PHY_TYPE.dot11_phy_type_ofdm:
-					return PhyType.Ofdm;
-				case DOT11_PHY_TYPE.dot11_phy_type_hrdsss:
-					return PhyType.HrDsss;
-				case DOT11_PHY_TYPE.dot11_phy_type_erp:
-					return PhyType.Erp;
-				case DOT11_PHY_TYPE.dot11_phy_type_ht:
-					return PhyType.Ht;
-				case DOT11_PHY_TYPE.dot11_phy_type_vht:
-					return PhyType.Vht;
-				case DOT11_PHY_TYPE.dot11_phy_type_IHV_start:
-					return PhyType.IhvStart;
-				case DOT11_PHY_TYPE.dot11_phy_type_IHV_end:
-					return PhyType.IhvEnd;
-				default:
-					return PhyType.Unknown;
-			}
+				DOT11_PHY_TYPE.dot11_phy_type_any => PhyType.Any,
+				DOT11_PHY_TYPE.dot11_phy_type_fhss => PhyType.Fhss,
+				DOT11_PHY_TYPE.dot11_phy_type_dsss => PhyType.Dsss,
+				DOT11_PHY_TYPE.dot11_phy_type_irbaseband => PhyType.IrBaseband,
+				DOT11_PHY_TYPE.dot11_phy_type_ofdm => PhyType.Ofdm,
+				DOT11_PHY_TYPE.dot11_phy_type_hrdsss => PhyType.HrDsss,
+				DOT11_PHY_TYPE.dot11_phy_type_erp => PhyType.Erp,
+				DOT11_PHY_TYPE.dot11_phy_type_ht => PhyType.Ht,
+				DOT11_PHY_TYPE.dot11_phy_type_vht => PhyType.Vht,
+				DOT11_PHY_TYPE.dot11_phy_type_IHV_start => PhyType.IhvStart,
+				DOT11_PHY_TYPE.dot11_phy_type_IHV_end => PhyType.IhvEnd,
+				_ => PhyType.Unknown,
+			};
 		}
 
 		public static DOT11_PHY_TYPE ConvertBack(PhyType source)
 		{
-			switch (source)
+			return source switch
 			{
-				case PhyType.Any:
-					return DOT11_PHY_TYPE.dot11_phy_type_any;
-				case PhyType.Fhss:
-					return DOT11_PHY_TYPE.dot11_phy_type_fhss;
-				case PhyType.Dsss:
-					return DOT11_PHY_TYPE.dot11_phy_type_dsss;
-				case PhyType.IrBaseband:
-					return DOT11_PHY_TYPE.dot11_phy_type_irbaseband;
-				case PhyType.Ofdm:
-					return DOT11_PHY_TYPE.dot11_phy_type_ofdm;
-				case PhyType.HrDsss:
-					return DOT11_PHY_TYPE.dot11_phy_type_hrdsss;
-				case PhyType.Erp:
-					return DOT11_PHY_TYPE.dot11_phy_type_erp;
-				case PhyType.Ht:
-					return DOT11_PHY_TYPE.dot11_phy_type_ht;
-				case PhyType.Vht:
-					return DOT11_PHY_TYPE.dot11_phy_type_vht;
-				case PhyType.IhvStart:
-					return DOT11_PHY_TYPE.dot11_phy_type_IHV_start;
-				case PhyType.IhvEnd:
-					return DOT11_PHY_TYPE.dot11_phy_type_IHV_end;
-				default:
-					return DOT11_PHY_TYPE.dot11_phy_type_unknown;
-			}
+				PhyType.Any => DOT11_PHY_TYPE.dot11_phy_type_any,
+				PhyType.Fhss => DOT11_PHY_TYPE.dot11_phy_type_fhss,
+				PhyType.Dsss => DOT11_PHY_TYPE.dot11_phy_type_dsss,
+				PhyType.IrBaseband => DOT11_PHY_TYPE.dot11_phy_type_irbaseband,
+				PhyType.Ofdm => DOT11_PHY_TYPE.dot11_phy_type_ofdm,
+				PhyType.HrDsss => DOT11_PHY_TYPE.dot11_phy_type_hrdsss,
+				PhyType.Erp => DOT11_PHY_TYPE.dot11_phy_type_erp,
+				PhyType.Ht => DOT11_PHY_TYPE.dot11_phy_type_ht,
+				PhyType.Vht => DOT11_PHY_TYPE.dot11_phy_type_vht,
+				PhyType.IhvStart => DOT11_PHY_TYPE.dot11_phy_type_IHV_start,
+				PhyType.IhvEnd => DOT11_PHY_TYPE.dot11_phy_type_IHV_end,
+				_ => DOT11_PHY_TYPE.dot11_phy_type_unknown,
+			};
 		}
 	}
 }

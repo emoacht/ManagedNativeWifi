@@ -311,7 +311,7 @@ namespace ManagedNativeWifi.Win32
 				IntPtr.Zero,
 				out string profileXml,
 				ref flags,
-				out uint grantedAccess);
+				out _);
 
 			profileTypeFlag = flags;
 
@@ -335,7 +335,7 @@ namespace ManagedNativeWifi.Win32
 
 			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
 			// ERROR_ALREADY_EXISTS will be returned if the profile already exists.
-			// ERROR_BAD_PROFILE will be returned if the profile xml is not valid.
+			// ERROR_BAD_PROFILE will be returned if the profile XML is not valid.
 			// ERROR_NO_MATCH will be returned if the capability specified in the profile is not supported.
 			return CheckResult(nameof(WlanSetProfile), result, false, pdwReasonCode);
 		}
@@ -462,8 +462,7 @@ namespace ManagedNativeWifi.Win32
 		public static bool SetPhyRadioState(SafeClientHandle clientHandle, Guid interfaceId, WLAN_PHY_RADIO_STATE state)
 		{
 			var size = Marshal.SizeOf(state);
-
-			IntPtr setData = IntPtr.Zero;
+			var setData = IntPtr.Zero;
 			try
 			{
 				setData = Marshal.AllocHGlobal(size);
@@ -525,17 +524,18 @@ namespace ManagedNativeWifi.Win32
 
 		private static bool SetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode, int value)
 		{
+			var size = Marshal.SizeOf(value);
 			var setData = IntPtr.Zero;
 			try
 			{
-				setData = Marshal.AllocHGlobal(sizeof(int));
+				setData = Marshal.AllocHGlobal(size);
 				Marshal.WriteInt32(setData, value);
 
 				var result = WlanSetInterface(
 					clientHandle,
 					interfaceId,
 					wlanIntfOpcode,
-					sizeof(int),
+					(uint)size,
 					setData,
 					IntPtr.Zero);
 
@@ -589,34 +589,34 @@ namespace ManagedNativeWifi.Win32
 		{
 			var message = new StringBuilder($"MethodName: {methodName}, ErrorCode: {errorCode}");
 
-			var buff = new StringBuilder(512); // This 512 capacity is arbitrary.
+			var buffer = new StringBuilder(512); // This 512 capacity is arbitrary.
 
 			var messageLength = FormatMessage(
-			  FORMAT_MESSAGE_FROM_SYSTEM,
-			  IntPtr.Zero,
-			  errorCode,
-			  0x0409, // US (English)
-			  buff,
-			  buff.Capacity,
-			  IntPtr.Zero);
+				FORMAT_MESSAGE_FROM_SYSTEM,
+				IntPtr.Zero,
+				errorCode,
+				0x0409, // US (English)
+				buffer,
+				buffer.Capacity,
+				IntPtr.Zero);
 
 			if (0 < messageLength)
-				message.Append($", ErrorMessage: {buff}");
+				message.Append($", ErrorMessage: {buffer}");
 
 			if (0 < reasonCode)
 			{
 				message.Append($", ReasonCode: {reasonCode}");
 
-				buff.Clear();
+				buffer.Clear();
 
 				var result = WlanReasonCodeToString(
 					reasonCode,
-					buff.Capacity,
-					buff,
+					buffer.Capacity,
+					buffer,
 					IntPtr.Zero);
 
 				if (result == ERROR_SUCCESS)
-					message.Append($", ReasonMessage: {buff}");
+					message.Append($", ReasonMessage: {buffer}");
 			}
 
 			return message.ToString();

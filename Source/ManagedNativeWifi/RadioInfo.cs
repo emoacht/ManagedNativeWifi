@@ -19,8 +19,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Radio information
 		/// </summary>
-		public IReadOnlyList<RadioSet> RadioSets => Array.AsReadOnly(_radioSets);
-		private readonly RadioSet[] _radioSets;
+		public IReadOnlyList<RadioSet> RadioSets { get; }
 
 		/// <summary>
 		/// Constructor
@@ -28,7 +27,7 @@ namespace ManagedNativeWifi
 		public RadioInfo(Guid id, IEnumerable<RadioSet> radioSets)
 		{
 			this.Id = id;
-			this._radioSets = radioSets.ToArray();
+			this.RadioSets = Array.AsReadOnly(radioSets?.ToArray() ?? new RadioSet[0]);
 		}
 	}
 }

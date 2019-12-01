@@ -52,40 +52,28 @@ namespace ManagedNativeWifi
 	{
 		public static ConnectionMode Convert(WLAN_CONNECTION_MODE source)
 		{
-			switch (source)
+			return source switch
 			{
-				case WLAN_CONNECTION_MODE.wlan_connection_mode_profile:
-					return ConnectionMode.Profile;
-				case WLAN_CONNECTION_MODE.wlan_connection_mode_temporary_profile:
-					return ConnectionMode.TemporaryProfile;
-				case WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_secure:
-					return ConnectionMode.DiscoverySecure;
-				case WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_unsecure:
-					return ConnectionMode.DiscoveryUnsecure;
-				case WLAN_CONNECTION_MODE.wlan_connection_mode_auto:
-					return ConnectionMode.Auto;
-				default:
-					return ConnectionMode.Invalid;
-			}
+				WLAN_CONNECTION_MODE.wlan_connection_mode_profile => ConnectionMode.Profile,
+				WLAN_CONNECTION_MODE.wlan_connection_mode_temporary_profile => ConnectionMode.TemporaryProfile,
+				WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_secure => ConnectionMode.DiscoverySecure,
+				WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_unsecure => ConnectionMode.DiscoveryUnsecure,
+				WLAN_CONNECTION_MODE.wlan_connection_mode_auto => ConnectionMode.Auto,
+				_ => ConnectionMode.Invalid,
+			};
 		}
 
 		public static WLAN_CONNECTION_MODE ConvertBack(ConnectionMode source)
 		{
-			switch (source)
+			return source switch
 			{
-				case ConnectionMode.Profile:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_profile;
-				case ConnectionMode.TemporaryProfile:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_temporary_profile;
-				case ConnectionMode.DiscoverySecure:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_secure;
-				case ConnectionMode.DiscoveryUnsecure:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_unsecure;
-				case ConnectionMode.Auto:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_auto;
-				default:
-					return WLAN_CONNECTION_MODE.wlan_connection_mode_invalid;
-			}
+				ConnectionMode.Profile => WLAN_CONNECTION_MODE.wlan_connection_mode_profile,
+				ConnectionMode.TemporaryProfile => WLAN_CONNECTION_MODE.wlan_connection_mode_temporary_profile,
+				ConnectionMode.DiscoverySecure => WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_secure,
+				ConnectionMode.DiscoveryUnsecure => WLAN_CONNECTION_MODE.wlan_connection_mode_discovery_unsecure,
+				ConnectionMode.Auto => WLAN_CONNECTION_MODE.wlan_connection_mode_auto,
+				_ => WLAN_CONNECTION_MODE.wlan_connection_mode_invalid,
+			};
 		}
 	}
 }
