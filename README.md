@@ -146,6 +146,10 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 1.5.0 2019-12-1
+
+ - __Add:__ Information obtained by EnumerateAvailableNetworks and EnumerateAvailableNetworkGroups include authentication/cipher algorithms.
+
 Ver 1.4.0 2018-9-2
 
  - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios.
@@ -159,4 +163,4 @@ Ver 1.0.0 2015-1-30
 
  - MIT License
 
-[1]: https://msdn.microsoft.com/en-us/library/windows/desktop/ms706556.aspx
+[1]: https://docs.microsoft.com/en-us/windows/win32/nativewifi/portal
