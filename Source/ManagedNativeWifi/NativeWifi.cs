@@ -97,7 +97,7 @@ namespace ManagedNativeWifi
 		internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(Base.WlanNotificationClient client, TimeSpan timeout, CancellationToken cancellationToken)
 		{
 			if (timeout <= TimeSpan.Zero)
-				throw new ArgumentException(nameof(timeout));
+				throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
 
 			using (var container = new DisposableContainer<Base.WlanNotificationClient>(client))
 			{
@@ -519,7 +519,7 @@ namespace ManagedNativeWifi
 		internal static bool SetProfile(Base.WlanClient client, Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileXml))
 				throw new ArgumentNullException(nameof(profileXml));
@@ -547,13 +547,13 @@ namespace ManagedNativeWifi
 		internal static bool SetProfilePosition(Base.WlanClient client, Guid interfaceId, string profileName, int position)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
 
 			if (position < 0)
-				throw new ArgumentOutOfRangeException(nameof(position));
+				throw new ArgumentOutOfRangeException(nameof(position), "The position must not be negative.");
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
@@ -576,7 +576,7 @@ namespace ManagedNativeWifi
 		internal static bool RenameProfile(Base.WlanClient client, Guid interfaceId, string oldProfileName, string newProfileName)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(oldProfileName))
 				throw new ArgumentNullException(nameof(oldProfileName));
@@ -604,7 +604,7 @@ namespace ManagedNativeWifi
 		internal static bool DeleteProfile(Base.WlanClient client, Guid interfaceId, string profileName)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -634,7 +634,7 @@ namespace ManagedNativeWifi
 		internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
@@ -675,13 +675,13 @@ namespace ManagedNativeWifi
 		internal static async Task<bool> ConnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (string.IsNullOrWhiteSpace(profileName))
 				throw new ArgumentNullException(nameof(profileName));
 
 			if (timeout <= TimeSpan.Zero)
-				throw new ArgumentException(nameof(timeout));
+				throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
 
 			using (var container = new DisposableContainer<Base.WlanNotificationClient>(client))
 			{
@@ -746,7 +746,7 @@ namespace ManagedNativeWifi
 		internal static bool DisconnectNetwork(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
@@ -780,10 +780,10 @@ namespace ManagedNativeWifi
 		internal static async Task<bool> DisconnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, TimeSpan timeout, CancellationToken cancellationToken)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			if (timeout <= TimeSpan.Zero)
-				throw new ArgumentException(nameof(timeout));
+				throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
 
 			using (var container = new DisposableContainer<Base.WlanNotificationClient>(client))
 			{
@@ -833,7 +833,7 @@ namespace ManagedNativeWifi
 		internal static RadioInfo GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
@@ -907,7 +907,7 @@ namespace ManagedNativeWifi
 		internal static bool TurnInterfaceRadio(Base.WlanClient client, Guid interfaceId, DOT11_RADIO_STATE radioState)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
@@ -934,7 +934,7 @@ namespace ManagedNativeWifi
 		internal static bool GetInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
-				throw new ArgumentException(nameof(interfaceId));
+				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			using (var container = new DisposableContainer<Base.WlanClient>(client))
 			{
