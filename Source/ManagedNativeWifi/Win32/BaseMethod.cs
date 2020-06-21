@@ -401,6 +401,47 @@ namespace ManagedNativeWifi.Win32
 			return CheckResult(nameof(WlanConnect), result, false);
 		}
 
+		public static bool Connect(SafeClientHandle clientHandle, Guid interfaceId, string profileName, DOT11_BSS_TYPE bssType, DOT11_MAC_ADDRESS bssid)
+		{
+			var bssidList = new DOT11_BSSID_LIST();
+			bssidList.Header = new NDIS_OBJECT_HEADER()
+			{
+				Type = 0x80, //NDIS_OBJECT_TYPE_DEFAULT
+				Revision = 1, //DOT11_BSSID_LIST_REVISION_1
+				Size = Convert.ToUInt16(Marshal.SizeOf(bssidList))
+			};
+			bssidList.uNumOfEntries = 1;
+			bssidList.uTotalNumOfEntries = 1;
+			bssidList.BSSIDs = bssid;
+
+			var connectionParameters = new WLAN_CONNECTION_PARAMETERS
+			{
+				wlanConnectionMode = WLAN_CONNECTION_MODE.wlan_connection_mode_profile,
+				strProfile = profileName,
+				dot11BssType = bssType,
+				dwFlags = 0U
+			};
+
+			try
+			{
+				connectionParameters.pDesiredBssidList = Marshal.AllocHGlobal(Marshal.SizeOf(bssidList));
+				Marshal.StructureToPtr(bssidList, connectionParameters.pDesiredBssidList, false);
+
+				var result = WlanConnect(
+					clientHandle,
+					interfaceId,
+					ref connectionParameters,
+					IntPtr.Zero);
+
+				// ERROR_NOT_FOUND will be returned if the interface is removed.
+				return CheckResult(nameof(WlanConnect), result, false);
+			}
+			finally
+			{
+				Marshal.FreeHGlobal(connectionParameters.pDesiredBssidList);
+			}
+		}
+
 		public static bool Disconnect(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var result = WlanDisconnect(
