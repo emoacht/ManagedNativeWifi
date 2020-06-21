@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -603,13 +604,14 @@ namespace ManagedNativeWifi
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
 		/// <param name="bssType">BSS network type</param>
+		/// <param name="bssid">BSSID of the network</param>
 		/// <returns>True if successfully requested the connection. False if failed.</returns>
-		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType)
+		public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid = null)
 		{
-			return ConnectNetwork(null, interfaceId, profileName, bssType);
+			return ConnectNetwork(null, interfaceId, profileName, bssType, bssid);
 		}
 
-		internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType)
+		internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid = null)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
@@ -618,7 +620,19 @@ namespace ManagedNativeWifi
 
 			using var container = new DisposableContainer<Base.WlanClient>(client);
 
-			return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
+			if (bssid != null)
+			{
+				var dot11MacAddress = new DOT11_MAC_ADDRESS()
+				{
+					ucDot11MacAddress = bssid.GetAddressBytes()
+				};
+
+				return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
+			}
+			else
+			{
+				return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
+			}
 		}
 
 		/// <summary>
@@ -631,7 +645,7 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
 		public static Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout)
 		{
-			return ConnectNetworkAsync(null, interfaceId, profileName, bssType, timeout, CancellationToken.None);
+			return ConnectNetworkAsync(null, interfaceId, profileName, bssType, null, timeout, CancellationToken.None);
 		}
 
 		/// <summary>
@@ -645,10 +659,25 @@ namespace ManagedNativeWifi
 		/// <returns>True if successfully connected. False if failed or timed out.</returns>
 		public static Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken)
 		{
-			return ConnectNetworkAsync(null, interfaceId, profileName, bssType, timeout, cancellationToken);
+			return ConnectNetworkAsync(null, interfaceId, profileName, bssType, null, timeout, cancellationToken);
 		}
 
-		internal static async Task<bool> ConnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken)
+		/// <summary>
+		/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="bssType">BSS network type</param>
+		/// <param name="bssid">BSSID of the network</param>
+		/// <param name="timeout">Timeout duration</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>True if successfully connected. False if failed or timed out.</returns>
+		public static Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid, TimeSpan timeout, CancellationToken cancellationToken)
+		{
+			return ConnectNetworkAsync(null, interfaceId, profileName, bssType, bssid, timeout, cancellationToken);
+		}
+
+		internal static async Task<bool> ConnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid, TimeSpan timeout, CancellationToken cancellationToken)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
@@ -693,7 +722,19 @@ namespace ManagedNativeWifi
 				}
 			};
 
-			var result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
+			bool result;
+			if (bssid != null)
+			{
+				var dot11MacAddress = new DOT11_MAC_ADDRESS()
+				{
+					ucDot11MacAddress = bssid.GetAddressBytes()
+				};
+				result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
+			}
+			else
+			{
+				result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType));
+			}
 			if (!result)
 				tcs.SetResult(false);
 

@@ -208,7 +208,7 @@ namespace ManagedNativeWifi
 		/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
 		/// </summary>
 		public Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken) =>
-			NativeWifi.ConnectNetworkAsync(_client, interfaceId, profileName, bssType, timeout, cancellationToken);
+			NativeWifi.ConnectNetworkAsync(_client, interfaceId, profileName, bssType, null, timeout, cancellationToken);
 
 		/// <summary>
 		/// Disconnects from the wireless LAN associated to a specified wireless interface.
