@@ -12,6 +12,8 @@ namespace ManagedNativeWifi
 	/// <remarks>
 	/// Equivalent to authentication element in profile XML:
 	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-authentication-authencryption-element
+	/// WPA3 values are found in:
+	/// https://docs.microsoft.com/en-us/uwp/api/windows.networking.connectivity.networkauthenticationtype
 	/// </remarks>
 	public enum AuthenticationMethod
 	{
@@ -52,7 +54,19 @@ namespace ManagedNativeWifi
 		/// WPA2-Personal 802.11 authentication
 		/// </summary>
 		/// <remarks>WPA2PSK in profile XML</remarks>
-		WPA2_Personal
+		WPA2_Personal,
+
+		/// <summary>
+		/// WPA3-Enterprise 802.11 authentication
+		/// </summary>
+		/// <remarks>WPA3 in profile XML</remarks>
+		WPA3_Enterprise,
+
+		/// <summary>
+		/// WPA3-Personal 802.11 authentication
+		/// </summary>
+		/// <remarks>WPA3SAE in profile XML</remarks>
+		WPA3_Personal
 	}
 
 	internal static class AuthenticationMethodConverter
@@ -78,6 +92,12 @@ namespace ManagedNativeWifi
 					return true;
 				case "WPA2PSK":
 					authentication = AuthenticationMethod.WPA2_Personal;
+					return true;
+				case "WPA3":
+					authentication = AuthenticationMethod.WPA3_Enterprise;
+					return true;
+				case "WPA3SAE":
+					authentication = AuthenticationMethod.WPA3_Personal;
 					return true;
 			}
 			authentication = default;
