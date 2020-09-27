@@ -146,14 +146,22 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 1.7.0 2020-9-27
+
+ - __Add:__ WPA3 in authentication method
+
+Ver 1.6.0 2020-8-4
+
+ - __Add:__ Functionality to connect specific access point when connecting network
+
 Ver 1.5.0 2019-12-1
 
- - __Add:__ Information obtained by EnumerateAvailableNetworks and EnumerateAvailableNetworkGroups include authentication/cipher algorithms.
+ - __Add:__ Information obtained by EnumerateAvailableNetworks and EnumerateAvailableNetworkGroups include authentication/cipher algorithms
 
 Ver 1.4.0 2018-9-2
 
- - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios.
- - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles.
+ - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios
+ - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles
 
 Ver 1.0.0 2015-1-30
 
