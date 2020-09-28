@@ -18,9 +18,9 @@ namespace ManagedNativeWifi
 	public enum AuthenticationMethod
 	{
 		/// <summary>
-		/// None (invalid value)
+		/// Unknown (invalid value)
 		/// </summary>
-		None = 0,
+		Unknown = 0,
 
 		/// <summary>
 		/// Open 802.11 authentication

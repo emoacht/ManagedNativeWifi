@@ -18,9 +18,9 @@ namespace ManagedNativeWifi
 	public enum AuthenticationAlgorithm
 	{
 		/// <summary>
-		/// None (invalid value)
+		/// Unknown (invalid value)
 		/// </summary>
-		None = 0,
+		Unknown = 0,
 
 		/// <summary>
 		/// 802.11 Open System authentication algorithm
