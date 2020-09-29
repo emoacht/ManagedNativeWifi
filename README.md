@@ -146,9 +146,9 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
-Ver 1.7.0 2020-9-27
+Ver 1.7.1 2020-9-29
 
- - __Add:__ WPA3 in authentication method
+ - __Add:__ WPA3 in authentication method and algorithm
 
 Ver 1.6.0 2020-8-4
 
