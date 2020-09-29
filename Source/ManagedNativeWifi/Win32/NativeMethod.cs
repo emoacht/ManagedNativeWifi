@@ -661,6 +661,12 @@ namespace ManagedNativeWifi.Win32
 			DOT11_AUTH_ALGO_WPA_NONE = 5,
 			DOT11_AUTH_ALGO_RSNA = 6,
 			DOT11_AUTH_ALGO_RSNA_PSK = 7,
+
+			// Derived from wlantypes.h of Windows SDK (10.0.19041.0)
+			DOT11_AUTH_ALGO_WPA3 = 8,
+			DOT11_AUTH_ALGO_WPA3_SAE = 9,
+			DOT11_AUTH_ALGO_OWE = 10,
+
 			DOT11_AUTH_ALGO_IHV_START = 0x80000000,
 			DOT11_AUTH_ALGO_IHV_END = 0xffffffff
 		}

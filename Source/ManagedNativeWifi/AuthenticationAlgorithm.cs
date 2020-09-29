@@ -58,6 +58,21 @@ namespace ManagedNativeWifi
 		RSNA_PSK,
 
 		/// <summary>
+		/// WPA3 algorithm
+		/// </summary>
+		WPA3,
+
+		/// <summary>
+		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
+		/// </summary>
+		WPA3_SAE,
+
+		/// <summary>
+		/// Opportunistic Wireless Encryption (OWE) algorithm
+		/// </summary>
+		OWE,
+
+		/// <summary>
 		/// Indicates the start of the range that specifies proprietary authentication algorithms developed by an independent hardware vendor (IHV).
 		/// </summary>
 		IHV_START,
@@ -94,6 +109,15 @@ namespace ManagedNativeWifi
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA_PSK:
 					authenticationAlgorithm = AuthenticationAlgorithm.RSNA_PSK;
+					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3;
+					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
+					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_OWE:
+					authenticationAlgorithm = AuthenticationAlgorithm.OWE;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_IHV_START:
 					authenticationAlgorithm = AuthenticationAlgorithm.IHV_START;
