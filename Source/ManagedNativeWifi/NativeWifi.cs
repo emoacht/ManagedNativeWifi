@@ -928,23 +928,23 @@ namespace ManagedNativeWifi
 		#region Auto config
 
 		/// <summary>
-		/// Gets information on whether automatic configuration is enabled for a specified wireless interface.
+		/// Checks if automatic configuration of a specified wireless interface is enabled.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
-		/// <returns>True if enabled. False if disabled or failed to get information.</returns>
-		public static bool GetInterfaceAutoConfig(Guid interfaceId)
+		/// <returns>True if enabled. False if disabled or failed to check.</returns>
+		public static bool IsInterfaceAutoConfig(Guid interfaceId)
 		{
-			return GetInterfaceAutoConfig(null, interfaceId);
+			return IsInterfaceAutoConfig(null, interfaceId);
 		}
 
-		internal static bool GetInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
+		internal static bool IsInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
 		{
 			if (interfaceId == Guid.Empty)
 				throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 			using var container = new DisposableContainer<Base.WlanClient>(client);
 
-			return Base.GetAutoConfig(container.Content.Handle, interfaceId).GetValueOrDefault();
+			return Base.IsAutoConfig(container.Content.Handle, interfaceId).GetValueOrDefault();
 		}
 
 		#endregion

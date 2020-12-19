@@ -529,7 +529,7 @@ namespace ManagedNativeWifi.Win32
 			}
 		}
 
-		public static bool? GetAutoConfig(SafeClientHandle clientHandle, Guid interfaceId)
+		public static bool? IsAutoConfig(SafeClientHandle clientHandle, Guid interfaceId)
 		{
 			var value = GetInterfaceInt(clientHandle, interfaceId, WLAN_INTF_OPCODE.wlan_intf_opcode_autoconf_enabled);
 
