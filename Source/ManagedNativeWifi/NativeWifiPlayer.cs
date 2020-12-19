@@ -163,6 +163,12 @@ namespace ManagedNativeWifi
 			NativeWifi.EnumerateBssNetworks(_client);
 
 		/// <summary>
+		/// Enumerates wireless profile names in preference order.
+		/// </summary>
+		public IEnumerable<ProfilePack> EnumerateProfileNames() =>
+			NativeWifi.EnumerateProfileNames(_client);
+
+		/// <summary>
 		/// Enumerates wireless profile information in preference order.
 		/// </summary>
 		public IEnumerable<ProfilePack> EnumerateProfiles() =>
