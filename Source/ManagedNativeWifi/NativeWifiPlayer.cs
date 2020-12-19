@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using static ManagedNativeWifi.Win32.NativeMethod;
+
 using Base = ManagedNativeWifi.Win32.BaseMethod;
 
 namespace ManagedNativeWifi
@@ -161,6 +162,12 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public IEnumerable<BssNetworkPack> EnumerateBssNetworks() =>
 			NativeWifi.EnumerateBssNetworks(_client);
+
+		/// <summary>
+		/// Enumerates wireless profile names in preference order.
+		/// </summary>
+		public IEnumerable<string> EnumerateProfileNames() =>
+			NativeWifi.EnumerateProfileNames(_client);
 
 		/// <summary>
 		/// Enumerates wireless profile information in preference order.
