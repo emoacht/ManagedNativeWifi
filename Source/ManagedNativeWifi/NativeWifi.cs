@@ -313,7 +313,7 @@ namespace ManagedNativeWifi
 				var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
 					availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled)
 					.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
-					.Where(x => x != null);
+					.Where(x => x is not null);
 
 				yield return new AvailableNetworkGroupPack(
 					interfaceInfo: interfaceInfo,
@@ -620,7 +620,7 @@ namespace ManagedNativeWifi
 
 			using var container = new DisposableContainer<Base.WlanClient>(client);
 
-			if (bssid != null)
+			if (bssid is not null)
 			{
 				var dot11MacAddress = new DOT11_MAC_ADDRESS()
 				{
@@ -723,7 +723,7 @@ namespace ManagedNativeWifi
 			};
 
 			bool result;
-			if (bssid != null)
+			if (bssid is not null)
 			{
 				var dot11MacAddress = new DOT11_MAC_ADDRESS()
 				{
@@ -969,7 +969,7 @@ namespace ManagedNativeWifi
 			band = 0;
 			channel = 0;
 
-			if ((2_412_000 <= frequency) && (frequency <= 2_484_000))
+			if (frequency is (>= 2_412_000 and <= 2_484_000))
 			{
 				// 2.4GHz
 				band = 2.4F;
@@ -986,7 +986,7 @@ namespace ManagedNativeWifi
 					channel = 14;
 				}
 			}
-			else if ((3_657_500 <= frequency) && (frequency <= 3_692_500))
+			else if (frequency is (>= 3_657_500 and <= 3_692_500))
 			{
 				// 3.6GHz
 				band = 3.6F;
@@ -998,7 +998,7 @@ namespace ManagedNativeWifi
 					channel = (int)Math.Floor(factor) + 131;
 				}
 			}
-			else if ((5_170_000 <= frequency) && (frequency <= 5_825_000))
+			else if (frequency is (>= 5_170_000 and <= 5_825_000))
 			{
 				// 5GHz
 				band = 5.0F;

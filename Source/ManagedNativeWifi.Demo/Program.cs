@@ -150,7 +150,7 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($"Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
 
 				var interfaceRadio = NativeWifi.GetInterfaceRadio(interfaceInfo.Id);
-				if (interfaceRadio == null)
+				if (interfaceRadio is null)
 					continue;
 
 				foreach (var radioSet in interfaceRadio.RadioSets)

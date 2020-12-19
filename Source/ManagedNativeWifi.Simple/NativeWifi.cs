@@ -155,7 +155,7 @@ namespace ManagedNativeWifi.Simple
 
 			public override string ToString()
 			{
-				if (ucSSID == null)
+				if (ucSSID is null)
 					return null;
 
 				try
@@ -179,7 +179,7 @@ namespace ManagedNativeWifi.Simple
 
 			public override string ToString()
 			{
-				return (ucDot11MacAddress != null)
+				return (ucDot11MacAddress is not null)
 					? BitConverter.ToString(ucDot11MacAddress).Replace('-', ':')
 					: null;
 			}

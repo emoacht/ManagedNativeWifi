@@ -29,7 +29,7 @@ namespace ManagedNativeWifi.Demo
 				.OrderByDescending(x => x.SignalQuality)
 				.FirstOrDefault();
 
-			if (availableNetwork == null)
+			if (availableNetwork is null)
 				return false;
 
 			return await NativeWifi.ConnectNetworkAsync(
@@ -59,7 +59,7 @@ namespace ManagedNativeWifi.Demo
 				.Where(x => profileName.Equals(x.Name, StringComparison.Ordinal))
 				.FirstOrDefault();
 
-			if (targetProfile == null)
+			if (targetProfile is null)
 				return false;
 
 			return NativeWifi.DeleteProfile(
@@ -89,7 +89,7 @@ namespace ManagedNativeWifi.Demo
 				.FirstOrDefault(x =>
 				{
 					var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
-					if (radioSet == null)
+					if (radioSet is null)
 						return false;
 
 					if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
@@ -98,7 +98,7 @@ namespace ManagedNativeWifi.Demo
 					return (radioSet.SoftwareOn == false); // Software radio state is off.
 				});
 
-			if (targetInterface == null)
+			if (targetInterface is null)
 				return false;
 
 			try
@@ -123,7 +123,7 @@ namespace ManagedNativeWifi.Demo
 			var targetProfile = NativeWifi.EnumerateProfiles()
 				.FirstOrDefault(x => x.ProfileType != ProfileType.GroupPolicy);
 
-			if (targetProfile == null)
+			if (targetProfile is null)
 				return false;
 
 			if ((targetProfile.Document.IsAutoConnectEnabled == enableAutoConnect) &&

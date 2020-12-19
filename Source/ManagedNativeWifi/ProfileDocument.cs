@@ -72,7 +72,9 @@ namespace ManagedNativeWifi
 
 		private ProfileDocument(XDocument root)
 		{
-			if (root == null) return;
+			if (root is null)
+				return;
+
 			this.Root = root;
 
 			Name = Root.Elements().First().Elements(XName.Get("name", Namespace)).FirstOrDefault()?.Value;
@@ -102,7 +104,8 @@ namespace ManagedNativeWifi
 			//	Encryption);
 
 			_connectionModeElement = Root.Descendants(XName.Get("connectionMode", Namespace)).FirstOrDefault();
-			if (_connectionModeElement == null) return;
+			if (_connectionModeElement is null)
+				return;
 
 			_autoSwitchElement = Root.Descendants(XName.Get("autoSwitch", Namespace)).FirstOrDefault();
 
@@ -157,7 +160,7 @@ namespace ManagedNativeWifi
 				if (value && (BssType != BssType.Infrastructure))
 					return;
 
-				if (_connectionModeElement == null)
+				if (_connectionModeElement is null)
 					return;
 
 				_connectionModeElement.Value = (value ? ConnectionMode.Auto : ConnectionMode.Manual).ToString().ToLower();
@@ -179,9 +182,9 @@ namespace ManagedNativeWifi
 				if (value && !IsAutoConnectEnabled)
 					return;
 
-				if (_autoSwitchElement == null)
+				if (_autoSwitchElement is null)
 				{
-					if (_connectionModeElement == null)
+					if (_connectionModeElement is null)
 						return;
 
 					_autoSwitchElement = new XElement(XName.Get("autoSwitch", Namespace));

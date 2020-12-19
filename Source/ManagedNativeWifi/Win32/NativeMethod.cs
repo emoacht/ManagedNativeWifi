@@ -444,7 +444,7 @@ namespace ManagedNativeWifi.Win32
 			/// <returns>UTF-8 string if successfully converted the byte array of SSID. Null if failed.</returns>
 			public override string ToString()
 			{
-				if (ucSSID != null)
+				if (ucSSID is not null)
 				{
 					try
 					{
@@ -475,7 +475,7 @@ namespace ManagedNativeWifi.Win32
 			/// <returns>Hexadecimal string</returns>
 			public override string ToString()
 			{
-				return (ucDot11MacAddress != null)
+				return (ucDot11MacAddress is not null)
 					? BitConverter.ToString(ucDot11MacAddress).Replace('-', ':')
 					: null;
 			}
