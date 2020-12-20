@@ -149,11 +149,11 @@ namespace ManagedNativeWifi
 				this._targets.AddRange(targets);
 			}
 
-			private readonly object _locker = new object();
+			private readonly object _lock = new object();
 
 			public void SetSuccess(Guid value)
 			{
-				lock (_locker)
+				lock (_lock)
 				{
 					_targets.Remove(value);
 					_results.Add(value);
@@ -164,7 +164,7 @@ namespace ManagedNativeWifi
 
 			public void SetFailure(Guid value)
 			{
-				lock (_locker)
+				lock (_lock)
 				{
 					_targets.Remove(value);
 
@@ -622,11 +622,7 @@ namespace ManagedNativeWifi
 
 			if (bssid is not null)
 			{
-				var dot11MacAddress = new DOT11_MAC_ADDRESS()
-				{
-					ucDot11MacAddress = bssid.GetAddressBytes()
-				};
-
+				var dot11MacAddress = new DOT11_MAC_ADDRESS { ucDot11MacAddress = bssid.GetAddressBytes() };
 				return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
 			}
 			else
@@ -725,10 +721,7 @@ namespace ManagedNativeWifi
 			bool result;
 			if (bssid is not null)
 			{
-				var dot11MacAddress = new DOT11_MAC_ADDRESS()
-				{
-					ucDot11MacAddress = bssid.GetAddressBytes()
-				};
+				var dot11MacAddress = new DOT11_MAC_ADDRESS { ucDot11MacAddress = bssid.GetAddressBytes() };
 				result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
 			}
 			else
