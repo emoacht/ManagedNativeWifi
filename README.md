@@ -11,27 +11,31 @@ A managed implementation of [Native Wifi][1] API
 
 Available methods including asynchronous ones based on TAP.
 
-| Method                         | Description                                                                                        |
-|--------------------------------|----------------------------------------------------------------------------------------------------|
-| EnumerateInterfaces            | Enumerates wireless interface information.                                                         |
-| ScanNetworksAsync              | Asynchronously requests wireless interfaces to scan (rescan) wireless LANs.                        |
-| EnumerateAvailableNetworkSsids | Enumerates SSIDs of available wireless LANs.                                                       |
-| EnumerateConnectedNetworkSsids | Enumerates SSIDs of connected wireless LANs.                                                       |
-| EnumerateAvailableNetworks     | Enumerates wireless LAN information on available networks.                                         |
-| EnumerateBssNetworks           | Enumerates wireless LAN information on BSS networks.                                               |
-| EnumerateProfileNames          | Enumerates wireless profile names in preference order.                                             |
-| EnumerateProfiles              | Enumerates wireless profile information in preference order.                                       |
-| SetProfile                     | Sets (add or overwrite) the content of a specified wireless profile.                               |
-| SetProfilePosition             | Sets the position of a specified wireless profile in preference order.                             |
-| RenameProfile                  | Renames a specified wireless profile.                                                              |
-| DeleteProfile                  | Deletes a specified wireless profile.                                                              |
-| ConnectNetwork                 | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |
-| ConnectNetworkAsync            | Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile. |
-| DisconnectNetwork              | Disconnects from the wireless LAN associated to a specified wireless interface.                    |
-| DisconnectNetworkAsync         | Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.     |
-| GetInterfaceRadio              | Gets wireless interface radio information of a specified wireless interface.                       |
-| TurnOnInterfaceRadio           | Turns on the radio of a specified wireless interface (software radio state only).                  |
-| TurnOffInterfaceRadio          | Turns off the radio of a specified wireless interface (software radio state only).                 |
+| Method                          | Description                                                                                        |
+|---------------------------------|----------------------------------------------------------------------------------------------------|
+| EnumerateInterfaces             | Enumerates wireless interface information.                                                         |
+| EnumerateInterfaceConnections   | Enumerates wireless interface and related connection information.                                  |
+| ScanNetworksAsync               | Asynchronously requests wireless interfaces to scan (rescan) wireless LANs.                        |
+| EnumerateAvailableNetworkSsids  | Enumerates SSIDs of available wireless LANs.                                                       |
+| EnumerateConnectedNetworkSsids  | Enumerates SSIDs of connected wireless LANs.                                                       |
+| EnumerateAvailableNetworks      | Enumerates wireless LAN information on available networks.                                         |
+| EnumerateAvailableNetworkGroups | Enumerates wireless LAN information on available networks and group of associated BSS networks.    |
+| EnumerateBssNetworks            | Enumerates wireless LAN information on BSS networks.                                               |
+| EnumerateProfileNames           | Enumerates wireless profile names in preference order.                                             |
+| EnumerateProfiles               | Enumerates wireless profile information in preference order.                                       |
+| EnumerateProfileRadios          | Enumerates wireless profile and related radio information in preference order.                     |
+| SetProfile                      | Sets (add or overwrite) the content of a specified wireless profile.                               |
+| SetProfilePosition              | Sets the position of a specified wireless profile in preference order.                             |
+| RenameProfile                   | Renames a specified wireless profile.                                                              |
+| DeleteProfile                   | Deletes a specified wireless profile.                                                              |
+| ConnectNetwork                  | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |
+| ConnectNetworkAsync             | Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile. |
+| DisconnectNetwork               | Disconnects from the wireless LAN associated to a specified wireless interface.                    |
+| DisconnectNetworkAsync          | Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.     |
+| GetInterfaceRadio               | Gets wireless interface radio information of a specified wireless interface.                       |
+| TurnOnInterfaceRadio            | Turns on the radio of a specified wireless interface (software radio state only).                  |
+| TurnOffInterfaceRadio           | Turns off the radio of a specified wireless interface (software radio state only).                 |
+| IsInterfaceAutoConfig           | Checks if automatic configuration of a specified wireless interface is enabled.                    |
 
 ## Usage
 
@@ -57,7 +61,7 @@ public static async Task<bool> ConnectAsync()
         .OrderByDescending(x => x.SignalQuality)
         .FirstOrDefault();
 
-    if (availableNetwork == null)
+    if (availableNetwork is null)
         return false;
 
     return await NativeWifi.ConnectNetworkAsync(
@@ -90,7 +94,7 @@ public static bool DeleteProfile(string profileName)
         .Where(x => profileName.Equals(x.Name, StringComparison.Ordinal))
         .FirstOrDefault();
 
-    if (targetProfile == null)
+    if (targetProfile is null)
         return false;
 
     return NativeWifi.DeleteProfile(
@@ -119,7 +123,7 @@ public static async Task<bool> TurnOnAsync()
         .FirstOrDefault(x =>
         {
             var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
-            if (radioSet == null)
+            if (radioSet is null)
                 return false;
 
             if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
@@ -128,7 +132,7 @@ public static async Task<bool> TurnOnAsync()
             return (radioSet.SoftwareOn == false); // Software radio state is off.
         });
 
-    if (targetInterface == null)
+    if (targetInterface is null)
         return false;
 
     try
@@ -146,24 +150,28 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
-Ver 1.7.1 2020-9-29
+Ver 1.8 2020-12-20
+
+ - __Breaking change:__ GetInterfaceAutoConfig is renamed to IsInterfaceAutoConfig
+
+Ver 1.7 2020-9-29
 
  - __Add:__ WPA3 in authentication method and algorithm
 
-Ver 1.6.0 2020-8-4
+Ver 1.6 2020-8-4
 
  - __Add:__ Functionality to connect specific access point when connecting network
 
-Ver 1.5.0 2019-12-1
+Ver 1.5 2019-12-1
 
  - __Add:__ Information obtained by EnumerateAvailableNetworks and EnumerateAvailableNetworkGroups include authentication/cipher algorithms
 
-Ver 1.4.0 2018-9-2
+Ver 1.4 2018-9-2
 
  - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios
  - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles
 
-Ver 1.0.0 2015-1-30
+Ver 1.0 2015-1-30
 
  - Initial commit
 
