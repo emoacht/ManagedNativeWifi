@@ -5,7 +5,7 @@ A managed implementation of [Native Wifi][1] API
 ## Requirements
 
  * Windows 7 or newer
- * .NET Framework 4.5.2
+ * demos require net5.0, libraries are .netstandard2.1
 
 ## Methods
 
