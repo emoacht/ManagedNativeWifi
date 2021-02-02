@@ -12,7 +12,7 @@ namespace ManagedNativeWifi.Simple
 		static void Main(string[] args)
 		{
 			if (!Debugger.IsAttached)
-				Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
+				Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
 			Debug.WriteLine("[Available Network SSIDs]");
 			NativeWifi.GetAvailableNetworkSsids().ToArray();
