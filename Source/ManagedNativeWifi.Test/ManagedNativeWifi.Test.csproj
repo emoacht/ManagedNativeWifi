@@ -2,6 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <Version>1.8.0</Version>
+    <Authors>emoacht</Authors>
+    <Copyright>Copyright © 2015 emoacht</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/emoacht/ManagedNativeWifi</PackageProjectUrl>
   </PropertyGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
