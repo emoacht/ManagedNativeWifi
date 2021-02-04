@@ -4,8 +4,10 @@ A managed implementation of [Native Wifi][1] API
 
 ## Requirements
 
- * Windows 7 or newer
- * .NET Framework 4.5.2
+This library works on Windows and compatible with:
+
+.NET 5.0|.NET Standard 2.0 (including .NET Framework 4.6.1)|.NET Framework 4.5.2
+-|-|-
 
 ## Methods
 
@@ -149,6 +151,10 @@ public static async Task<bool> TurnOnAsync()
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
 ## History
+
+Ver 2.0 2021-2-4
+
+- __Add:__ Support for .NET 5.0 and .NET Standard 2.0
 
 Ver 1.8 2020-12-20
 
