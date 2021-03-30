@@ -856,7 +856,8 @@ namespace ManagedNativeWifi
 			var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
 
 			if ((capability.interfaceType == WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
-				(capability.dwNumberOfSupportedPhys != states.Count()))
+				(capability.dwNumberOfSupportedPhys != states.Count()) ||
+				(capability.dot11PhyTypes?.Any() is not true)) // This value may be null.
 				return Enumerable.Empty<RadioSet>();
 
 			return Enumerable.Zip(
