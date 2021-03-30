@@ -152,6 +152,11 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.1 2021-3-30
+
+- __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information
+
+
 Ver 2.0 2021-2-4
 
 - __Add:__ Support for .NET 5.0 and .NET Standard 2.0
