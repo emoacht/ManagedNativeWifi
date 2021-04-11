@@ -1,6 +1,6 @@
 ﻿# Managed Native Wifi
 
-A managed implementation of [Native Wifi][1] API
+ManagedNativeWifi is a managed implementation of [Native Wifi][1] API. It provides functionality to manage wireless networks, interfaces and profiles.
 
 ## Requirements
 
@@ -8,6 +8,10 @@ This library works on Windows and compatible with:
 
 .NET 5.0|.NET Standard 2.0 (including .NET Framework 4.6.1)|.NET Framework 4.5.2
 -|-|-
+
+## Download
+
+NuGet: [ManagedNativeWifi][2]
 
 ## Methods
 
@@ -190,4 +194,5 @@ Ver 1.0 2015-1-30
 
  - MIT License
 
-[1]: https://docs.microsoft.com/en-us/windows/win32/nativewifi/portal
+ [1]: https://docs.microsoft.com/en-us/windows/win32/nativewifi/portal
+ [2]: https://www.nuget.org/packages/ManagedNativeWifi
