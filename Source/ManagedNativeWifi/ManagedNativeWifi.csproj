@@ -4,10 +4,15 @@
     <OutputType>Library</OutputType>
     <Version>2.1.0</Version>
     <Authors>emoacht</Authors>
+    <Description>ManagedNativeWifi is a managed implementation of Native Wifi API. It provides functionality to manage wireless networks, interfaces and profiles.</Description>
     <Copyright>Copyright © 2015 emoacht</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/emoacht/ManagedNativeWifi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/emoacht/ManagedNativeWifi</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>WiFi, Wi-Fi, Wireless-LAN, WLAN</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
