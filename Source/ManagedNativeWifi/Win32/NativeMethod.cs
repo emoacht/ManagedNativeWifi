@@ -116,6 +116,15 @@ namespace ManagedNativeWifi.Win32
 			out uint pdwReasonCode); // WLAN_REASON_CODE
 
 		[DllImport("Wlanapi.dll")]
+		public static extern uint WlanSetProfileEapXmlUserData(
+			SafeClientHandle hClientHandle,
+			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,
+			[MarshalAs(UnmanagedType.LPWStr)] string strProfileName,
+			uint dwFlags,
+			[MarshalAs(UnmanagedType.LPWStr)] string strEapXmlUserData,
+			IntPtr pReserved);
+
+		[DllImport("Wlanapi.dll")]
 		public static extern uint WlanSetProfilePosition(
 			SafeClientHandle hClientHandle,
 			[MarshalAs(UnmanagedType.LPStruct), In] Guid pInterfaceGuid,

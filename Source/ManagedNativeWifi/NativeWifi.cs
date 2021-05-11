@@ -520,6 +520,39 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
+		/// Sets the Extensible Authentication Protocol (EAP) user credentials as specified by an XML string.
+		/// </summary>
+		/// <param name="interfaceId">Interface ID</param>
+		/// <param name="profileName">Profile name</param>
+		/// <param name="eapXmlType">EAP XML type</param>
+		/// <param name="userDataXml">User data XML</param>
+		/// <returns>True if successfully set. False if failed.</returns>
+		/// <remarks>
+		/// In some cases, this function may return true but fail.
+		/// This was observed when setting EapXmlType.AllUsers, but the certificate
+		/// referenced in the EAP XML was installed in the users' store.
+		/// </remarks>
+		public static bool SetProfileEapXmlUserData(Guid interfaceId, string profileName, EapXmlType eapXmlType, string userDataXml)
+		{
+			return SetProfileEapXmlUserData(null, interfaceId, profileName, eapXmlType, userDataXml);
+		}
+
+		internal static bool SetProfileEapXmlUserData(Base.WlanClient client, Guid interfaceId, string profileName, EapXmlType eapXmlType, string userDataXml)
+		{
+			if (interfaceId == Guid.Empty)
+				throw new ArgumentException(nameof(interfaceId));
+
+			if (string.IsNullOrWhiteSpace(userDataXml))
+				throw new ArgumentNullException(nameof(userDataXml));
+
+			using var container = new DisposableContainer<Base.WlanClient>(client);
+
+			var eapXmlTypeFlag = EapXmlTypeConverter.ConvertBack(eapXmlType);
+
+			return Base.SetProfileEapXmlUserData(container.Content.Handle, interfaceId, profileName, eapXmlTypeFlag, userDataXml);
+		}
+
+		/// <summary>
 		/// Sets the position of a specified wireless profile in preference order.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
