@@ -57,6 +57,11 @@ namespace ManagedNativeWifi
 		public int Channel { get; }
 
 		/// <summary>
+		/// 802.11 PHY and media type
+		/// </summary>
+		public PhyType Type { get; }
+
+		/// <summary>
 		/// Constructor
 		/// </summary>
 		public BssNetworkPack(
@@ -68,7 +73,8 @@ namespace ManagedNativeWifi
 			int linkQuality,
 			int frequency,
 			float band,
-			int channel)
+			int channel,
+			PhyType type)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
@@ -79,6 +85,7 @@ namespace ManagedNativeWifi
 			this.Frequency = frequency;
 			this.Band = band;
 			this.Channel = channel;
+			this.Type = type;
 		}
 	}
 }

@@ -370,7 +370,8 @@ namespace ManagedNativeWifi
 				linkQuality: (int)bssEntry.uLinkQuality,
 				frequency: (int)bssEntry.ulChCenterFrequency,
 				band: band,
-				channel: channel);
+				channel: channel,
+				type: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType));
 			return true;
 		}
 
