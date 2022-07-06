@@ -194,6 +194,12 @@ namespace ManagedNativeWifi
 			NativeWifi.SetProfilePosition(_client, interfaceId, profileName, position);
 
 		/// <summary>
+		/// Sets (add or overwirte) the user data (credentials) for a specified wireless profile.
+		/// </summary>
+		public bool SetProfileEapXmlUserData(Guid interfaceId, string profileName, EapXmlType eapXmlType, string userDataXml) =>
+			NativeWifi.SetProfileEapXmlUserData(_client, interfaceId, profileName, eapXmlType, userDataXml);
+
+		/// <summary>
 		/// Renames a specified wireless profile.
 		/// </summary>
 		public bool RenameProfile(Guid interfaceId, string oldProfileName, string newProfileName) =>
