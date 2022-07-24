@@ -1,21 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24627.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagedNativeWifi", "ManagedNativeWifi\ManagedNativeWifi.csproj", "{EBFF4686-23E6-42BF-97CA-CF82641BCFA7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagedNativeWifi.Demo", "ManagedNativeWifi.Demo\ManagedNativeWifi.Demo.csproj", "{70105532-164F-4416-9EF1-7FE3F51F68DF}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Simple", "ManagedNativeWifi.Simple\ManagedNativeWifi.Simple.csproj", "{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi", "ManagedNativeWifi\ManagedNativeWifi.csproj", "{EBFF4686-23E6-42BF-97CA-CF82641BCFA7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Demo", "ManagedNativeWifi.Demo\ManagedNativeWifi.Demo.csproj", "{70105532-164F-4416-9EF1-7FE3F51F68DF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7} = {EBFF4686-23E6-42BF-97CA-CF82641BCFA7}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Test", "ManagedNativeWifi.Test\ManagedNativeWifi.Test.csproj", "{A510696E-11DD-4121-AE47-F84E22C41CE8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7} = {EBFF4686-23E6-42BF-97CA-CF82641BCFA7}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -35,6 +25,10 @@ Global
 		{70105532-164F-4416-9EF1-7FE3F51F68DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70105532-164F-4416-9EF1-7FE3F51F68DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70105532-164F-4416-9EF1-7FE3F51F68DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A510696E-11DD-4121-AE47-F84E22C41CE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A510696E-11DD-4121-AE47-F84E22C41CE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A510696E-11DD-4121-AE47-F84E22C41CE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -42,5 +36,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21DA9C2A-FD6F-47F7-B4C5-910BA80EC29F}
 	EndGlobalSection
 EndGlobal

@@ -59,7 +59,7 @@ namespace ManagedNativeWifi.Demo
 			{
 				Trace.WriteLine($"{{Interface: {network.Interface.Description} ({network.Interface.Id})");
 				Trace.WriteLine($" SSID: {network.Ssid}");
-				Trace.WriteLine($" BSS: {network.BssType}");
+				Trace.WriteLine($" BssType: {network.BssType}");
 				Trace.WriteLine($" SignalQuality: {network.SignalQuality}");
 				Trace.WriteLine($" Security: {network.IsSecurityEnabled}}}");
 			}
@@ -81,13 +81,14 @@ namespace ManagedNativeWifi.Demo
 			{
 				Trace.WriteLine($"{{Interface: {network.Interface.Description} ({network.Interface.Id})");
 				Trace.WriteLine($" SSID: {network.Ssid}");
-				Trace.WriteLine($" BSS: {network.BssType}");
+				Trace.WriteLine($" BssType: {network.BssType}");
 				Trace.WriteLine($" BSSID: {network.Bssid}");
 				Trace.WriteLine($" SignalStrength: {network.SignalStrength}");
 				Trace.WriteLine($" LinkQuality: {network.LinkQuality}");
 				Trace.WriteLine($" Frequency: {network.Frequency} KHz");
 				Trace.WriteLine($" Band: {network.Band} GHz");
-				Trace.WriteLine($" Channel: {network.Channel}}}");
+				Trace.WriteLine($" Channel: {network.Channel}");
+				Trace.WriteLine($" PhyType: {network.PhyType}}}");
 			}
 
 			Trace.WriteLine("===== Network Profile Names =====");
@@ -102,7 +103,7 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($"{{Name: {profile.Name}");
 				Trace.WriteLine($" Interface: {profile.Interface.Description} ({profile.Interface.Id})");
 				Trace.WriteLine($" SSID: {profile.Document.Ssid}");
-				Trace.WriteLine($" BSS: {profile.Document.BssType}");
+				Trace.WriteLine($" BssType: {profile.Document.BssType}");
 				Trace.WriteLine($" Authentication: {profile.Document.Authentication}");
 				Trace.WriteLine($" Encryption: {profile.Document.Encryption}");
 				Trace.WriteLine($" AutoConnect: {profile.Document.IsAutoConnectEnabled}");

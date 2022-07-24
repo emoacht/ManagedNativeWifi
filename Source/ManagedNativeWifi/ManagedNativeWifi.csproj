@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net5.0;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <Version>2.1.0</Version>
+    <Version>2.2.0</Version>
     <Authors>emoacht</Authors>
     <Description>ManagedNativeWifi is a managed implementation of Native Wifi API. It provides functionality to manage wireless networks, interfaces and profiles.</Description>
     <Copyright>Copyright © 2015 emoacht</Copyright>
@@ -15,10 +15,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>ManagedNativeWifi.Test</_Parameter1>
-      <!-- We use the value of AssemblyName to declare the value of the attribute -->
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="ManagedNativeWifi.Test" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile>bin\Debug\ManagedNativeWifi.xml</DocumentationFile>
