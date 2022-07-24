@@ -371,7 +371,7 @@ namespace ManagedNativeWifi
 				frequency: (int)bssEntry.ulChCenterFrequency,
 				band: band,
 				channel: channel,
-				type: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType));
+				phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType));
 			return true;
 		}
 

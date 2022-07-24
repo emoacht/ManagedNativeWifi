@@ -59,7 +59,7 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// 802.11 PHY and media type
 		/// </summary>
-		public PhyType Type { get; }
+		public PhyType PhyType { get; }
 
 		/// <summary>
 		/// Constructor
@@ -74,7 +74,7 @@ namespace ManagedNativeWifi
 			int frequency,
 			float band,
 			int channel,
-			PhyType type)
+			PhyType phyType)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
@@ -85,7 +85,7 @@ namespace ManagedNativeWifi
 			this.Frequency = frequency;
 			this.Band = band;
 			this.Channel = channel;
-			this.Type = type;
+			this.PhyType = phyType;
 		}
 	}
 }
