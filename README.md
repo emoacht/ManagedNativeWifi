@@ -6,8 +6,8 @@ ManagedNativeWifi is a managed implementation of [Native Wifi][1] API. It provid
 
 This library works on Windows and compatible with:
 
-.NET 5.0|.NET Standard 2.0 (including .NET Framework 4.6.1)|.NET Framework 4.5.2
--|-|-
+.NET 5.0|.NET Standard 2.0 (including .NET Framework 4.6.1)
+-|-
 
 ## Download
 
@@ -32,7 +32,7 @@ Available methods including asynchronous ones based on TAP.
 | EnumerateProfileRadios          | Enumerates wireless profile and related radio information in preference order.                     |
 | SetProfile                      | Sets (add or overwrite) the content of a specified wireless profile.                               |
 | SetProfilePosition              | Sets the position of a specified wireless profile in preference order.                             |
-| SetProfileEapXmlUserData        | Sets (add or overwirte) the user data (credentials) for a specified wireless profile.              |
+| SetProfileEapXmlUserData        | Sets (add or overwirte) the EAP user credentials for a specified wireless profile.                 |
 | RenameProfile                   | Renames a specified wireless profile.                                                              |
 | DeleteProfile                   | Deletes a specified wireless profile.                                                              |
 | ConnectNetwork                  | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |
@@ -157,10 +157,15 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.2 2022-7-25
+
+- __Add:__ Method to set the EAP user credentials
+- __Add:__ Phy type of BSS network
+- __Breaking change:__ .NET Framework 4.6 or older is no longer supported
+
 Ver 2.1 2021-3-30
 
 - __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information
-
 
 Ver 2.0 2021-2-4
 
