@@ -32,6 +32,7 @@ Available methods including asynchronous ones based on TAP.
 | EnumerateProfileRadios          | Enumerates wireless profile and related radio information in preference order.                     |
 | SetProfile                      | Sets (add or overwrite) the content of a specified wireless profile.                               |
 | SetProfilePosition              | Sets the position of a specified wireless profile in preference order.                             |
+| SetProfileEapXmlUserData        | Sets (add or overwirte) the user data (credentials) for a specified wireless profile.              |
 | RenameProfile                   | Renames a specified wireless profile.                                                              |
 | DeleteProfile                   | Deletes a specified wireless profile.                                                              |
 | ConnectNetwork                  | Attempts to connect to the wireless LAN associated to a specified wireless profile.                |

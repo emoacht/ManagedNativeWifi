@@ -521,7 +521,7 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
-		/// Sets the Extensible Authentication Protocol (EAP) user credentials as specified by an XML string.
+		/// Sets (add or overwirte) the user data (credentials) for a specified wireless profile.
 		/// </summary>
 		/// <param name="interfaceId">Interface ID</param>
 		/// <param name="profileName">Profile name</param>
