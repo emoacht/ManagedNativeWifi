@@ -10,9 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Simple", "ManagedNativeWifi.Simple\ManagedNativeWifi.Simple.csproj", "{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Test", "ManagedNativeWifi.Test\ManagedNativeWifi.Test.csproj", "{A510696E-11DD-4121-AE47-F84E22C41CE8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EBFF4686-23E6-42BF-97CA-CF82641BCFA7} = {EBFF4686-23E6-42BF-97CA-CF82641BCFA7}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
