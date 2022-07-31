@@ -143,4 +143,31 @@ namespace ManagedNativeWifi
 			};
 		}
 	}
+
+	/// <summary>
+	/// PHY and media type extension methods
+	/// </summary>
+	public static class PhyTypeExtension
+	{
+		/// <summary>
+		/// Converts the value of this instance to its equivalent protocol name.
+		/// </summary>
+		/// <param name="phyType">PhyType</param>
+		/// <returns>Protocol name</returns>
+		public static string ToProtocolName(this PhyType phyType)
+		{
+			return phyType switch
+			{
+				PhyType.Ofdm => "a",
+				PhyType.HrDsss => "b",
+				PhyType.Erp => "g",
+				PhyType.Ht => "n",
+				PhyType.Vht => "ac",
+				PhyType.Dmg => "ad",
+				PhyType.He => "ax",
+				PhyType.Eht => "be",
+				_ => null
+			};
+		}
+	}
 }
