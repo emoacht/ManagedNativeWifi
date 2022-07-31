@@ -157,10 +157,15 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.3 2022-8-1
+
+- __Add:__ PHY types (802.11ad, ax, be)
+- __Add:__ PHY type in profile and related radio information
+
 Ver 2.2 2022-7-25
 
 - __Add:__ Method to set the EAP user credentials
-- __Add:__ Phy type of BSS network
+- __Add:__ PHY type in BSS network
 - __Breaking change:__ .NET Framework 4.6 or older is no longer supported
 
 Ver 2.1 2021-3-30
