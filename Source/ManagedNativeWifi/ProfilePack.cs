@@ -112,6 +112,11 @@ namespace ManagedNativeWifi
 			&& string.Equals(this.Name, Interface.ProfileName, StringComparison.Ordinal);
 
 		/// <summary>
+		/// PHY type of associated wireless LAN
+		/// </summary>
+		public PhyType PhyType { get; }
+
+		/// <summary>
 		/// Signal quality of associated wireless LAN
 		/// </summary>
 		public int SignalQuality { get; }
@@ -145,7 +150,8 @@ namespace ManagedNativeWifi
 			ProfileType profileType,
 			string profileXml,
 			int position,
-			int signalQuality,
+			PhyType phyType,
+			int signalQuality,			
 			int linkQuality,
 			int frequency,
 			float band,
@@ -156,7 +162,8 @@ namespace ManagedNativeWifi
 				profileXml: profileXml,
 				position: position)
 		{
-			this.SignalQuality = signalQuality;
+			this.PhyType = phyType;
+			this.SignalQuality = signalQuality;			
 			this.LinkQuality = linkQuality;
 			this.Frequency = frequency;
 			this.Band = band;

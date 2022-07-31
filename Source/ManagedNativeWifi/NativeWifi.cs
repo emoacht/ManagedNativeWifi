@@ -366,12 +366,12 @@ namespace ManagedNativeWifi
 				ssid: new NetworkIdentifier(bssEntry.dot11Ssid),
 				bssType: bssType,
 				bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
+				phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType),
 				signalStrength: bssEntry.lRssi,
 				linkQuality: (int)bssEntry.uLinkQuality,
 				frequency: (int)bssEntry.ulChCenterFrequency,
 				band: band,
-				channel: channel,
-				phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType));
+				channel: channel);
 			return true;
 		}
 
@@ -473,6 +473,7 @@ namespace ManagedNativeWifi
 						profileType: profileType,
 						profileXml: profileXml,
 						position: position++,
+						phyType: (availableNetworkGroup?.PhyType ?? default),
 						signalQuality: (availableNetworkGroup?.SignalQuality ?? 0),
 						linkQuality: (availableNetworkGroup?.LinkQuality ?? 0),
 						frequency: (availableNetworkGroup?.Frequency ?? 0),

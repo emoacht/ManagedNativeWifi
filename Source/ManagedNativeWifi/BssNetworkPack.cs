@@ -32,6 +32,11 @@ namespace ManagedNativeWifi
 		public NetworkIdentifier Bssid { get; }
 
 		/// <summary>
+		/// PHY type
+		/// </summary>
+		public PhyType PhyType { get; }
+
+		/// <summary>
 		/// Signal strength (RSSI)
 		/// </summary>
 		public int SignalStrength { get; }
@@ -57,11 +62,6 @@ namespace ManagedNativeWifi
 		public int Channel { get; }
 
 		/// <summary>
-		/// 802.11 PHY and media type
-		/// </summary>
-		public PhyType PhyType { get; }
-
-		/// <summary>
 		/// Constructor
 		/// </summary>
 		public BssNetworkPack(
@@ -69,23 +69,23 @@ namespace ManagedNativeWifi
 			NetworkIdentifier ssid,
 			BssType bssType,
 			NetworkIdentifier bssid,
+			PhyType phyType,
 			int signalStrength,
 			int linkQuality,
 			int frequency,
 			float band,
-			int channel,
-			PhyType phyType)
+			int channel)
 		{
 			this.Interface = interfaceInfo;
 			this.Ssid = ssid;
 			this.BssType = bssType;
 			this.Bssid = bssid;
+			this.PhyType = phyType;
 			this.SignalStrength = signalStrength;
 			this.LinkQuality = linkQuality;
 			this.Frequency = frequency;
 			this.Band = band;
 			this.Channel = channel;
-			this.PhyType = phyType;
 		}
 	}
 }
