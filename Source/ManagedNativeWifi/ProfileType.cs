@@ -42,7 +42,6 @@ namespace ManagedNativeWifi
 			return false;
 		}
 
-		public static uint ConvertBack(ProfileType source) =>
-			(uint)source;
+		public static uint ConvertBack(ProfileType source) => (uint)source;
 	}
 }

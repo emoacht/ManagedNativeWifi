@@ -27,7 +27,7 @@ namespace ManagedNativeWifi
 		public RadioInfo(Guid id, IEnumerable<RadioSet> radioSets)
 		{
 			this.Id = id;
-			this.RadioSets = Array.AsReadOnly(radioSets?.ToArray() ?? new RadioSet[0]);
+			this.RadioSets = Array.AsReadOnly(radioSets?.ToArray() ?? Array.Empty<RadioSet>());
 		}
 	}
 }

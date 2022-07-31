@@ -60,14 +60,12 @@ namespace ManagedNativeWifi
 
 		public static DOT11_BSS_TYPE ConvertBack(BssType source)
 		{
-			switch (source)
+			return source switch
 			{
-				case BssType.Infrastructure:
-					return DOT11_BSS_TYPE.dot11_BSS_type_infrastructure;
-				case BssType.Independent:
-					return DOT11_BSS_TYPE.dot11_BSS_type_independent;
-			}
-			throw new ArgumentException(nameof(source));
+				BssType.Infrastructure => DOT11_BSS_TYPE.dot11_BSS_type_infrastructure,
+				BssType.Independent => DOT11_BSS_TYPE.dot11_BSS_type_independent,
+				_ => DOT11_BSS_TYPE.dot11_BSS_type_any
+			};
 		}
 
 		/// <summary>

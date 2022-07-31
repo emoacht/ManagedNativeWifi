@@ -37,7 +37,6 @@ namespace ManagedNativeWifi
 			return false;
 		}
 
-		public static uint ConvertBack(EapXmlType source) =>
-			(uint)source;
+		public static uint ConvertBack(EapXmlType source) => (uint)source;
 	}
 }
