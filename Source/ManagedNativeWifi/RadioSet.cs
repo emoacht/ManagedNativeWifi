@@ -12,7 +12,7 @@ namespace ManagedNativeWifi
 	public class RadioSet
 	{
 		/// <summary>
-		/// 802.11 PHY and media type
+		/// PHY type
 		/// </summary>
 		public PhyType Type { get; }
 
