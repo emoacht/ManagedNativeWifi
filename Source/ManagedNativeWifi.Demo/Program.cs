@@ -83,12 +83,12 @@ namespace ManagedNativeWifi.Demo
 				Trace.WriteLine($" SSID: {network.Ssid}");
 				Trace.WriteLine($" BssType: {network.BssType}");
 				Trace.WriteLine($" BSSID: {network.Bssid}");
+				Trace.WriteLine($" PhyType: {network.PhyType} 802.11{network.PhyType.ToProtocolName()}");
 				Trace.WriteLine($" SignalStrength: {network.SignalStrength}");
 				Trace.WriteLine($" LinkQuality: {network.LinkQuality}");
 				Trace.WriteLine($" Frequency: {network.Frequency} KHz");
 				Trace.WriteLine($" Band: {network.Band} GHz");
-				Trace.WriteLine($" Channel: {network.Channel}");
-				Trace.WriteLine($" PhyType: {network.PhyType}}}");
+				Trace.WriteLine($" Channel: {network.Channel}}}");
 			}
 
 			Trace.WriteLine("===== Network Profile Names =====");
