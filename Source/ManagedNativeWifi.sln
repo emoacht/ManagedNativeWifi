@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagedNativeWifi.Demo", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Simple", "ManagedNativeWifi.Simple\ManagedNativeWifi.Simple.csproj", "{CCE510F7-1DA6-40F2-8921-B86ED41BB85E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagedNativeWifi.Test", "ManagedNativeWifi.Test\ManagedNativeWifi.Test.csproj", "{A510696E-11DD-4121-AE47-F84E22C41CE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedNativeWifi.Test", "ManagedNativeWifi.Test\ManagedNativeWifi.Test.csproj", "{A510696E-11DD-4121-AE47-F84E22C41CE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
