@@ -5,10 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using ManagedNativeWifi.Args;
 using static ManagedNativeWifi.Win32.NativeMethod;
 
 using Base = ManagedNativeWifi.Win32.BaseMethod;
+
+/*
+ * 2022/10/04 : Changes by C. Pohlmann to included more meaningful information in event.
+ */
 
 namespace ManagedNativeWifi
 {
@@ -36,50 +40,85 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Occurs when availability of a wireless interface is changed.
 		/// </summary>
-		public event EventHandler AvailabilityChanged;
+		public event EventHandler<AvailabilityArgs> AvailabilityChanged; // 2022/10/04
 
 		/// <summary>
 		/// Occurs when a wireless interface is added/removed/enabled/disabled
 		/// </summary>
-		public event EventHandler InterfaceChanged;
+		public event EventHandler<InterfaceArgs> InterfaceChanged; // 2022/10/04
 
 		/// <summary>
 		/// Occurs when connection of a wireless interface is changed.
 		/// </summary>
-		public event EventHandler ConnectionChanged;
+		public event EventHandler<ConnectionArgs> ConnectionChanged; // 2022/10/04
 
 		/// <summary>
 		/// Occurs when a wireless profile or wireless profile name is changed.
 		/// </summary>
-		public event EventHandler ProfileChanged;
+		public event EventHandler<ProfileArgs> ProfileChanged; // 2022/10/04
 
 		private void OnNotificationReceived(object sender, WLAN_NOTIFICATION_DATA e)
 		{
 			Debug.WriteLine($"NotificationReceived: {(WLAN_NOTIFICATION_ACM)e.NotificationCode}");
+
+			// 2022/10/04 >>
+			var i = NativeWifi.EnumerateInterfaces().Where(a => a.Id.Equals(e.InterfaceGuid)).FirstOrDefault();
+			// 2022/10/04 <<
+
+			//https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_notification_acm-r1
 
 			switch ((WLAN_NOTIFICATION_ACM)e.NotificationCode)
 			{
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_list_refresh:
 					NetworkRefreshed?.Invoke(this, EventArgs.Empty);
 					break;
+				// 2022/10/04 >>
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_available:
+					AvailabilityChanged?.Invoke(this, new AvailabilityArgs() { State = EnumAvailability.Available, Interface = i });
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_not_available:
+					AvailabilityChanged?.Invoke(this, new AvailabilityArgs() { State = EnumAvailability.Unavailable , Interface = i});
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_start:
+					AvailabilityChanged?.Invoke(this, new AvailabilityArgs() { State = EnumAvailability.Start , Interface = i});
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_end:
-					AvailabilityChanged?.Invoke(this, EventArgs.Empty);
+					AvailabilityChanged?.Invoke(this, new AvailabilityArgs() { State = EnumAvailability.End , Interface = i});
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_arrival:
+					InterfaceChanged?.Invoke(this, new InterfaceArgs() { State = EnumInterfaceState.Arrival, Interface = i});
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_removal:
-					InterfaceChanged?.Invoke(this, EventArgs.Empty);
+					InterfaceChanged?.Invoke(this, new InterfaceArgs() { State = EnumInterfaceState.Removal, Interface = i });
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
+					ConnectionChanged?.Invoke(this, new ConnectionArgs() { State = EnumConnectionState.Start, Interface = i });
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+					ConnectionChanged?.Invoke(this, new ConnectionArgs() { State = EnumConnectionState.Complete, Interface = i });
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+					ConnectionChanged?.Invoke(this, new ConnectionArgs() { State = EnumConnectionState.Failed, Interface = i });
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
+					ConnectionChanged?.Invoke(this, new ConnectionArgs() { State = EnumConnectionState.Disconnecting, Interface = i });
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-					ConnectionChanged?.Invoke(this, EventArgs.Empty);
+					ConnectionChanged?.Invoke(this, new ConnectionArgs() { State = EnumConnectionState.Disconnected, Interface = i});
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_change:
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_name_change:
-					ProfileChanged?.Invoke(this, EventArgs.Empty);
+					ProfileChanged?.Invoke(this, new ProfileArgs() { State = EnumProfileState.Change, Interface = i });
 					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_name_change:
+					ProfileChanged?.Invoke(this, new ProfileArgs() { State = EnumProfileState.NameChange, Interface = i});
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_unblocked:
+					ProfileChanged?.Invoke(this, new ProfileArgs() { State = EnumProfileState.Unblocked, Interface = i });
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_blocked:
+					ProfileChanged?.Invoke(this, new ProfileArgs() { State = EnumProfileState.Blocked, Interface = i });
+					break;
+					// 2022/10/04 <<
 			}
 		}
 
