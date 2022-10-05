@@ -36,26 +36,28 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// Occurs when availability of a wireless interface is changed.
 		/// </summary>
-		public event EventHandler AvailabilityChanged;
+		public event EventHandler<AvailabilityChangedEventArgs> AvailabilityChanged;
 
 		/// <summary>
 		/// Occurs when a wireless interface is added/removed/enabled/disabled
 		/// </summary>
-		public event EventHandler InterfaceChanged;
+		public event EventHandler<InterfaceChangedEventArgs> InterfaceChanged;
 
 		/// <summary>
 		/// Occurs when connection of a wireless interface is changed.
 		/// </summary>
-		public event EventHandler ConnectionChanged;
+		public event EventHandler<ConnectionChangedEventArgs> ConnectionChanged;
 
 		/// <summary>
 		/// Occurs when a wireless profile or wireless profile name is changed.
 		/// </summary>
-		public event EventHandler ProfileChanged;
+		public event EventHandler<ProfileChangedEventArgs> ProfileChanged;
 
 		private void OnNotificationReceived(object sender, WLAN_NOTIFICATION_DATA e)
 		{
 			Debug.WriteLine($"NotificationReceived: {(WLAN_NOTIFICATION_ACM)e.NotificationCode}");
+
+			var i = NativeWifi.EnumerateInterfaces().Where(a => a.Id.Equals(e.InterfaceGuid)).FirstOrDefault();
 
 			switch ((WLAN_NOTIFICATION_ACM)e.NotificationCode)
 			{
@@ -63,22 +65,49 @@ namespace ManagedNativeWifi
 					NetworkRefreshed?.Invoke(this, EventArgs.Empty);
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_available:
+					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(i, Availability.Available));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_not_available:
+					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(i, Availability.Unavailable));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_start:
+					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(i, Availability.Start));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_end:
-					AvailabilityChanged?.Invoke(this, EventArgs.Empty);
+					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(i, Availability.End));
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_arrival:
+					InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(i, InterfaceChangedState.Arrival));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_removal:
-					InterfaceChanged?.Invoke(this, EventArgs.Empty);
+					InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(i, InterfaceChangedState.Removal));
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
+					ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(i, ConnectionState.Start));
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+					ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(i, ConnectionState.Complete));
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+					ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(i, ConnectionState.Failed));
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
+					ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(i, ConnectionState.Disconnecting));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-					ConnectionChanged?.Invoke(this, EventArgs.Empty);
+					ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(i, ConnectionState.Disconnected));
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_change:
+					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(i, ProfileState.Change));
+					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_name_change:
-					ProfileChanged?.Invoke(this, EventArgs.Empty);
+					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(i, ProfileState.NameChange));
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_unblocked:
+					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(i, ProfileState.Unblocked));
+					break;
+				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_blocked:
+					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(i, ProfileState.Blocked));
 					break;
 			}
 		}
