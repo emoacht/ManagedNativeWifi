@@ -3,48 +3,52 @@
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Availability enumeration values.
-/// </summary>
-public enum Availability
-{
-	Start,
-	End,
-	/// <summary>
-	/// Network is available.
-	/// </summary>
-	Available,
-	/// <summary>
-	/// Network is not available.
-	/// </summary>
-	Unavailable
-}
-
-/// <summary>
-/// Represents event arguments for the AvailabilityChanged event.
+/// Provides data for the AvailabilityChanged event.
 /// </summary>
 public class AvailabilityChangedEventArgs : EventArgs
 {
-	private readonly InterfaceInfo _interfaceInfo;
-	private readonly Availability _availability;
+	/// <summary>
+	/// Associated wireless interface ID
+	/// </summary>
+	public Guid InterfaceId { get; }
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="T:AvailabilityChangedEventArgs" /> class.
+	/// Availability changed state
 	/// </summary>
-	/// <param name="interfaceInfo">An instance of the <see cref="T:InterfaceInfo" /> class</param>
-	/// <param name="availability">One of the <see cref="T:Availability" /> values.</param>
-	public AvailabilityChangedEventArgs(InterfaceInfo interfaceInfo, Availability availability)
+	public AvailabilityChangedState ChangedState { get; }
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:AvailabilityChangedEventArgs"/> class.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="changedState">Availability changed state</param>
+	public AvailabilityChangedEventArgs(Guid interfaceId, AvailabilityChangedState changedState)
 	{
-		_interfaceInfo = interfaceInfo;
-		_availability = availability;
+		this.InterfaceId = interfaceId;
+		this.ChangedState = changedState;
 	}
+}
+
+/// <summary>
+/// Availability changed state
+/// </summary>
+public enum AvailabilityChangedState
+{
+	/// <summary>
+	/// Unknown (invalid value)
+	/// </summary>
+	Unknown = 0,
 
 	/// <summary>
-	/// Returns a value from the Availability enumerator.
+	/// All of the following conditions occur:
+	/// A connectable wireless LAN is found after a scan.
+	/// The wireless interface is in the disconnected state.
+	/// There is no compatible auto-connect profile that can be used to connect.
 	/// </summary>
-	public Availability State => _availability;
+	Available,
 
 	/// <summary>
-	/// Returns an InterfaceInfo object.
+	/// No connectable wireless LAN is found after a scan.
 	/// </summary>
-	public InterfaceInfo Interface => _interfaceInfo;
+	Unavailable
 }

@@ -3,46 +3,49 @@
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Interface state enumeration values.
+/// Provides data for the InterfaceChanged event.
+/// </summary>
+public class InterfaceChangedEventArgs : EventArgs
+{
+	/// <summary>
+	/// Associated wireless interface ID
+	/// </summary>
+	public Guid InterfaceId { get; }
+
+	/// <summary>
+	/// Interface changed state
+	/// </summary>
+	public InterfaceChangedState ChangedState { get; }
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:InterfaceChangedEventArgs"/> class.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="changedState">Interface changed state</param>
+	public InterfaceChangedEventArgs(Guid interfaceId, InterfaceChangedState changedState)
+	{
+		this.InterfaceId = interfaceId;
+		this.ChangedState = changedState;
+	}
+}
+
+/// <summary>
+/// Wireless interface changed state
 /// </summary>
 public enum InterfaceChangedState
 {
 	/// <summary>
-	/// An interface has arrived..
+	/// Unknown (invalid value)
 	/// </summary>
-	Arrival,
-	/// <summary>
-	/// An interface has been removed.
-	/// </summary>
-	Removal
-}
-
-/// <summary>
-/// Represents event arguments for the InterfaceChanged event.
-/// </summary>
-public class InterfaceChangedEventArgs : EventArgs
-{
-	private readonly InterfaceInfo _interfaceInfo;
-	private readonly InterfaceChangedState _interfaceChangedState;
+	Unknown = 0,
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="T:InterfaceChangedEventArgs" /> class.
+	/// A wireless interface has been added to or enabled.
 	/// </summary>
-	/// <param name="interfaceInfo">An instance of the <see cref="T:InterfaceInfo" /> class</param>
-	/// <param name="interfaceChangedState">One of the <see cref="T:InterfaceChangedState" /> values.</param>
-	public InterfaceChangedEventArgs(InterfaceInfo interfaceInfo, InterfaceChangedState interfaceChangedState)
-	{
-		_interfaceInfo = interfaceInfo;
-		_interfaceChangedState = interfaceChangedState;
-	}
+	Arrived,
 
 	/// <summary>
-	/// Returns a value from the <see cref="T:InterfaceChangedState" /> enumerator.
+	/// A wireless interface has been removed or disabled.
 	/// </summary>
-	public InterfaceChangedState State => _interfaceChangedState;
-
-	/// <summary>
-	/// Returns an <see cref="T:InterfaceInfo" /> object.
-	/// </summary>
-	public InterfaceInfo Interface => _interfaceInfo;
+	Removed
 }
