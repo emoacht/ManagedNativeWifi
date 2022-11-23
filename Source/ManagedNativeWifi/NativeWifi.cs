@@ -742,7 +742,8 @@ namespace ManagedNativeWifi
 				switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 				{
 					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-						Task.Run(() => tcs.TrySetResult(true));
+						bool isSuccess = (connectionNotificationData.wlanReasonCode == WLAN_REASON_CODE_SUCCESS);
+						Task.Run(() => tcs.TrySetResult(isSuccess));
 						break;
 					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
 						// This notification will not always mean that a connection has failed.

@@ -730,33 +730,174 @@ namespace ManagedNativeWifi.Win32
 			wlan_intf_opcode_ihv_end = 0x3fffffff
 		}
 
+		/// <summary>
+		/// WLAN_NOTIFICATION_DATA structure:
+		/// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms706902(v=vs.85)
+		/// </summary>
 		public enum WLAN_NOTIFICATION_ACM : uint
 		{
 			wlan_notification_acm_start = 0,
+
+			/// <summary>
+			/// <para>Autoconfiguration is enabled.</para>
+			/// </summary>
 			wlan_notification_acm_autoconf_enabled,
+
+			/// <summary>
+			/// <para>Autoconfiguration is disabled.</para>
+			/// </summary>
 			wlan_notification_acm_autoconf_disabled,
+
+			/// <summary>
+			/// <para>Background scans are enabled.</para>
+			/// </summary>
 			wlan_notification_acm_background_scan_enabled,
+
+			/// <summary>
+			/// <para>Background scans are disabled.</para>
+			/// </summary>
 			wlan_notification_acm_background_scan_disabled,
+
+			/// <summary>
+			/// <para>The BSS type for an interface has changed.</para>
+			/// <para>The pData member points to a DOT11_BSS_TYPE enumeration value that identifies
+			/// the new basic service set (BSS) type.</para>
+			/// </summary>
 			wlan_notification_acm_bss_type_change,
+
+			/// <summary>
+			/// <para>The power setting for an interface has changed.</para>
+			/// <para>The pData member points to a WLAN_POWER_SETTING enumeration value that
+			/// identifies the new power setting of an interface.</para>
+			/// </summary>
 			wlan_notification_acm_power_setting_change,
+
+			/// <summary>
+			/// <para>A scan for networks has completed.</para>
+			/// </summary>
 			wlan_notification_acm_scan_complete,
+
+			/// <summary>
+			/// <para>A scan for connectable networks failed.</para>
+			/// <para>The pData member points to a WLAN_REASON_CODE data type value that identifies
+			/// the reason the WLAN operation failed.</para>
+			/// </summary>
 			wlan_notification_acm_scan_fail,
+
+			/// <summary>
+			/// <para>A connection has started to a network in range.</para>
+			/// <para>The pData member points to a WLAN_CONNECTION_NOTIFICATION_DATA structure that
+			/// identifies the network information for the connection attempt.</para>
+			/// </summary>
 			wlan_notification_acm_connection_start,
+
+			/// <summary>
+			/// <para>A connection has completed.</para>
+			/// <para>The pData member points to a WLAN_CONNECTION_NOTIFICATION_DATA structure that
+			/// identifies the network information for the connection attempt that completed.
+			/// The connection succeeded if the wlanReasonCode in WLAN_CONNECTION_NOTIFICATION_DATA
+			/// is WLAN_REASON_CODE_SUCCESS. Otherwise, the connection has failed.</para>
+			/// </summary>
 			wlan_notification_acm_connection_complete,
+
+			/// <summary>
+			/// <para>A connection attempt has failed.</para>
+			/// <para>A connection consists of one or more connection attempts. An application may
+			/// receive zero or more wlan_notification_acm_connection_attempt_fail notifications
+			/// between receiving the wlan_notification_acm_connection_start notification and
+			/// the wlan_notification_acm_connection_complete notification.</para>
+			/// <para>The pData member points to a WLAN_CONNECTION_NOTIFICATION_DATA structure that
+			/// identifies the network information for the connection attempt that failed.</para>
+			/// </summary>
 			wlan_notification_acm_connection_attempt_fail,
+
+			/// <summary>
+			/// <para>A change in the filter list has occurred, either through group policy or
+			/// a call to the WlanSetFilterList function.</para>
+			/// <para>An application can call the WlanGetFilterList function to retrieve the new
+			/// filter list.</para>
+			/// </summary>
 			wlan_notification_acm_filter_list_change,
+
+			/// <summary>
+			/// <para>A wireless LAN interface has been added to or enabled on the local computer.</para>
+			/// </summary>
 			wlan_notification_acm_interface_arrival,
+
+			/// <summary>
+			/// <para>A wireless LAN interface has been removed or disabled on the local computer.</para>
+			/// </summary>
 			wlan_notification_acm_interface_removal,
+
+			/// <summary>
+			/// <para>A change in a profile or the profile list has occurred, either through group
+			/// policy or by calls to Native Wifi functions.</para>
+			/// <para>An application can call the WlanGetProfileList and WlanGetProfile functions
+			/// to retrieve the updated profiles. The interface on which the profile list changes
+			/// is identified by the InterfaceGuid member.</para>
+			/// </summary>
 			wlan_notification_acm_profile_change,
+
+			/// <summary>
+			/// <para>A profile name has changed, either through group policy or by calls to Native
+			/// Wifi functions.</para>
+			/// <para>The pData member points to a buffer that contains two NULL-terminated WCHAR
+			/// strings, the old profile name followed by the new profile name.</para>
+			/// </summary>
 			wlan_notification_acm_profile_name_change,
+
+			/// <summary>
+			/// <para>All profiles were exhausted in an attempt to autoconnect.</para>
+			/// </summary>
 			wlan_notification_acm_profiles_exhausted,
+
+			/// <summary>
+			/// <para>The wireless service cannot find any connectable network after a scan.</para>
+			/// <para>The interface on which no connectable network is found is identified by
+			/// the InterfaceGuid member.</para>
+			/// </summary>
 			wlan_notification_acm_network_not_available,
+
+			/// <summary>
+			/// <para>The wireless service found a connectable network after a scan, the interface
+			/// was in the disconnected state, and there is no compatible auto-connect profile that
+			/// the wireless service can use to connect.</para>
+			/// <para>The interface on which connectable networks are found is identified by
+			/// the InterfaceGuid member.</para>
+			/// </summary>
 			wlan_notification_acm_network_available,
+
+			/// <summary>
+			/// <para>The wireless service is disconnecting from a connectable network.</para>
+			/// <para>The pData member points to a WLAN_CONNECTION_NOTIFICATION_DATA structure that
+			/// identifies the network information for the connection that is disconnecting.</para>
+			/// </summary>
 			wlan_notification_acm_disconnecting,
+
+			/// <summary>
+			/// <para>The wireless service has disconnected from a connectable network.</para>
+			/// <para>The pData member points to a WLAN_CONNECTION_NOTIFICATION_DATA structure that
+			/// identifies the network information for the connection that disconnected.</para>
+			/// </summary>
 			wlan_notification_acm_disconnected,
+
+			/// <summary>
+			/// <para>A state change has occurred for an adhoc network.</para>
+			/// <para>The pData member points to a WLAN_ADHOC_NETWORK_STATE enumeration value that
+			/// identifies the new adhoc network state.</para>
+			/// </summary>
 			wlan_notification_acm_adhoc_network_state_change,
+
 			wlan_notification_acm_profile_unblocked,
+
+			/// <summary>
+			/// <para>The screen power has changed.</para>
+			/// <para>The pData member points to a BOOL value that indicates the value of
+			/// the screen power change. When this value is TRUE, the screen changed to on.
+			/// When this value is FALSE, the screen changed to off.</para>
+			/// </summary>
 			wlan_notification_acm_screen_power_change,
+
 			wlan_notification_acm_profile_blocked,
 			wlan_notification_acm_scan_list_refresh,
 			wlan_notification_acm_end
@@ -792,6 +933,8 @@ namespace ManagedNativeWifi.Win32
 		public const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
 		public const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
 		public const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
+
+		public const uint WLAN_REASON_CODE_SUCCESS = 0;
 
 		public const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 	}
