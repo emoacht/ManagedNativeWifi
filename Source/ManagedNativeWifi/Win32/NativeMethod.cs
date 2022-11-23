@@ -934,6 +934,8 @@ namespace ManagedNativeWifi.Win32
 		public const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
 		public const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
 
+		public const uint WLAN_REASON_CODE_SUCCESS = 0;
+
 		public const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
 	}
 }
