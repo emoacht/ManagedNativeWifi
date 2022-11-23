@@ -157,6 +157,11 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.4 2022-11-24
+
+- __Add:__ Special event args for AvailabilityChanged, InterfaceChanged, ConnectionChanged, ProfileChanged events
+- __Breaking change:__ .NET 5.0 is no longer supported
+
 Ver 2.3 2022-8-1
 
 - __Add:__ PHY types (802.11ad, ax, be)
