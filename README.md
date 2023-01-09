@@ -1,4 +1,4 @@
-﻿# Managed Native Wifi
+# Managed Native Wifi
 
 ManagedNativeWifi is a managed implementation of [Native Wifi][1] API. It provides functionality to manage wireless networks, interfaces and profiles.
 
@@ -43,6 +43,12 @@ Available methods including asynchronous ones based on TAP.
 | TurnOnInterfaceRadio            | Turns on the radio of a specified wireless interface (software radio state only).                  |
 | TurnOffInterfaceRadio           | Turns off the radio of a specified wireless interface (software radio state only).                 |
 | IsInterfaceAutoConfig           | Checks if automatic configuration of a specified wireless interface is enabled.                    |
+
+## Properties
+
+| Property           | Description                                           |
+|--------------------|-------------------------------------------------------|
+| ThrowsOnAnyFailure | Whether to throw an exception when any failure occurs |
 
 ## Usage
 
@@ -155,7 +161,15 @@ public static async Task<bool> TurnOnAsync()
 
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
+## Note
+
+ - Creating a wireless profile from scratch is not covered in this library. It is because 1) Native WiFi does not include such functionality, 2) it requires careful consideration on wi-fi technology in use, 3) it involves sensitive security information. Thus, it is left to each user.
+
 ## History
+
+Ver 2.5 2023-1-9
+
+- __Add:__ Setting property to throw an exception when any failure occurs; ThrowsOnAnyFailure
 
 Ver 2.4 2022-11-24
 
