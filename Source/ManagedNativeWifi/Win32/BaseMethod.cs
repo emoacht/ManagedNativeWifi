@@ -28,6 +28,9 @@ namespace ManagedNativeWifi.Win32
 					out _,
 					out _clientHandle);
 
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect.
+				// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory to create the client context.
+				// ERROR_REMOTE_SESSION_LIMIT_EXCEEDED: Too many handles have been issued by the server.
 				CheckResult(nameof(WlanOpenHandle), result, true);
 			}
 
@@ -90,6 +93,9 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					0);
 
+				// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect.
+				// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
 				CheckResult(nameof(WlanRegisterNotification), result, true);
 			}
 
@@ -147,6 +153,9 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out interfaceList);
 
+				// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect.
+				// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
 				return CheckResult(nameof(WlanEnumInterfaces), result, true)
 					? new WLAN_INTERFACE_INFO_LIST(interfaceList).InterfaceInfo
 					: null; // Not to be used
@@ -167,7 +176,10 @@ namespace ManagedNativeWifi.Win32
 				IntPtr.Zero,
 				IntPtr.Zero);
 
-			// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
+			// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
 			return CheckResult(nameof(WlanScan), result, false);
 		}
 
@@ -183,7 +195,10 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out availableNetworkList);
 
-				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+				// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
 				return CheckResult(nameof(WlanGetAvailableNetworkList), result, false)
 					? new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network
 					: new WLAN_AVAILABLE_NETWORK[0];
@@ -209,7 +224,13 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out wlanBssList);
 
-				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
+				// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+				// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
+				// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
+				// ERROR_NOT_FOUND: The inteface GUID could not be found.
+				// ERROR_NOT_SUPPORTED: The WLAN AutoConfig service is disabled.
+				// ERROR_SERVICE_NOT_ACTIVE: The WLAN AutoConfig service has not been started.
 				return CheckResult(nameof(WlanGetNetworkBssList), result, false)
 					? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
 					: new WLAN_BSS_ENTRY[0];
@@ -239,7 +260,6 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out wlanBssList);
 
-				// ERROR_NDIS_DOT11_POWER_STATE_INVALID will be returned if the interface is turned off.
 				return CheckResult(nameof(WlanGetNetworkBssList), result, false)
 					? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
 					: new WLAN_BSS_ENTRY[0];
@@ -267,7 +287,7 @@ namespace ManagedNativeWifi.Win32
 					out queryData,
 					IntPtr.Zero);
 
-				// ERROR_INVALID_STATE will be returned if the client is not connected to a network.
+				// ERROR_INVALID_STATE: The client is not connected to a network.
 				return CheckResult(nameof(WlanQueryInterface), result, false)
 					? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
 					: default;
@@ -290,6 +310,9 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out profileList);
 
+				// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+				// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
 				return CheckResult(nameof(WlanGetProfileList), result, false)
 					? new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo
 					: new WLAN_PROFILE_INFO[0];
@@ -315,7 +338,11 @@ namespace ManagedNativeWifi.Win32
 
 			profileTypeFlag = flags;
 
-			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_NOT_ENOUGH_MEMORY: Not enough storage is available to process this command.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The profile is not found.
 			return CheckResult(nameof(WlanGetProfile), result, false)
 				? profileXml
 				: null; // To be used
@@ -333,10 +360,11 @@ namespace ManagedNativeWifi.Win32
 				IntPtr.Zero,
 				out uint pdwReasonCode);
 
-			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
-			// ERROR_ALREADY_EXISTS will be returned if the profile already exists.
-			// ERROR_BAD_PROFILE will be returned if the profile XML is not valid.
-			// ERROR_NO_MATCH will be returned if the capability specified in the profile is not supported.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_ALREADY_EXISTS: The profile already exists.
+			// ERROR_BAD_PROFILE: The profile XML is not valid.
+			// ERROR_NO_MATCH: The capabilities specified in the profile is not supported by the interface.
 			return CheckResult(nameof(WlanSetProfile), result, false, pdwReasonCode);
 		}
 
@@ -350,14 +378,13 @@ namespace ManagedNativeWifi.Win32
 				userDataXml,
 				IntPtr.Zero);
 
-			// ERROR_ACCESS_DENIED will be thrown if the caller does not have sufficient permissions.
-			// ERROR_BAD_PROFILE will be returned if the EAP XML is not valid.
-			// ERROR_INVALID_PARAMETER will be returned if any required parameter is NULL.
-			// ERROR_INVALID_HANDLE will be returned if clientHandle is not found in the handle table.
-			// ERROR_NOT_ENOUGH_MEMORY will be returned if there is not enough storage
-			// ERROR_NOT_SUPPORTED will be returned if the profile does not allow storage of user data.
-			// ERROR_SERVICE_NOT_ACTIVE will be returned if the WLAN service has not been started.
-			// RPC_STATUS will be returned for "Various error codes".
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect.
+			// ERROR_NOT_ENOUGH_MEMORY: Not enough storage is available to process this command.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_BAD_PROFILE: The EAP XML is not valid.
+			// ERROR_NOT_SUPPORTED: The profile does not allow storage of user data.
+			// ERROR_SERVICE_NOT_ACTIVE: The WLAN service has not been started.
 			return CheckResult(nameof(WlanSetProfileEapXmlUserData), result, false);
 		}
 
@@ -370,8 +397,10 @@ namespace ManagedNativeWifi.Win32
 				position,
 				IntPtr.Zero);
 
-			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
-			// ERROR_NOT_FOUND will be returned if the position of a profile is invalid.
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The position of a profile is invalid.
 			return CheckResult(nameof(WlanSetProfilePosition), result, false);
 		}
 
@@ -384,8 +413,10 @@ namespace ManagedNativeWifi.Win32
 				newProfileName,
 				IntPtr.Zero);
 
-			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
-			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The profile is not found in the profile store.
 			return CheckResult(nameof(WlanRenameProfile), result, false);
 		}
 
@@ -397,8 +428,10 @@ namespace ManagedNativeWifi.Win32
 				profileName,
 				IntPtr.Zero);
 
-			// ERROR_INVALID_PARAMETER will be returned if the interface is removed.
-			// ERROR_NOT_FOUND will be returned if the profile is not found.
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The profile is not found in the profile store.
 			return CheckResult(nameof(WlanDeleteProfile), result, false);
 		}
 
@@ -418,7 +451,10 @@ namespace ManagedNativeWifi.Win32
 				ref connectionParameters,
 				IntPtr.Zero);
 
-			// ERROR_NOT_FOUND will be returned if the interface is removed.
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The interface is removed.
 			return CheckResult(nameof(WlanConnect), result, false);
 		}
 
@@ -454,7 +490,6 @@ namespace ManagedNativeWifi.Win32
 					ref connectionParameters,
 					IntPtr.Zero);
 
-				// ERROR_NOT_FOUND will be returned if the interface is removed.
 				return CheckResult(nameof(WlanConnect), result, false);
 			}
 			finally
@@ -470,7 +505,11 @@ namespace ManagedNativeWifi.Win32
 				interfaceId,
 				IntPtr.Zero);
 
-			// ERROR_NOT_FOUND will be returned if the interface is removed.
+			// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
+			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+			// ERROR_NOT_FOUND: The interface is removed.
 			return CheckResult(nameof(WlanDisconnect), result, false);
 		}
 
@@ -485,6 +524,8 @@ namespace ManagedNativeWifi.Win32
 					IntPtr.Zero,
 					out capability);
 
+				// ERROR_INVALID_HANDLE: The client handle is not found in the handle table.
+				// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
 				return CheckResult(nameof(WlanGetInterfaceCapability), result, false)
 					? Marshal.PtrToStructure<WLAN_INTERFACE_CAPABILITY>(capability)
 					: default;
@@ -538,10 +579,10 @@ namespace ManagedNativeWifi.Win32
 					setData,
 					IntPtr.Zero);
 
-				// ERROR_ACCESS_DENIED will be thrown if the caller does not have sufficient permissions.
+				// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
 				// By default, only a user who is logged on as a member of the Administrators group or
 				// the Network Configuration Operators group can set the operation mode of the interface.
-				// ERROR_GEN_FAILURE will be thrown if the OpCode is not supported by the driver or NIC.
+				// ERROR_GEN_FAILURE: The OpCode is not supported by the driver or NIC.
 				return CheckResult(nameof(WlanSetInterface), result, false);
 			}
 			finally
@@ -611,6 +652,8 @@ namespace ManagedNativeWifi.Win32
 
 		#region Helper
 
+		public static bool ThrowsOnAnyFailure { get; set; }
+
 		private static bool CheckResult(string methodName, uint result, bool throwOnFailure, uint reasonCode = 0)
 		{
 			if (result == ERROR_SUCCESS)
@@ -627,10 +670,10 @@ namespace ManagedNativeWifi.Win32
 				case ERROR_NDIS_DOT11_MEDIA_IN_USE:
 				case ERROR_NDIS_DOT11_POWER_STATE_INVALID:
 				case ERROR_GEN_FAILURE:
-					if (!throwOnFailure)
-						return false;
-					else
+					if (throwOnFailure || ThrowsOnAnyFailure)
 						goto default;
+					else
+						return false;
 
 				case ERROR_ACCESS_DENIED:
 					throw new UnauthorizedAccessException(CreateExceptionMessage(methodName, result));

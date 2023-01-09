@@ -982,6 +982,15 @@ namespace ManagedNativeWifi
 		#region Helper
 
 		/// <summary>
+		/// Whether to throw an exception when any failure occurs
+		/// </summary>
+		public static bool ThrowsOnAnyFailure
+		{
+			get => Base.ThrowsOnAnyFailure;
+			set => Base.ThrowsOnAnyFailure = value;
+		}
+
+		/// <summary>
 		/// Attempts to detect frequency band and channel from center frequency.
 		/// </summary>
 		/// <param name="frequency">Center frequency (KHz)</param>
