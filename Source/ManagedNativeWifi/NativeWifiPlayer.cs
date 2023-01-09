@@ -273,5 +273,14 @@ namespace ManagedNativeWifi
 		/// </summary>
 		public Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeout, CancellationToken cancellationToken) =>
 			NativeWifi.DisconnectNetworkAsync(_client, interfaceId, timeout, cancellationToken);
+
+		/// <summary>
+		/// Whether to throw an exception when any failure occurs
+		/// </summary>
+		public static bool ThrowsOnAnyFailure
+		{
+			get => Base.ThrowsOnAnyFailure;
+			set => Base.ThrowsOnAnyFailure = value;
+		}
 	}
 }
