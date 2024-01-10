@@ -231,6 +231,37 @@ namespace ManagedNativeWifi
 		}
 
 		/// <summary>
+		/// Enumerates Association Attributess of connected wireless LANs. 
+		/// </summary>
+		/// <returns>Association Attributes</returns>
+		public static IEnumerable<AssociationAttributes> EnumerateAssociationAttributes()
+		{
+			return EnumerateAssociationAttributes(null);
+		}
+
+		internal static IEnumerable<AssociationAttributes> EnumerateAssociationAttributes(Base.WlanClient client)
+		{
+			using var container = new DisposableContainer<Base.WlanClient>(client);
+
+			foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
+			{
+				var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
+				var attributes = connection.wlanAssociationAttributes;
+
+				var ssid = attributes.dot11Ssid.ToString();
+				var bssType = attributes.dot11BssType.ToString();
+				var bssid = attributes.dot11Bssid.ToString();
+				var phyType = attributes.dot11PhyType.ToString();
+				var phyIndex = attributes.uDot11PhyIndex;
+				var signalQuality = attributes.wlanSignalQuality;
+				var rxRate = attributes.ulRxRate;
+				var txRate = attributes.ulTxRate;
+
+				yield return new AssociationAttributes(ssid, bssType, bssid, phyType, phyIndex, signalQuality, rxRate, txRate);
+			}
+		}
+		
+		/// <summary>
 		/// Enumerates wireless LAN information on available networks.
 		/// </summary>
 		/// <returns>Wireless LAN information on available networks</returns>
