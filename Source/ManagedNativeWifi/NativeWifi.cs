@@ -358,8 +358,7 @@ namespace ManagedNativeWifi
 			if (!BssTypeConverter.TryConvert(bssEntry.dot11BssType, out BssType bssType))
 				return false;
 
-			if (!TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel))
-				return false;
+			TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel);
 
 			bssNetwork = new BssNetworkPack(
 				interfaceInfo: interfaceInfo,
@@ -1000,54 +999,198 @@ namespace ManagedNativeWifi
 		/// <remarks>
 		/// This method is marked as internal for unit test.
 		/// As for 5GHz, this method may produce a channel number which is not actually in use.
-		/// Some channel numbers of 5GHz overlap those of 3.6GHz. In such cases, refer frequency band
-		/// to distinguish them.
+		/// Some channel numbers of a band overlap those of the other bands. In such cases,
+		/// refer frequency band to distinguish them.
 		/// </remarks>
 		internal static bool TryDetectBandChannel(uint frequency, out float band, out int channel)
 		{
 			band = 0;
 			channel = 0;
 
-			if (frequency is (>= 2_412_000 and <= 2_484_000))
+			switch (frequency)
 			{
-				// 2.4GHz
-				band = 2.4F;
+				case (>= 2_412_000 and <= 2_484_000):
+					{
+						// 2.4GHz
+						band = 2.4F;
 
-				if (frequency < 2_484_000)
-				{
-					var gap = frequency / 1_000M - 2_412M; // MHz
-					var factor = gap / 5M;
-					if (factor - Math.Floor(factor) == 0)
-						channel = (int)factor + 1;
-				}
-				else
-				{
-					channel = 14;
-				}
+						if (frequency < 2_484_000)
+						{
+							var gap = frequency / 1_000M - 2_412M; // MHz
+							var factor = gap / 5M;
+							if (factor - Math.Floor(factor) == 0)
+								channel = (int)factor + 1;
+						}
+						else
+						{
+							channel = 14;
+						}
+					}
+					break;
+
+				case (>= 3_657_500 and <= 3_692_500):
+					{
+						// 3.6GHz
+						band = 3.6F;
+
+						var gap = frequency / 1_000M - 3_655M; // MHz
+						if (gap % 2.5M == 0)
+						{
+							var factor = gap / 5M;
+							channel = (int)Math.Floor(factor) + 131;
+						}
+					}
+					break;
+
+				case (>= 5_170_000 and <= 5_825_000):
+					{
+						// 5GHz
+						band = 5.0F;
+
+						var gap = frequency / 1_000M - 5_170M; // MHz
+						var factor = gap / 5M;
+						if (factor - Math.Floor(factor) == 0)
+							channel = (int)factor + 34;
+					}
+					break;
+
+				case (>= 5_955_000 and <= 7_115_000):
+					{
+						// 6GHz
+						band = 6.0F;
+
+						var gap = frequency / 1_000M; // MHz
+						channel = gap switch
+						{
+							// 20MHz
+							5_955 => 1,
+							5_975 => 5,
+							5_995 => 9,
+							6_015 => 13,
+							6_035 => 17,
+							6_055 => 21,
+							6_075 => 25,
+							6_095 => 29,
+							6_115 => 33,
+							6_135 => 37,
+							6_155 => 41,
+							6_175 => 45,
+							6_195 => 49,
+							6_215 => 53,
+							6_235 => 57,
+							6_255 => 61,
+							6_275 => 65,
+							6_295 => 69,
+							6_315 => 73,
+							6_335 => 77,
+							6_355 => 81,
+							6_375 => 85,
+							6_395 => 89,
+							6_415 => 93,
+							6_435 => 97,
+							6_455 => 101,
+							6_475 => 105,
+							6_495 => 109,
+							6_515 => 113,
+							6_535 => 117,
+							6_555 => 121,
+							6_575 => 125,
+							6_595 => 129,
+							6_615 => 133,
+							6_655 => 141,
+							6_675 => 145,
+							6_695 => 149,
+							6_715 => 153,
+							6_735 => 157,
+							6_755 => 161,
+							6_775 => 165,
+							6_795 => 169,
+							6_815 => 173,
+							6_835 => 177,
+							6_855 => 181,
+							6_875 => 185,
+							6_895 => 189,
+							6_915 => 193,
+							6_935 => 197,
+							6_955 => 201,
+							6_975 => 205,
+							6_995 => 209,
+							7_015 => 213,
+							7_035 => 217,
+							7_055 => 221,
+							7_075 => 225,
+							7_095 => 229,
+							7_115 => 233,
+
+							// 40MHz
+							5_965 => 3,
+							6_005 => 11,
+							6_045 => 19,
+							6_085 => 27,
+							6_125 => 35,
+							6_165 => 43,
+							6_205 => 51,
+							6_245 => 59,
+							6_285 => 67,
+							6_325 => 75,
+							6_365 => 83,
+							6_405 => 91,
+							6_445 => 99,
+							6_485 => 107,
+							6_525 => 115,
+							6_565 => 123,
+							6_605 => 131,
+							6_645 => 139,
+							6_685 => 147,
+							6_725 => 155,
+							6_765 => 163,
+							6_805 => 171,
+							6_845 => 179,
+							6_885 => 187,
+							6_925 => 195,
+							6_965 => 203,
+							7_005 => 211,
+							7_045 => 219,
+							7_085 => 227,
+
+							// 80MHz
+							5_985 => 7,
+							6_065 => 23,
+							6_145 => 39,
+							6_225 => 55,
+							6_305 => 71,
+							6_385 => 87,
+							6_465 => 103,
+							6_545 => 119,
+							6_625 => 135,
+							6_705 => 151,
+							6_785 => 167,
+							6_865 => 183,
+							6_945 => 199,
+							7_025 => 215,
+
+							// 160MHz
+							6_025 => 15,
+							6_185 => 47,
+							6_345 => 79,
+							6_505 => 111,
+							6_665 => 143,
+							6_825 => 175,
+							6_985 => 207,
+
+							// 320MHz
+							6_105 => 31,
+							6_265 => 63,
+							6_425 => 95,
+							6_585 => 127,
+							6_745 => 159,
+							6_905 => 191,
+
+							_ => 0
+						};
+					}
+					break;
 			}
-			else if (frequency is (>= 3_657_500 and <= 3_692_500))
-			{
-				// 3.6GHz
-				band = 3.6F;
-
-				var gap = frequency / 1_000M - 3_655M; // MHz
-				if (gap % 2.5M == 0)
-				{
-					var factor = gap / 5M;
-					channel = (int)Math.Floor(factor) + 131;
-				}
-			}
-			else if (frequency is (>= 5_170_000 and <= 5_825_000))
-			{
-				// 5GHz
-				band = 5.0F;
-
-				var gap = frequency / 1_000M - 5_170M; // MHz
-				var factor = gap / 5M;
-				if (factor - Math.Floor(factor) == 0)
-					channel = (int)factor + 34;
-			}
-
 			return (0 < channel);
 		}
 
