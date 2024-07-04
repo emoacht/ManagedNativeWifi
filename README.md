@@ -167,6 +167,10 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.6 2024-7-5
+
+- __Add:__ 6GHz channels
+
 Ver 2.5 2023-1-9
 
 - __Add:__ Setting property to throw an exception when any failure occurs; ThrowsOnAnyFailure
