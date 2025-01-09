@@ -60,12 +60,23 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// WPA3 algorithm
 		/// </summary>
+		[Obsolete($"WPA3 is deprecated, use {nameof(WPA3_ENT_192)} instead.")]
 		WPA3,
+
+		/// <summary>
+		/// WPA3 Enterprise 192-bits mode algorithm
+		/// </summary>
+		WPA3_ENT_192,
 
 		/// <summary>
 		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
 		/// </summary>
 		WPA3_SAE,
+
+		/// <summary>
+		/// WPA3 Enterprise algorithm
+		/// </summary>
+		WPA3_ENT,
 
 		/// <summary>
 		/// Opportunistic Wireless Encryption (OWE) algorithm
@@ -110,11 +121,14 @@ namespace ManagedNativeWifi
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA_PSK:
 					authenticationAlgorithm = AuthenticationAlgorithm.RSNA_PSK;
 					return true;
-				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3:
-					authenticationAlgorithm = AuthenticationAlgorithm.WPA3;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT_192:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT_192;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
 					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
+					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_OWE:
 					authenticationAlgorithm = AuthenticationAlgorithm.OWE;
