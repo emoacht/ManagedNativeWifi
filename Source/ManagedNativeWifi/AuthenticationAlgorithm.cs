@@ -60,13 +60,12 @@ namespace ManagedNativeWifi
 		/// <summary>
 		/// WPA3 algorithm
 		/// </summary>
-		[Obsolete($"WPA3 is deprecated, use {nameof(WPA3_ENT_192)} instead.")]
 		WPA3,
 
 		/// <summary>
 		/// WPA3 Enterprise 192-bits mode algorithm
 		/// </summary>
-		WPA3_ENT_192,
+		WPA3_ENT_192 = WPA3,
 
 		/// <summary>
 		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
