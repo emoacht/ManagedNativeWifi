@@ -120,8 +120,8 @@ namespace ManagedNativeWifi
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA_PSK:
 					authenticationAlgorithm = AuthenticationAlgorithm.RSNA_PSK;
 					return true;
-				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT_192:
-					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT_192;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
 					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
