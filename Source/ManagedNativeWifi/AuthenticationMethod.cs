@@ -57,16 +57,28 @@ namespace ManagedNativeWifi
 		WPA2_Personal,
 
 		/// <summary>
+		/// WPA3-Enterprise 192-bit mode 802.11 authentication
+		/// </summary>
+		/// <remarks>WPA3ENT192 in profile XML (This supersedes WPA3.)</remarks>
+		WPA3_Enterprise_192,
+
+		/// <summary>
 		/// WPA3-Enterprise 802.11 authentication
 		/// </summary>
-		/// <remarks>WPA3 in profile XML</remarks>
+		/// <remarks>WPA3ENT in profile XML</remarks>
 		WPA3_Enterprise,
 
 		/// <summary>
 		/// WPA3-Personal 802.11 authentication
 		/// </summary>
 		/// <remarks>WPA3SAE in profile XML</remarks>
-		WPA3_Personal
+		WPA3_Personal,
+
+		/// <summary>
+		/// Opportunistic wireless encryption (OWE) 802.11 authentication
+		/// </summary>
+		/// <remarks>OWE in profile XML</remarks>
+		OWE
 	}
 
 	internal static class AuthenticationMethodConverter
@@ -93,11 +105,18 @@ namespace ManagedNativeWifi
 				case "WPA2PSK":
 					authentication = AuthenticationMethod.WPA2_Personal;
 					return true;
-				case "WPA3":
-					authentication = AuthenticationMethod.WPA3_Enterprise;
+				case "WPA3" or
+					 "WPA3ENT192":
+					authentication = AuthenticationMethod.WPA3_Enterprise_192;
+					return true;
+				case "WPA3ENT":
+					authentication = AuthenticationMethod.WPA_Enterprise;
 					return true;
 				case "WPA3SAE":
 					authentication = AuthenticationMethod.WPA3_Personal;
+					return true;
+				case "OWE":
+					authentication = AuthenticationMethod.OWE;
 					return true;
 			}
 			authentication = default;

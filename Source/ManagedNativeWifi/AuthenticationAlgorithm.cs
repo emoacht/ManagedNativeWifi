@@ -58,24 +58,19 @@ namespace ManagedNativeWifi
 		RSNA_PSK,
 
 		/// <summary>
-		/// WPA3 algorithm
+		/// WPA3 Enterprise 192-bit mode algorithm (This supersedes WPA3.)
 		/// </summary>
-		WPA3,
-
-		/// <summary>
-		/// WPA3 Enterprise 192-bits mode algorithm
-		/// </summary>
-		WPA3_ENT_192 = WPA3,
-
-		/// <summary>
-		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
-		/// </summary>
-		WPA3_SAE,
+		WPA3_ENT_192,
 
 		/// <summary>
 		/// WPA3 Enterprise algorithm
 		/// </summary>
 		WPA3_ENT,
+
+		/// <summary>
+		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
+		/// </summary>
+		WPA3_SAE,
 
 		/// <summary>
 		/// Opportunistic Wireless Encryption (OWE) algorithm
@@ -120,15 +115,16 @@ namespace ManagedNativeWifi
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_RSNA_PSK:
 					authenticationAlgorithm = AuthenticationAlgorithm.RSNA_PSK;
 					return true;
-				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3:
-					authenticationAlgorithm = AuthenticationAlgorithm.WPA3;
-					return true;
-				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
-					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3 or
+					 DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT_192:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT_192;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT:
 					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT;
 					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
+					return true;				
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_OWE:
 					authenticationAlgorithm = AuthenticationAlgorithm.OWE;
 					return true;
