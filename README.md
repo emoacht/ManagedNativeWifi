@@ -6,8 +6,10 @@ ManagedNativeWifi is a managed implementation of [Native Wifi][1] API. It provid
 
 This library works on Windows and compatible with:
 
-.NET 6.0|.NET Standard 2.0 (including .NET Framework 4.6.1)
+.NET 8.0|.NET Standard 2.0 (including .NET Framework 4.6.1)
 -|-
+
+On Windows 11 (24H2) or newer, some methods require user's permission to access location information. Otherwise, UnauthorizedAccessException will be thrown. The permission can be set in Privacy & security > Location settings. 
 
 ## Download
 
@@ -166,6 +168,18 @@ Please note that this method can only change software radio state and if hardwar
  - Creating a wireless profile from scratch is not covered in this library. It is because 1) Native WiFi does not include such functionality, 2) it requires careful consideration on wi-fi technology in use, 3) it involves sensitive security information. Thus, it is left to each user.
 
 ## History
+
+Ver 2.7 2025-1-25
+
+- __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated
+
+  | Authentication               | AuthenticationAlgorithm | AuthenticationMethod |
+  |------------------------------|-------------------------|----------------------|
+  | WPA3 Enterprise 192-bit mode | WPA3_ENT_192            | WPA3_Enterprise_192  |
+  | WPA3 Enterprise              | WPA3_ENT                | WPA3_Enterprise      |
+  | OWE                          | OWE                     | OWE                  |
+
+- __Breaking change:__ .NET 6.0, 7.0 are no longer supported
 
 Ver 2.6 2024-7-5
 
