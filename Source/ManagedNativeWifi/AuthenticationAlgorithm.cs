@@ -63,9 +63,19 @@ namespace ManagedNativeWifi
 		WPA3,
 
 		/// <summary>
+		/// WPA3 Enterprise 192-bits mode algorithm
+		/// </summary>
+		WPA3_ENT_192 = WPA3,
+
+		/// <summary>
 		/// WPA3 Simultaneous Authentication of Equals (SAE）algorithm
 		/// </summary>
 		WPA3_SAE,
+
+		/// <summary>
+		/// WPA3 Enterprise algorithm
+		/// </summary>
+		WPA3_ENT,
 
 		/// <summary>
 		/// Opportunistic Wireless Encryption (OWE) algorithm
@@ -115,6 +125,9 @@ namespace ManagedNativeWifi
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_SAE:
 					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_SAE;
+					return true;
+				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_WPA3_ENT:
+					authenticationAlgorithm = AuthenticationAlgorithm.WPA3_ENT;
 					return true;
 				case DOT11_AUTH_ALGORITHM.DOT11_AUTH_ALGO_OWE:
 					authenticationAlgorithm = AuthenticationAlgorithm.OWE;
