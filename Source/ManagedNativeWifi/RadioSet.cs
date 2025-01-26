@@ -1,46 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+namespace ManagedNativeWifi;
 
-namespace ManagedNativeWifi
+/// <summary>
+/// Wireless radio information
+/// </summary>
+public class RadioSet
 {
 	/// <summary>
-	/// Wireless radio information
+	/// PHY type
 	/// </summary>
-	public class RadioSet
+	public PhyType Type { get; }
+
+	/// <summary>
+	/// Whether hardware radio state is on
+	/// </summary>
+	public bool? HardwareOn { get; }
+
+	/// <summary>
+	/// Whether software radio state is on
+	/// </summary>
+	public bool? SoftwareOn { get; }
+
+	/// <summary>
+	/// Whether the radio is on
+	/// </summary>
+	public bool? On => (HardwareOn.HasValue && SoftwareOn.HasValue)
+		? HardwareOn.Value && SoftwareOn.Value
+		: (bool?)null;
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	public RadioSet(PhyType type, bool? hardwareOn, bool? softwareOn)
 	{
-		/// <summary>
-		/// PHY type
-		/// </summary>
-		public PhyType Type { get; }
-
-		/// <summary>
-		/// Whether hardware radio state is on
-		/// </summary>
-		public bool? HardwareOn { get; }
-
-		/// <summary>
-		/// Whether software radio state is on
-		/// </summary>
-		public bool? SoftwareOn { get; }
-
-		/// <summary>
-		/// Whether the radio is on
-		/// </summary>
-		public bool? On => (HardwareOn.HasValue && SoftwareOn.HasValue)
-			? HardwareOn.Value && SoftwareOn.Value
-			: (bool?)null;
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public RadioSet(PhyType type, bool? hardwareOn, bool? softwareOn)
-		{
-			this.Type = type;
-			this.HardwareOn = hardwareOn;
-			this.SoftwareOn = softwareOn;
-		}
+		this.Type = type;
+		this.HardwareOn = hardwareOn;
+		this.SoftwareOn = softwareOn;
 	}
 }

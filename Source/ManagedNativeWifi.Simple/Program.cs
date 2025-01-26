@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ManagedNativeWifi.Simple
+namespace ManagedNativeWifi.Simple;
+
+class Program
 {
-	class Program
+	static void Main(string[] args)
 	{
-		static void Main(string[] args)
-		{
-			if (!Debugger.IsAttached)
-				Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
+		if (!Debugger.IsAttached)
+			Debug.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
-			Debug.WriteLine("[Available Network SSIDs]");
-			NativeWifi.GetAvailableNetworkSsids().ToArray();
+		Debug.WriteLine("[Available Network SSIDs]");
+		NativeWifi.GetAvailableNetworkSsids().ToArray();
 
-			Debug.WriteLine("[Connected Network SSIDs]");
-			NativeWifi.GetConnectedNetworkSsids().ToArray();
-		}
+		Debug.WriteLine("[Connected Network SSIDs]");
+		NativeWifi.GetConnectedNetworkSsids().ToArray();
 	}
 }
