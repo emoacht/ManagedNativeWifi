@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <Version>2.7.0</Version>
+    <Version>2.7.1</Version>
     <Authors>emoacht</Authors>
     <Description>ManagedNativeWifi is a managed implementation of Native Wifi API. It provides functionality to manage wireless networks, interfaces and profiles.</Description>
     <Copyright>Copyright © 2015 emoacht</Copyright>
