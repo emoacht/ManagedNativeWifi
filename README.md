@@ -169,6 +169,10 @@ Please note that this method can only change software radio state and if hardwar
 
 ## History
 
+Ver 2.7.1 2025-4-10
+
+- __Fix:__ WPA3 Enterprise is correctly assigned
+
 Ver 2.7 2025-1-25
 
 - __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated
