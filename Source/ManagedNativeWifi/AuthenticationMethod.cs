@@ -105,7 +105,7 @@ internal static class AuthenticationMethodConverter
 				authentication = AuthenticationMethod.WPA3_Enterprise_192;
 				return true;
 			case "WPA3ENT":
-				authentication = AuthenticationMethod.WPA_Enterprise;
+				authentication = AuthenticationMethod.WPA3_Enterprise;
 				return true;
 			case "WPA3SAE":
 				authentication = AuthenticationMethod.WPA3_Personal;
