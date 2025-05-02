@@ -19,6 +19,8 @@ class Program
 
 		//TurnOn();
 		//TurnOff();
+
+		//CheckRadioStateEvents();
 	}
 
 	private static void ShowInformation()
@@ -191,5 +193,21 @@ class Program
 				Trace.WriteLine("Turn off: Unauthorized");
 			}
 		}
+	}
+
+	private static void CheckRadioStateEvents()
+	{
+		using var player = new NativeWifiPlayer();
+		player.RadioStateChanged += Player_RadioStateChanged;
+		Console.ReadLine();
+		player.RadioStateChanged -= Player_RadioStateChanged;
+	}
+
+	private static void Player_RadioStateChanged(object sender, RadioStateChangedEventArgs e)
+	{
+		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateData.PhyIndex}");
+		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateData.HardwareOn}");
+		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateData.SoftwareOn}}}");
 	}
 }

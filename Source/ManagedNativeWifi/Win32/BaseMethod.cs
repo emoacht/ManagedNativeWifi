@@ -77,15 +77,16 @@ internal static class BaseMethod
 			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, context) =>
 			{
 				var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
-				if (notificationData.NotificationSource is not WLAN_NOTIFICATION_SOURCE_ACM)
-					return;
-
-				NotificationReceived?.Invoke(null, notificationData);
+				if (notificationData.NotificationSource == WLAN_NOTIFICATION_SOURCE_ACM ||
+					notificationData.NotificationSource == WLAN_NOTIFICATION_SOURCE_MSM)
+				{
+					NotificationReceived?.Invoke(null, notificationData);
+				}
 			});
 
 			var result = WlanRegisterNotification(
 				Handle,
-				WLAN_NOTIFICATION_SOURCE_ACM,
+				WLAN_NOTIFICATION_SOURCE_ACM | WLAN_NOTIFICATION_SOURCE_MSM,
 				false,
 				_notificationCallback,
 				IntPtr.Zero,
