@@ -57,6 +57,11 @@ public class NativeWifiPlayer : IDisposable
 	/// </summary>
 	public event EventHandler<RadioStateChangedEventArgs> RadioStateChanged;
 
+	/// <summary>
+	/// Occurs when the signal quality of a wireless interface changes.
+	/// </summary>
+	public event EventHandler<SignalQualityChangedEventArgs> SignalQualityChanged;
+
 	private void OnNotificationReceived(object sender, WLAN_NOTIFICATION_DATA e)
 	{
 		// Check the notification source
@@ -72,7 +77,7 @@ public class NativeWifiPlayer : IDisposable
 					// Ensure pData is not null
 					if (e.pData != IntPtr.Zero)
 					{
-					// The pData points to a WLAN_PHY_RADIO_STATE structure
+						// The pData points to a WLAN_PHY_RADIO_STATE structure
 						var radioState = new PhyRadioStateData(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
 
 						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, radioState));
@@ -83,6 +88,19 @@ public class NativeWifiPlayer : IDisposable
 					}
 					break;
 
+				case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change:
+					// Handle signal quality change
+					if (e.pData != IntPtr.Zero)
+					{
+						// The pData points to a ULONG value for the signal quality (0-100)
+						int signalQuality = Marshal.ReadInt32(e.pData);
+						SignalQualityChanged?.Invoke(this, new SignalQualityChangedEventArgs(e.InterfaceGuid, signalQuality));
+					}
+					else
+					{
+						Debug.WriteLine("Notification data pointer (pData) is null.");
+					}
+					break;
 				// Add other MSM notifications here if needed
 				default:
 					Debug.WriteLine($"Unhandled MSM Notification: {msmCode}");

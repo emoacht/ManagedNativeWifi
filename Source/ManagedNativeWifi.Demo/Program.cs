@@ -21,6 +21,7 @@ class Program
 		//TurnOff();
 
 		//CheckRadioStateEvents();
+		//CheckSignalStrengthEvents();
 	}
 
 	private static void ShowInformation()
@@ -209,5 +210,19 @@ class Program
 		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateData.PhyIndex}");
 		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateData.HardwareOn}");
 		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateData.SoftwareOn}}}");
+	}
+
+	private static void CheckSignalStrengthEvents()
+	{
+		using var player = new NativeWifiPlayer();
+		player.SignalQualityChanged += Player_SignalQualityChanged; ;
+		Console.ReadLine();
+		player.SignalQualityChanged -= Player_SignalQualityChanged;
+	}
+
+	private static void Player_SignalQualityChanged(object sender, SignalQualityChangedEventArgs e)
+	{
+		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+		Trace.WriteLine($"SignalQuality: {e.SignalQuality})}}");
 	}
 }
