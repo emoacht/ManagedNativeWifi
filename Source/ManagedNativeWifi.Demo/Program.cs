@@ -19,6 +19,9 @@ class Program
 
 		//TurnOn();
 		//TurnOff();
+
+		//CheckRadioStateEvents();
+		//CheckSignalStrengthEvents();
 	}
 
 	private static void ShowInformation()
@@ -191,5 +194,35 @@ class Program
 				Trace.WriteLine("Turn off: Unauthorized");
 			}
 		}
+	}
+
+	private static void CheckRadioStateEvents()
+	{
+		using var player = new NativeWifiPlayer();
+		player.RadioStateChanged += Player_RadioStateChanged;
+		Console.ReadLine();
+		player.RadioStateChanged -= Player_RadioStateChanged;
+	}
+
+	private static void Player_RadioStateChanged(object sender, RadioStateChangedEventArgs e)
+	{
+		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateInfo.PhyIndex}");
+		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateInfo.HardwareOn}");
+		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateInfo.SoftwareOn}}}");
+	}
+
+	private static void CheckSignalStrengthEvents()
+	{
+		using var player = new NativeWifiPlayer();
+		player.SignalQualityChanged += Player_SignalQualityChanged; ;
+		Console.ReadLine();
+		player.SignalQualityChanged -= Player_SignalQualityChanged;
+	}
+
+	private static void Player_SignalQualityChanged(object sender, SignalQualityChangedEventArgs e)
+	{
+		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+		Trace.WriteLine($"SignalQuality: {e.SignalQuality})}}");
 	}
 }

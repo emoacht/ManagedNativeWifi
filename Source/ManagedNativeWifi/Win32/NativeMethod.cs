@@ -903,6 +903,117 @@ internal static class NativeMethod
 		wlan_notification_acm_end
 	}
 
+	/// <summary>
+	/// WLAN_NOTIFICATION_MSM enumeration:
+	/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_notification_msm-r1
+	/// </summary>
+	public enum WLAN_NOTIFICATION_MSM : uint
+	{
+		/// <summary>
+		/// <para>Start of MSM notifications.</para>
+		/// </summary>
+		wlan_notification_msm_start = 0,
+
+		/// <summary>
+		/// <para>A wireless device is in the process of associating with an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information</para>
+		/// </summary>
+		wlan_notification_msm_associating,
+
+		/// <summary>
+		/// <para>The wireless device has associated with an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_associated,
+
+		/// <summary>
+		/// <para>The wireless device is in the process of authenticating.</para>
+		/// <para>The pData member of the WLAN_NOTIFICATION_DATA structure points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_authenticating,
+
+		/// <summary>
+		/// <para>The wireless device is associated with an access point or a peer station, keys have been exchanged, and the wireless device is available to send data.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_connected,
+
+		/// <summary>
+		/// <para>The wireless device is connected to an access point and has initiated roaming to another access point.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_roaming_start,
+
+		/// <summary>
+		/// <para>The wireless device was connected to an access point and has completed roaming to another access point.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_roaming_end,
+
+		/// <summary>
+		/// <para>The radio state for an adapter has changed. Each physical layer (PHY) has its own radio state. The radio for an adapter is switched off when the radio state of every PHY is off.</para>
+		/// <para>The pData member points to a WLAN_PHY_RADIO_STATE structure that identifies the new radio state.</para>
+		/// </summary>
+		wlan_notification_msm_radio_state_change,
+
+		/// <summary>
+		/// <para>A signal quality change for the currently associated access point or peer station.</para>
+		/// <para>The pData member points to a ULONG value for the WLAN_SIGNAL_QUALITY that identifies the new signal quality.</para>
+		/// </summary>
+		wlan_notification_msm_signal_quality_change,
+
+		/// <summary>
+		/// <para>A wireless device is in the process of disassociating from an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_disassociating,
+
+		/// <summary>
+		/// <para>The wireless device is not associated with an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information. The wlanReasonCode member of the WLAN_MSM_NOTIFICATION_DATA structure indicates the reason for the disconnect.</para>
+		/// </summary>
+		wlan_notification_msm_disconnected,
+
+		/// <summary>
+		/// <para>A peer has joined an adhoc network.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_peer_join,
+
+		/// <summary>
+		/// <para>A peer has left an adhoc network.</para>
+		/// <para>The pData member of the WLAN_NOTIFICATION_DATA structure points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_peer_leave,
+
+		/// <summary>
+		/// <para>A wireless adapter has been removed from the local computer.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_adapter_removal,
+
+		/// <summary>
+		/// <para>The operation mode of the wireless device has changed.</para>
+		/// <para>The pData member points to a ULONG that identifies the new operation mode.</para>
+		/// </summary>
+		wlan_notification_msm_adapter_operation_mode_change,
+
+		/// <summary>
+		/// <para>The current link quality has degraded, but the system has not yet disconnected or reconnected.</para>
+		/// </summary>
+		wlan_notification_msm_link_degraded,
+
+		/// <summary>
+		/// <para>The link quality of the current Wi-Fi connection has improved after a previous degradation, without a disconnection.</para>
+		/// </summary>
+		wlan_notification_msm_link_improved,
+
+		/// <summary>
+		/// <para>End of MSM notifications.</para>
+		/// </summary>
+		wlan_notification_msm_end
+	}
+
 	#endregion
 
 	public const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
