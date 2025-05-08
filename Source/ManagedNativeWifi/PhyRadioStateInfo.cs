@@ -5,10 +5,10 @@ namespace ManagedNativeWifi;
 /// <summary>
 /// Wireless radio information
 /// </summary>
-public class PhyRadioStateData
+public class PhyRadioStateInfo
 {
 	/// <summary>
-	/// The index of the PHY type on which the radio state is being set or queried.
+	/// The index of the PHY type on which the radio state is being set or queried
 	/// </summary>
 	public uint PhyIndex { get; }
 
@@ -22,7 +22,7 @@ public class PhyRadioStateData
 	/// </summary>
 	public bool SoftwareOn { get; }
 
-	internal PhyRadioStateData(WLAN_PHY_RADIO_STATE data)
+	internal PhyRadioStateInfo(WLAN_PHY_RADIO_STATE data)
 	{
 		PhyIndex = data.dwPhyIndex;
 		HardwareOn = data.dot11HardwareRadioState == DOT11_RADIO_STATE.dot11_radio_state_on;

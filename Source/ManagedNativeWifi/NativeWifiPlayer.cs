@@ -64,116 +64,90 @@ public class NativeWifiPlayer : IDisposable
 
 	private void OnNotificationReceived(object sender, WLAN_NOTIFICATION_DATA e)
 	{
-		// Check the notification source
-		if (e.NotificationSource == WLAN_NOTIFICATION_SOURCE_MSM)
+		switch (e.NotificationSource)
 		{
-			var msmCode = (WLAN_NOTIFICATION_MSM)e.NotificationCode;
+			case WLAN_NOTIFICATION_SOURCE_ACM:
+				var acmCode = (WLAN_NOTIFICATION_ACM)e.NotificationCode;
+				Debug.WriteLine($"Notification ACM Received: {acmCode}");
 
-			Debug.WriteLine($"Notification MSM Received: {msmCode}");
+				switch (acmCode)
+				{
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_list_refresh:
+						NetworkRefreshed?.Invoke(this, EventArgs.Empty);
+						break;
 
-			switch (msmCode)
-			{
-				case WLAN_NOTIFICATION_MSM.wlan_notification_msm_radio_state_change:
-					// Ensure pData is not null
-					if (e.pData != IntPtr.Zero)
-					{
-						// The pData points to a WLAN_PHY_RADIO_STATE structure
-						var radioState = new PhyRadioStateData(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_available:
+						AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(e.InterfaceGuid, AvailabilityChangedState.Available));
+						break;
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_not_available:
+						AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(e.InterfaceGuid, AvailabilityChangedState.Unavailable));
+						break;
 
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_arrival:
+						InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(e.InterfaceGuid, InterfaceChangedState.Arrived));
+						break;
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_removal:
+						InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(e.InterfaceGuid, InterfaceChangedState.Removed));
+						break;
+
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
+						var data = new ConnectionNotificationData(Marshal.PtrToStructure<WLAN_CONNECTION_NOTIFICATION_DATA>(e.pData));
+						switch (acmCode)
+						{
+							case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
+								ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Started, data));
+								break;
+							case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
+								ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Completed, data));
+								break;
+							case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
+								ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Failed, data));
+								break;
+							case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
+								ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Disconnecting, data));
+								break;
+							case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
+								ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Disconnected, data));
+								break;
+						}
+						break;
+
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_change:
+						ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Changed));
+						break;
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_name_change:
+						ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.NameChanged));
+						break;
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_unblocked:
+						ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Unblocked));
+						break;
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_blocked:
+						ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Blocked));
+						break;
+				}
+				break;
+
+			case WLAN_NOTIFICATION_SOURCE_MSM:
+				var msmCode = (WLAN_NOTIFICATION_MSM)e.NotificationCode;
+				Debug.WriteLine($"Notification MSM Received: {msmCode}");
+
+				switch (msmCode)
+				{
+					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_radio_state_change:
+						var radioState = new PhyRadioStateInfo(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
 						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, radioState));
-					}
-					else
-					{
-						Debug.WriteLine("Notification data pointer (pData) is null.");
-					}
-					break;
+						break;
 
-				case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change:
-					// Handle signal quality change
-					if (e.pData != IntPtr.Zero)
-					{
-						// The pData points to a ULONG value for the signal quality (0-100)
+					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change:
 						int signalQuality = Marshal.ReadInt32(e.pData);
 						SignalQualityChanged?.Invoke(this, new SignalQualityChangedEventArgs(e.InterfaceGuid, signalQuality));
-					}
-					else
-					{
-						Debug.WriteLine("Notification data pointer (pData) is null.");
-					}
-					break;
-				// Add other MSM notifications here if needed
-				default:
-					Debug.WriteLine($"Unhandled MSM Notification: {msmCode}");
-					break;
-			}
-		}
-		else if (e.NotificationSource == WLAN_NOTIFICATION_SOURCE_ACM)
-		{
-			var acmCode = (WLAN_NOTIFICATION_ACM)e.NotificationCode;
-
-			Debug.WriteLine($"Notification ACM Received: {acmCode}");
-
-			switch (acmCode)
-			{
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_scan_list_refresh:
-					NetworkRefreshed?.Invoke(this, EventArgs.Empty);
-					break;
-
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_available:
-					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(e.InterfaceGuid, AvailabilityChangedState.Available));
-					break;
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_network_not_available:
-					AvailabilityChanged?.Invoke(this, new AvailabilityChangedEventArgs(e.InterfaceGuid, AvailabilityChangedState.Unavailable));
-					break;
-
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_arrival:
-					InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(e.InterfaceGuid, InterfaceChangedState.Arrived));
-					break;
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_interface_removal:
-					InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(e.InterfaceGuid, InterfaceChangedState.Removed));
-					break;
-
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-					// The pData of WLAN_NOTIFICATION_DATA points to a WLAN_CONNECTION_NOTIFICATION_DATA structure.
-					var data = new ConnectionNotificationData(Marshal.PtrToStructure<WLAN_CONNECTION_NOTIFICATION_DATA>(e.pData));
-
-					switch (acmCode)
-					{
-						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
-							ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Started, data));
-							break;
-						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-							ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Completed, data));
-							break;
-						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
-							ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Failed, data));
-							break;
-						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
-							ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Disconnecting, data));
-							break;
-						case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
-							ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(e.InterfaceGuid, ConnectionChangedState.Disconnected, data));
-							break;
-					}
-					break;
-
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_change:
-					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Changed));
-					break;
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_name_change:
-					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.NameChanged));
-					break;
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_unblocked:
-					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Unblocked));
-					break;
-				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_profile_blocked:
-					ProfileChanged?.Invoke(this, new ProfileChangedEventArgs(e.InterfaceGuid, ProfileChangedState.Blocked));
-					break;
-			}
+						break;
+				}
+				break;
 		}
 	}
 

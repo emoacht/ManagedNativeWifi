@@ -207,9 +207,9 @@ class Program
 	private static void Player_RadioStateChanged(object sender, RadioStateChangedEventArgs e)
 	{
 		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
-		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateData.PhyIndex}");
-		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateData.HardwareOn}");
-		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateData.SoftwareOn}}}");
+		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateInfo.PhyIndex}");
+		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateInfo.HardwareOn}");
+		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateInfo.SoftwareOn}}}");
 	}
 
 	private static void CheckSignalStrengthEvents()
