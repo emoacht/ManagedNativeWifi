@@ -91,11 +91,6 @@ public class NativeWifi
 		return ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, cancellationToken);
 	}
 
-	internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(Base.WlanNotificationClient client, TimeSpan timeout, CancellationToken cancellationToken)
-	{
-		return await ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, cancellationToken);
-	}
-
 	/// <summary>
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
