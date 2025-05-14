@@ -77,7 +77,7 @@ public class NativeWifi
 	/// <returns>Interface IDs that successfully scanned</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout)
 	{
-		return ScanNetworksAsync(null, onlyDisconnectedInterfaces: false, null, timeout, CancellationToken.None);
+		return ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, CancellationToken.None);
 	}
 
 	/// <summary>
@@ -88,56 +88,56 @@ public class NativeWifi
 	/// <returns>Interface IDs that successfully scanned</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken)
 	{
-		return ScanNetworksAsync(null, onlyDisconnectedInterfaces: false, null, timeout, cancellationToken);
+		return ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, cancellationToken);
 	}
 
 	/// <summary>
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
-	/// <param name="onlyDisconnectedInterfaces">A value indicating whether to ignore all connected interfaces.</param>
+	/// <param name="timeout">Timeout duration</param>
+	/// <param name="onlyDisconnected">A value indicating whether to ignore all connected interfaces.</param>
+	/// <returns>Interface IDs that successfully scanned</returns>
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, bool onlyDisconnected)
+	{
+		return ScanNetworksAsync(null, null, timeout, onlyDisconnected, CancellationToken.None);
+	}
+
+	/// <summary>
+	/// Asynchronously requests wireless interfaces to scan wireless LANs.
+	/// </summary>
+	/// <param name="timeout">Timeout duration</param>
+	/// <param name="onlyDisconnected">A value indicating whether to ignore all connected interfaces.</param>
+	/// <param name="cancellationToken">Cancellation token</param>
+	/// <returns>Interface IDs that successfully scanned</returns>
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, bool onlyDisconnected, CancellationToken cancellationToken)
+	{
+		return ScanNetworksAsync(null, null, timeout, onlyDisconnected, cancellationToken);
+	}
+
+	/// <summary>
+	/// Asynchronously requests wireless interfaces to scan wireless LANs.
+	/// </summary>
+	/// <param name="interfaceIds">A list of wireless interface IDs (interfaces not in this list will be ignored), or <c>null</c>.</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(bool onlyDisconnectedInterfaces, TimeSpan timeout)
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<Guid> interfaceIds, TimeSpan timeout)
 	{
-		return ScanNetworksAsync(null, onlyDisconnectedInterfaces, null, timeout, CancellationToken.None);
+		return ScanNetworksAsync(null, interfaceIds, timeout, onlyDisconnected: false, CancellationToken.None);
 	}
 
 	/// <summary>
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
-	/// <param name="onlyDisconnectedInterfaces">A value indicating whether to ignore all connected interfaces.</param>
+	/// <param name="interfaceIds">A list of wireless interface IDs (interfaces not in this list will be ignored), or <c>null</c>.</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
 	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(bool onlyDisconnectedInterfaces, TimeSpan timeout, CancellationToken cancellationToken)
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken)
 	{
-		return ScanNetworksAsync(null, onlyDisconnectedInterfaces, null, timeout, cancellationToken);
+		return ScanNetworksAsync(null, interfaceIds, timeout, onlyDisconnected: false, cancellationToken);
 	}
 
-	/// <summary>
-	/// Asynchronously requests wireless interfaces to scan wireless LANs.
-	/// </summary>
-	/// <param name="interfaces">A list of wireless interfaces (interfaces not in the list will be ignored) or <c>null</c>.</param>
-	/// <param name="timeout">Timeout duration</param>
-	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<InterfaceInfo> interfaces, TimeSpan timeout)
-	{
-		return ScanNetworksAsync(interfaces, onlyDisconnectedInterfaces: false, null, timeout, CancellationToken.None);
-	}
-
-	/// <summary>
-	/// Asynchronously requests wireless interfaces to scan wireless LANs.
-	/// </summary>
-	/// <param name="interfaces">A list of wireless interfaces (interfaces not in the list will be ignored) or <c>null</c>.</param>
-	/// <param name="timeout">Timeout duration</param>
-	/// <param name="cancellationToken">Cancellation token</param>
-	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<InterfaceInfo> interfaces, TimeSpan timeout, CancellationToken cancellationToken)
-	{
-		return ScanNetworksAsync(interfaces, onlyDisconnectedInterfaces: false, null, timeout, cancellationToken);
-	}
-
-	internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<InterfaceInfo> interfaces, bool onlyDisconnectedInterfaces, Base.WlanNotificationClient client, TimeSpan timeout, CancellationToken cancellationToken)
+	internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(Base.WlanNotificationClient client, IEnumerable<Guid> _interfaceIds, TimeSpan timeout, bool onlyDisconnected, CancellationToken cancellationToken)
 	{
 		if (timeout <= TimeSpan.Zero)
 			throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
@@ -145,8 +145,8 @@ public class NativeWifi
 		using var container = new DisposableContainer<Base.WlanNotificationClient>(client);
 
 		var interfaceIds = Base.GetInterfaceInfoList(container.Content.Handle)
-			.Where(x => (interfaces == null || interfaces.Any(i => i.Id == x.InterfaceGuid)) &&
-						(!onlyDisconnectedInterfaces || x.isState == WLAN_INTERFACE_STATE.wlan_interface_state_disconnected))
+			.Where(x => (_interfaceIds == null || _interfaceIds.Any(i => i == x.InterfaceGuid)) &&
+						(!onlyDisconnected || x.isState == WLAN_INTERFACE_STATE.wlan_interface_state_disconnected))
 			.Select(x => x.InterfaceGuid)
 			.ToArray();
 
