@@ -4,7 +4,7 @@ using static ManagedNativeWifi.Win32.NativeMethod;
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Wireless radio information
+/// PHY radio state information
 /// </summary>
 public class PhyRadioStateInfo
 {

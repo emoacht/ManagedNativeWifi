@@ -57,7 +57,7 @@ public class NativeWifiPlayer : IDisposable
 	public event EventHandler<RadioStateChangedEventArgs> RadioStateChanged;
 
 	/// <summary>
-	/// Occurs when the signal quality of a wireless interface changes.
+	/// Occurs when the signal quality for a wireless LAN is changed.
 	/// </summary>
 	public event EventHandler<SignalQualityChangedEventArgs> SignalQualityChanged;
 
