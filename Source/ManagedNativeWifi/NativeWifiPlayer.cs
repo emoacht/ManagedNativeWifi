@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using static ManagedNativeWifi.Win32.NativeMethod;
-
 using Base = ManagedNativeWifi.Win32.BaseMethod;
 
 namespace ManagedNativeWifi;
@@ -90,11 +89,11 @@ public class NativeWifiPlayer : IDisposable
 						InterfaceChanged?.Invoke(this, new InterfaceChangedEventArgs(e.InterfaceGuid, InterfaceChangedState.Removed));
 						break;
 
-					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start:
-					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
-					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting:
-					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected:
+					case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_start or
+						 WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete or
+						 WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail or
+						 WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnecting or
+						 WLAN_NOTIFICATION_ACM.wlan_notification_acm_disconnected when (ConnectionChanged is not null):
 						var data = new ConnectionNotificationData(Marshal.PtrToStructure<WLAN_CONNECTION_NOTIFICATION_DATA>(e.pData));
 						switch (acmCode)
 						{
@@ -137,12 +136,12 @@ public class NativeWifiPlayer : IDisposable
 
 				switch (msmCode)
 				{
-					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_radio_state_change:
-						var radioState = new PhyRadioStateInfo(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
-						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, radioState));
+					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_radio_state_change when (RadioStateChanged is not null):
+						var phyRadioStateInfo = new PhyRadioStateInfo(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
+						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, phyRadioStateInfo));
 						break;
 
-					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change:
+					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change when (SignalQualityChanged is not null):
 						int signalQuality = Marshal.ReadInt32(e.pData);
 						SignalQualityChanged?.Invoke(this, new SignalQualityChangedEventArgs(e.InterfaceGuid, signalQuality));
 						break;

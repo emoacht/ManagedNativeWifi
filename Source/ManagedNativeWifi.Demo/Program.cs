@@ -21,7 +21,7 @@ class Program
 		//TurnOff();
 
 		//CheckRadioStateEvents();
-		//CheckSignalStrengthEvents();
+		//CheckSignalQualityEvents();
 	}
 
 	private static void ShowInformation()
@@ -199,30 +199,32 @@ class Program
 	private static void CheckRadioStateEvents()
 	{
 		using var player = new NativeWifiPlayer();
-		player.RadioStateChanged += Player_RadioStateChanged;
-		Console.ReadLine();
-		player.RadioStateChanged -= Player_RadioStateChanged;
+		player.RadioStateChanged += OnRadioStateChanged;
+		Console.WriteLine("Listening RadioStateChanged events. To stop listening, hit any key.");
+		Console.ReadKey();
+		player.RadioStateChanged -= OnRadioStateChanged;
+
+		static void OnRadioStateChanged(object sender, RadioStateChangedEventArgs e)
+		{
+			Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+			Trace.WriteLine($" PhyIndex: {e.PhyRadioStateInfo.PhyIndex}");
+			Trace.WriteLine($" HardwareOn: {e.PhyRadioStateInfo.HardwareOn}");
+			Trace.WriteLine($" SoftwareOn: {e.PhyRadioStateInfo.SoftwareOn}}}");
+		}
 	}
 
-	private static void Player_RadioStateChanged(object sender, RadioStateChangedEventArgs e)
-	{
-		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
-		Trace.WriteLine($" PhyIndex: {e.PhyRadioStateInfo.PhyIndex}");
-		Trace.WriteLine($" HardwareRadioOn: {e.PhyRadioStateInfo.HardwareOn}");
-		Trace.WriteLine($" SoftwareRadioOn: {e.PhyRadioStateInfo.SoftwareOn}}}");
-	}
-
-	private static void CheckSignalStrengthEvents()
+	private static void CheckSignalQualityEvents()
 	{
 		using var player = new NativeWifiPlayer();
-		player.SignalQualityChanged += Player_SignalQualityChanged; ;
-		Console.ReadLine();
-		player.SignalQualityChanged -= Player_SignalQualityChanged;
-	}
+		player.SignalQualityChanged += OnSignalQualityChanged;
+		Console.WriteLine("Listening SignalQualityChanged events. To stop listening, hit any key.");
+		Console.ReadKey();
+		player.SignalQualityChanged -= OnSignalQualityChanged;
 
-	private static void Player_SignalQualityChanged(object sender, SignalQualityChangedEventArgs e)
-	{
-		Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
-		Trace.WriteLine($"SignalQuality: {e.SignalQuality})}}");
+		static void OnSignalQualityChanged(object sender, SignalQualityChangedEventArgs e)
+		{
+			Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
+			Trace.WriteLine($" SignalQuality: {e.SignalQuality}}}");
+		}
 	}
 }

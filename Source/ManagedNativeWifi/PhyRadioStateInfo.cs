@@ -1,4 +1,5 @@
-﻿using static ManagedNativeWifi.Win32.NativeMethod;
+﻿
+using static ManagedNativeWifi.Win32.NativeMethod;
 
 namespace ManagedNativeWifi;
 
@@ -25,8 +26,7 @@ public class PhyRadioStateInfo
 	internal PhyRadioStateInfo(WLAN_PHY_RADIO_STATE data)
 	{
 		PhyIndex = data.dwPhyIndex;
-		HardwareOn = data.dot11HardwareRadioState == DOT11_RADIO_STATE.dot11_radio_state_on;
-		SoftwareOn = data.dot11SoftwareRadioState == DOT11_RADIO_STATE.dot11_radio_state_on;
+		HardwareOn = data.dot11HardwareRadioState is DOT11_RADIO_STATE.dot11_radio_state_on;
+		SoftwareOn = data.dot11SoftwareRadioState is DOT11_RADIO_STATE.dot11_radio_state_on;
 	}
 }
-
