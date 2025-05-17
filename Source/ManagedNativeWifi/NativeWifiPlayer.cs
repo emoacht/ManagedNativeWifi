@@ -199,7 +199,13 @@ public class NativeWifiPlayer : IDisposable
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
 	public Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken) =>
-		NativeWifi.ScanNetworksAsync(_client, timeout, cancellationToken);
+		NativeWifi.ScanNetworksAsync(_client, ScanMode.All, interfaceIds: null, timeout, cancellationToken);
+
+	/// <summary>
+	/// Asynchronously requests wireless interfaces to scan wireless LANs.
+	/// </summary>
+	public Task<IEnumerable<Guid>> ScanNetworksAsync(ScanMode mode, IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken) =>
+		NativeWifi.ScanNetworksAsync(_client, mode, interfaceIds, timeout, cancellationToken);
 
 	/// <summary>
 	/// Enumerates SSIDs of available wireless LANs.
