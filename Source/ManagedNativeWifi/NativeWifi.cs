@@ -105,7 +105,8 @@ public class NativeWifi
 		var tcs = new TaskCompletionSource<bool>();
 		var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), interfaceIds);
 
-		container.Content.NotificationReceived += (sender, data) =>
+		container.Content.Register(WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM);
+		container.Content.NotificationReceived += (_, data) =>
 		{
 			switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 			{
@@ -718,7 +719,8 @@ public class NativeWifi
 
 		var tcs = new TaskCompletionSource<bool>();
 
-		container.Content.NotificationReceived += (sender, data) =>
+		container.Content.Register(WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM);
+		container.Content.NotificationReceived += (_, data) =>
 		{
 			if (data.InterfaceGuid != interfaceId)
 				return;
@@ -827,7 +829,8 @@ public class NativeWifi
 
 		var tcs = new TaskCompletionSource<bool>();
 
-		container.Content.NotificationReceived += (sender, data) =>
+		container.Content.Register(WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM);
+		container.Content.NotificationReceived += (_, data) =>
 		{
 			if (data.InterfaceGuid != interfaceId)
 				return;

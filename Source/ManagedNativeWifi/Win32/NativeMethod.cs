@@ -161,7 +161,7 @@ internal static class NativeMethod
 	[DllImport("Wlanapi.dll")]
 	public static extern uint WlanRegisterNotification(
 		SafeClientHandle hClientHandle,
-		uint dwNotifSource,
+		WLAN_NOTIFICATION_SOURCE dwNotifSource,
 		[MarshalAs(UnmanagedType.Bool)] bool bIgnoreDuplicate,
 		WLAN_NOTIFICATION_CALLBACK funcCallback,
 		IntPtr pCallbackContext,
@@ -557,7 +557,7 @@ internal static class NativeMethod
 	[StructLayout(LayoutKind.Sequential)]
 	public struct WLAN_NOTIFICATION_DATA
 	{
-		public uint NotificationSource;
+		public WLAN_NOTIFICATION_SOURCE NotificationSource;
 		public uint NotificationCode;
 		public Guid InterfaceGuid;
 		public uint dwDataSize;
@@ -728,6 +728,19 @@ internal static class NativeMethod
 		wlan_intf_opcode_security_end = 0x2fffffff,
 		wlan_intf_opcode_ihv_start = 0x30000000,
 		wlan_intf_opcode_ihv_end = 0x3fffffff
+	}
+
+	[Flags]
+	public enum WLAN_NOTIFICATION_SOURCE : uint
+	{
+		WLAN_NOTIFICATION_SOURCE_NONE = 0,
+		WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004,
+		WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008,
+		WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010,
+		WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020,
+		WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040,
+		WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080,
+		WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF
 	}
 
 	/// <summary>
@@ -1061,15 +1074,6 @@ internal static class NativeMethod
 	public const uint ERROR_BAD_PROFILE = 1206;
 	public const uint ERROR_NO_MATCH = 1169;
 	public const uint ERROR_GEN_FAILURE = 31;
-
-	public const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
-	public const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;
-	public const uint WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008;
-	public const uint WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080;
-	public const uint WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004;
-	public const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
-	public const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
-	public const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
 
 	public const uint WLAN_REASON_CODE_SUCCESS = 0;
 

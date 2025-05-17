@@ -23,6 +23,7 @@ public class NativeWifiPlayer : IDisposable
 	public NativeWifiPlayer()
 	{
 		_client = new Base.WlanNotificationClient();
+		_client.Register(WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM | WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_MSM);
 		_client.NotificationReceived += OnNotificationReceived;
 	}
 
@@ -65,7 +66,7 @@ public class NativeWifiPlayer : IDisposable
 	{
 		switch (e.NotificationSource)
 		{
-			case WLAN_NOTIFICATION_SOURCE_ACM:
+			case WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM:
 				var acmCode = (WLAN_NOTIFICATION_ACM)e.NotificationCode;
 				Debug.WriteLine($"Notification ACM Received: {acmCode}");
 
@@ -130,7 +131,7 @@ public class NativeWifiPlayer : IDisposable
 				}
 				break;
 
-			case WLAN_NOTIFICATION_SOURCE_MSM:
+			case WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_MSM:
 				var msmCode = (WLAN_NOTIFICATION_MSM)e.NotificationCode;
 				Debug.WriteLine($"Notification MSM Received: {msmCode}");
 
