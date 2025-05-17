@@ -77,7 +77,7 @@ public class NativeWifi
 	/// <returns>Interface IDs that successfully scanned</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout)
 	{
-		return ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, CancellationToken.None);
+		return ScanNetworksAsync(null, ScanMode.All, interfaceIds: null, timeout, CancellationToken.None);
 	}
 
 	/// <summary>
@@ -88,70 +88,59 @@ public class NativeWifi
 	/// <returns>Interface IDs that successfully scanned</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken)
 	{
-		return ScanNetworksAsync(null, null, timeout, onlyDisconnected: false, cancellationToken);
+		return ScanNetworksAsync(null, ScanMode.All, interfaceIds: null, timeout, cancellationToken);
 	}
 
 	/// <summary>
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
-	/// <param name="timeout">Timeout duration</param>
-	/// <param name="onlyDisconnected">A value indicating whether to ignore all connected interfaces.</param>
-	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, bool onlyDisconnected)
-	{
-		return ScanNetworksAsync(null, null, timeout, onlyDisconnected, CancellationToken.None);
-	}
-
-	/// <summary>
-	/// Asynchronously requests wireless interfaces to scan wireless LANs.
-	/// </summary>
-	/// <param name="timeout">Timeout duration</param>
-	/// <param name="onlyDisconnected">A value indicating whether to ignore all connected interfaces.</param>
-	/// <param name="cancellationToken">Cancellation token</param>
-	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, bool onlyDisconnected, CancellationToken cancellationToken)
-	{
-		return ScanNetworksAsync(null, null, timeout, onlyDisconnected, cancellationToken);
-	}
-
-	/// <summary>
-	/// Asynchronously requests wireless interfaces to scan wireless LANs.
-	/// </summary>
-	/// <param name="interfaceIds">A list of wireless interface IDs (interfaces not in this list will be ignored), or <c>null</c>.</param>
+	/// <param name="mode">Mode to scan</param>
+	/// <param name="interfaceIds">Interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<Guid> interfaceIds, TimeSpan timeout)
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(ScanMode mode, IEnumerable<Guid> interfaceIds, TimeSpan timeout)
 	{
-		return ScanNetworksAsync(null, interfaceIds, timeout, onlyDisconnected: false, CancellationToken.None);
+		return ScanNetworksAsync(null, mode, interfaceIds, timeout, CancellationToken.None);
 	}
 
 	/// <summary>
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
-	/// <param name="interfaceIds">A list of wireless interface IDs (interfaces not in this list will be ignored), or <c>null</c>.</param>
+	/// <param name="mode">Mode to scan</param>
+	/// <param name="interfaceIds">Interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
 	/// <returns>Interface IDs that successfully scanned</returns>
-	public static Task<IEnumerable<Guid>> ScanNetworksAsync(IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken)
+	public static Task<IEnumerable<Guid>> ScanNetworksAsync(ScanMode mode, IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken)
 	{
-		return ScanNetworksAsync(null, interfaceIds, timeout, onlyDisconnected: false, cancellationToken);
+		return ScanNetworksAsync(null, mode, interfaceIds, timeout, cancellationToken);
 	}
 
-	internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(Base.WlanNotificationClient client, IEnumerable<Guid> _interfaceIds, TimeSpan timeout, bool onlyDisconnected, CancellationToken cancellationToken)
+	internal static async Task<IEnumerable<Guid>> ScanNetworksAsync(Base.WlanNotificationClient client, ScanMode mode, IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		if (timeout <= TimeSpan.Zero)
 			throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
 
+		var specifiedIds = interfaceIds?.ToArray();
+
+		if ((mode is ScanMode.OnlySpecified) && (specifiedIds is not { Length: > 0 }))
+			throw new ArgumentException("The interface IDs must be provided when mode is OnlySpecified.", nameof(interfaceIds));
+
 		using var container = new DisposableContainer<Base.WlanNotificationClient>(client);
 
-		var interfaceIds = Base.GetInterfaceInfoList(container.Content.Handle)
-			.Where(x => (_interfaceIds == null || _interfaceIds.Any(i => i == x.InterfaceGuid)) &&
-						(!onlyDisconnected || x.isState == WLAN_INTERFACE_STATE.wlan_interface_state_disconnected))
+		var targetIds = Base.GetInterfaceInfoList(container.Content.Handle)
+			.Where(x => mode switch
+			{
+				ScanMode.All => true,
+				ScanMode.OnlyDisconnected => (x.isState is WLAN_INTERFACE_STATE.wlan_interface_state_disconnected),
+				ScanMode.OnlySpecified => specifiedIds.Contains(x.InterfaceGuid),
+				_ => false,
+			})
 			.Select(x => x.InterfaceGuid)
 			.ToArray();
 
 		var tcs = new TaskCompletionSource<bool>();
-		var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), interfaceIds);
+		var counter = new ScanCounter(() => Task.Run(() => tcs.TrySetResult(true)), targetIds);
 
 		container.Content.Register(WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_ACM);
 		container.Content.NotificationReceived += (_, data) =>
@@ -167,11 +156,11 @@ public class NativeWifi
 			}
 		};
 
-		foreach (var interfaceId in interfaceIds)
+		foreach (var targetId in targetIds)
 		{
-			var result = Base.Scan(container.Content.Handle, interfaceId);
+			var result = Base.Scan(container.Content.Handle, targetId);
 			if (!result)
-				counter.SetFailure(interfaceId);
+				counter.SetFailure(targetId);
 		}
 
 		using (cancellationToken.Register(() => tcs.TrySetCanceled()))
@@ -197,7 +186,7 @@ public class NativeWifi
 			this._targets.AddRange(targets);
 		}
 
-		private readonly object _lock = new object();
+		private readonly object _lock = new();
 
 		public void SetSuccess(Guid value)
 		{
