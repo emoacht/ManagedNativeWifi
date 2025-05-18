@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
-    <Version>2.7.0</Version>
+    <Version>2.8.0</Version>
     <Authors>emoacht</Authors>
     <Copyright>Copyright © 2015 emoacht</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

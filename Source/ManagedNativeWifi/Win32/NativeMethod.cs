@@ -161,7 +161,7 @@ internal static class NativeMethod
 	[DllImport("Wlanapi.dll")]
 	public static extern uint WlanRegisterNotification(
 		SafeClientHandle hClientHandle,
-		uint dwNotifSource,
+		WLAN_NOTIFICATION_SOURCE dwNotifSource,
 		[MarshalAs(UnmanagedType.Bool)] bool bIgnoreDuplicate,
 		WLAN_NOTIFICATION_CALLBACK funcCallback,
 		IntPtr pCallbackContext,
@@ -557,7 +557,7 @@ internal static class NativeMethod
 	[StructLayout(LayoutKind.Sequential)]
 	public struct WLAN_NOTIFICATION_DATA
 	{
-		public uint NotificationSource;
+		public WLAN_NOTIFICATION_SOURCE NotificationSource;
 		public uint NotificationCode;
 		public Guid InterfaceGuid;
 		public uint dwDataSize;
@@ -730,10 +730,27 @@ internal static class NativeMethod
 		wlan_intf_opcode_ihv_end = 0x3fffffff
 	}
 
+	[Flags]
+	public enum WLAN_NOTIFICATION_SOURCE : uint
+	{
+		WLAN_NOTIFICATION_SOURCE_NONE = 0,
+		WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004,
+		WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008,
+		WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010,
+		WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020,
+		WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040,
+		WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080,
+		WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF
+	}
+
 	/// <summary>
-	/// WLAN_NOTIFICATION_DATA structure:
-	/// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms706902(v=vs.85)
+	/// WLAN_NOTIFICATION_ACM enumeration:
+	/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_notification_acm-r1
 	/// </summary>
+	/// <remarks>
+	/// The descriptions are given at WLAN_NOTIFICATION_DATA structure:
+	/// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms706902(v=vs.85) 
+	/// </remarks>
 	public enum WLAN_NOTIFICATION_ACM : uint
 	{
 		wlan_notification_acm_start = 0,
@@ -903,6 +920,139 @@ internal static class NativeMethod
 		wlan_notification_acm_end
 	}
 
+	/// <summary>
+	/// WLAN_NOTIFICATION_MSM enumeration:
+	/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_notification_msm-r1
+	/// </summary>
+	/// <remarks>
+	/// The descriptions are given at WLAN_NOTIFICATION_DATA structure:
+	/// https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms706902(v=vs.85)
+	/// </remarks>
+	public enum WLAN_NOTIFICATION_MSM : uint
+	{
+		wlan_notification_msm_start = 0,
+
+		/// <summary>
+		/// <para>A wireless device is in the process of associating with an access point or
+		/// a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information</para>
+		/// </summary>
+		wlan_notification_msm_associating,
+
+		/// <summary>
+		/// <para>The wireless device has associated with an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_associated,
+
+		/// <summary>
+		/// <para>The wireless device is in the process of authenticating.</para>
+		/// <para>The pData member of the WLAN_NOTIFICATION_DATA structure points to
+		/// a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_authenticating,
+
+		/// <summary>
+		/// <para>The wireless device is associated with an access point or a peer station, keys
+		/// have been exchanged, and the wireless device is available to send data.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_connected,
+
+		/// <summary>
+		/// <para>The wireless device is connected to an access point and has initiated roaming to
+		/// another access point.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_roaming_start,
+
+		/// <summary>
+		/// <para>The wireless device was connected to an access point and has completed roaming
+		/// to another access point.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_roaming_end,
+
+		/// <summary>
+		/// <para>The radio state for an adapter has changed. Each physical layer (PHY) has its
+		/// own radio state. The radio for an adapter is switched off when the radio state of
+		/// every PHY is off.</para>
+		/// <para>The pData member points to a WLAN_PHY_RADIO_STATE structure that identifies
+		/// the new radio state.</para>
+		/// </summary>
+		wlan_notification_msm_radio_state_change,
+
+		/// <summary>
+		/// <para>A signal quality change for the currently associated access point or peer
+		/// station.</para>
+		/// <para>The pData member points to a ULONG value for the WLAN_SIGNAL_QUALITY that
+		/// identifies the new signal quality.</para>
+		/// </summary>
+		wlan_notification_msm_signal_quality_change,
+
+		/// <summary>
+		/// <para>A wireless device is in the process of disassociating from an access point or
+		/// a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_disassociating,
+
+		/// <summary>
+		/// <para>The wireless device is not associated with an access point or a peer station.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information. The wlanReasonCode member of
+		/// the WLAN_MSM_NOTIFICATION_DATA structure indicates the reason for the disconnect.</para>
+		/// </summary>
+		wlan_notification_msm_disconnected,
+
+		/// <summary>
+		/// <para>A peer has joined an adhoc network.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_peer_join,
+
+		/// <summary>
+		/// <para>A peer has left an adhoc network.</para>
+		/// <para>The pData member of the WLAN_NOTIFICATION_DATA structure points to
+		/// a WLAN_MSM_NOTIFICATION_DATA structure that contains connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_peer_leave,
+
+		/// <summary>
+		/// <para>A wireless adapter has been removed from the local computer.</para>
+		/// <para>The pData member points to a WLAN_MSM_NOTIFICATION_DATA structure that contains
+		/// connection-related information.</para>
+		/// </summary>
+		wlan_notification_msm_adapter_removal,
+
+		/// <summary>
+		/// <para>The operation mode of the wireless device has changed.</para>
+		/// <para>The pData member points to a ULONG that identifies the new operation mode.</para>
+		/// </summary>
+		wlan_notification_msm_adapter_operation_mode_change,
+
+		/// <summary>
+		/// <para>The current link quality has degraded, but the system has not yet disconnected
+		/// or reconnected.</para>
+		/// </summary>
+		wlan_notification_msm_link_degraded,
+
+		/// <summary>
+		/// <para>The link quality of the current Wi-Fi connection has improved after a previous
+		/// degradation, without a disconnection.</para>
+		/// </summary>
+		wlan_notification_msm_link_improved,
+
+		wlan_notification_msm_end
+	}
+
 	#endregion
 
 	public const uint WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES = 0x00000001;
@@ -924,15 +1074,6 @@ internal static class NativeMethod
 	public const uint ERROR_BAD_PROFILE = 1206;
 	public const uint ERROR_NO_MATCH = 1169;
 	public const uint ERROR_GEN_FAILURE = 31;
-
-	public const uint WLAN_NOTIFICATION_SOURCE_NONE = 0;
-	public const uint WLAN_NOTIFICATION_SOURCE_ALL = 0x0000FFFF;
-	public const uint WLAN_NOTIFICATION_SOURCE_ACM = 0x00000008;
-	public const uint WLAN_NOTIFICATION_SOURCE_HNWK = 0x00000080;
-	public const uint WLAN_NOTIFICATION_SOURCE_ONEX = 0x00000004;
-	public const uint WLAN_NOTIFICATION_SOURCE_MSM = 0x00000010;
-	public const uint WLAN_NOTIFICATION_SOURCE_SECURITY = 0x00000020;
-	public const uint WLAN_NOTIFICATION_SOURCE_IHV = 0x00000040;
 
 	public const uint WLAN_REASON_CODE_SUCCESS = 0;
 

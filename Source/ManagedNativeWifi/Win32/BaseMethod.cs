@@ -63,29 +63,30 @@ internal static class BaseMethod
 	{
 		public event EventHandler<WLAN_NOTIFICATION_DATA> NotificationReceived;
 
+		private WLAN_NOTIFICATION_SOURCE _notificationSource;
 		private WLAN_NOTIFICATION_CALLBACK _notificationCallback;
 
 		public WlanNotificationClient() : base()
-		{
-			RegisterNotification();
-		}
+		{ }
 
-		private void RegisterNotification()
+		public void Register(WLAN_NOTIFICATION_SOURCE notificationSource)
 		{
+			_notificationSource = notificationSource;
+
 			// Storing a delegate in class field is necessary to prevent garbage collector from collecting
 			// the delegate before it is called. Otherwise, CallbackOnCollectedDelegate may occur.
-			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, context) =>
+			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, _) =>
 			{
 				var notificationData = Marshal.PtrToStructure<WLAN_NOTIFICATION_DATA>(data);
-				if (notificationData.NotificationSource is not WLAN_NOTIFICATION_SOURCE_ACM)
-					return;
-
-				NotificationReceived?.Invoke(null, notificationData);
+				if (_notificationSource.HasFlag(notificationData.NotificationSource))
+				{
+					NotificationReceived?.Invoke(null, notificationData);
+				}
 			});
 
 			var result = WlanRegisterNotification(
 				Handle,
-				WLAN_NOTIFICATION_SOURCE_ACM,
+				_notificationSource,
 				false,
 				_notificationCallback,
 				IntPtr.Zero,
@@ -98,13 +99,13 @@ internal static class BaseMethod
 			CheckResult(nameof(WlanRegisterNotification), result, true);
 		}
 
-		private void UnregisterNotification()
+		private void Unregister()
 		{
-			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, context) => { });
+			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, _) => { });
 
 			var result = WlanRegisterNotification(
 				Handle,
-				WLAN_NOTIFICATION_SOURCE_NONE,
+				WLAN_NOTIFICATION_SOURCE.WLAN_NOTIFICATION_SOURCE_NONE,
 				false,
 				_notificationCallback,
 				IntPtr.Zero,
@@ -129,7 +130,7 @@ internal static class BaseMethod
 
 				// Since closing the handle used for a registration to receive notification will
 				// automatically undone the registration, an unregistration is not actually required.
-				UnregisterNotification();
+				Unregister();
 			}
 
 			_disposed = true;
