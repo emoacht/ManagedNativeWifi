@@ -1,4 +1,4 @@
-# Managed Native Wifi
+﻿# Managed Native Wifi
 
 ManagedNativeWifi is a managed implementation of [Native Wifi][1] API. It provides functionality to manage wireless networks, interfaces and profiles.
 
@@ -9,7 +9,7 @@ This library works on Windows and compatible with:
 .NET 8.0|.NET Standard 2.0 (including .NET Framework 4.6.1)
 -|-
 
-On Windows 11 (24H2) or newer, some methods require user's permission to access location information. Otherwise, UnauthorizedAccessException will be thrown. The permission can be set in Privacy & security > Location settings. 
+On Windows 11 (24H2) or newer, some methods require user's permission to access location information. Without the permission, UnauthorizedAccessException will be thrown. The permission can be set in Privacy & security > Location settings. 
 
 ## Download
 
@@ -168,6 +168,11 @@ Please note that this method can only change software radio state and if hardwar
  - Creating a wireless profile from scratch is not covered in this library. It is because 1) Native WiFi does not include such functionality, 2) it requires careful consideration on wi-fi technology in use, 3) it involves sensitive security information. Thus, it is left to each user.
 
 ## History
+
+Ver 2.8.0 2025-5-18
+
+- __Add:__ ScanNetworksAsync overload methods with modes for only disconnected interfaces or only specified interfaces
+- __Add:__ Additional events of instantiatable implementation
 
 Ver 2.7.1 2025-4-10
 
