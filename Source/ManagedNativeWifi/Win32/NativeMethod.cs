@@ -605,6 +605,28 @@ internal static class NativeMethod
 		public string strProfileXml;
 	}
 
+	[StructLayout(LayoutKind.Sequential)]
+	public struct WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO
+	{
+		public byte ucLinkID;
+		public uint ulChannelCenterFrequencyMhz;
+		public uint ulBandwidth;
+		public int lRssi;
+		public WLAN_RATE_SET wlanRateSet;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct WLAN_REALTIME_CONNECTION_QUALITY
+	{
+		public DOT11_PHY_TYPE dot11PhyType;
+		public uint ulLinkQuality;
+		public uint ulRxRate;
+		public uint ulTxRate;
+		[MarshalAs(UnmanagedType.Bool)]
+		public bool bIsMLOConnection;
+		public uint ulNumLinks;
+	}
+
 	#endregion
 
 	#region Enum
@@ -739,6 +761,10 @@ internal static class NativeMethod
 		wlan_intf_opcode_certified_safe_mode,
 		wlan_intf_opcode_hosted_network_capable,
 		wlan_intf_opcode_management_frame_protection_capable,
+		wlan_intf_opcode_secondary_sta_interfaces,
+		wlan_intf_opcode_secondary_sta_synchronized_connections,
+		wlan_intf_opcode_realtime_connection_quality,
+		wlan_intf_opcode_qos_info,
 		wlan_intf_opcode_autoconf_end = 0x0fffffff,
 		wlan_intf_opcode_msm_start = 0x10000100,
 		wlan_intf_opcode_statistics,
