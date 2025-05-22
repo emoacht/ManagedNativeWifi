@@ -1016,6 +1016,47 @@ public class NativeWifi
 
 	#endregion
 
+	#region Connection quality
+
+	/// <summary>
+	/// Gets real-time connection quality information for a specified wireless interface.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <returns>Connection quality information if succeeded. Null if failed or interface is not connected.</returns>
+	public static ConnectionQualityInfo GetConnectionQualityInfo(Guid interfaceId)
+	{
+		return GetConnectionQualityInfo(null, interfaceId);
+	}
+
+	internal static ConnectionQualityInfo GetConnectionQualityInfo(Base.WlanClient client, Guid interfaceId)
+	{
+		if (interfaceId == Guid.Empty)
+			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
+
+		using var container = new DisposableContainer<Base.WlanClient>(client);
+
+		(var connectionQuality, var links ) = Base.GetRealtimeConnectionQuality(container.Content.Handle, interfaceId);
+		if (connectionQuality is null || links is null)
+			return null;
+
+		var linkInfos = links.Select(link => new ConnectionQualityLinkInfo(
+			linkId: link.ucLinkID,
+			rssi: link.lRssi,
+			frequency: (int)link.ulChannelCenterFrequencyMhz,
+			bandwidth: (int)link.ulBandwidth
+		)).ToArray();
+
+		return new ConnectionQualityInfo(
+			interfaceId,
+			linkQuality: (int)connectionQuality.Value.ulLinkQuality,
+			rxRate: (int)connectionQuality.Value.ulRxRate,
+			txRate: (int)connectionQuality.Value.ulTxRate,
+			isMultiLinkOperation: connectionQuality.Value.bIsMLOConnection,
+			links: linkInfos);
+	}
+
+	#endregion
+
 	#region Helper
 
 	/// <summary>
