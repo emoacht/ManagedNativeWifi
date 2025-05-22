@@ -310,6 +310,12 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.DisconnectNetworkAsync(_client, interfaceId, timeout, cancellationToken);
 
 	/// <summary>
+	/// Gets real-time connection quality information for a specified wireless interface.
+	/// </summary>
+	public ConnectionQualityInfo GetConnectionQualityInfo(Guid interfaceId) =>
+		NativeWifi.GetConnectionQualityInfo(_client, interfaceId);
+
+	/// <summary>
 	/// Whether to throw an exception when any failure occurs
 	/// </summary>
 	public static bool ThrowsOnAnyFailure
