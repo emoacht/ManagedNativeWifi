@@ -650,6 +650,52 @@ internal static class BaseMethod
 		}
 	}
 
+	public static (WLAN_REALTIME_CONNECTION_QUALITY?, WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[] links) GetRealtimeConnectionQuality(SafeClientHandle clientHandle, Guid interfaceId)
+	{
+		var queryData = IntPtr.Zero;
+		try
+		{
+			var result = WlanQueryInterface(
+				clientHandle,
+				interfaceId,
+				WLAN_INTF_OPCODE.wlan_intf_opcode_realtime_connection_quality,
+				IntPtr.Zero,
+				out _,
+				out queryData,
+				IntPtr.Zero);
+
+			if (!CheckResult(nameof(WlanQueryInterface), result, false))
+				return (null, null);
+
+			// Marshal the fixed-size part of the structure
+			var quality = Marshal.PtrToStructure<WLAN_REALTIME_CONNECTION_QUALITY>(queryData);
+
+			// Now manually marshal the variable-length links array
+			WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[] links = null;
+			if (quality.ulNumLinks > 0)
+			{
+				links = new WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[quality.ulNumLinks];
+
+				// Calculate the offset to the start of the links array
+				int fixedSize = Marshal.SizeOf<WLAN_REALTIME_CONNECTION_QUALITY>();
+
+				// Marshal each link info struct
+				for (int i = 0; i < quality.ulNumLinks; i++)
+				{
+					IntPtr linkPtr = IntPtr.Add(queryData, fixedSize + i * Marshal.SizeOf<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>());
+					links[i] = Marshal.PtrToStructure<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>(linkPtr);
+				}
+			}
+
+			return (quality, links);
+		}
+		finally
+		{
+			if (queryData != IntPtr.Zero)
+				WlanFreeMemory(queryData);
+		}
+	}
+
 	#region Helper
 
 	public static bool ThrowsOnAnyFailure { get; set; }

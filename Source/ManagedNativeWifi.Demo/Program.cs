@@ -22,6 +22,7 @@ class Program
 
 		//CheckRadioStateEvents();
 		//CheckSignalQualityEvents();
+		//GetRealtimeConnectionQualityInfo();
 	}
 
 	private static void ShowInformation()
@@ -225,6 +226,38 @@ class Program
 		{
 			Trace.WriteLine($"{{Interface: ({e.InterfaceId})");
 			Trace.WriteLine($" SignalQuality: {e.SignalQuality}}}");
+		}
+	}
+
+	private static void GetRealtimeConnectionQualityInfo()
+	{
+		foreach (var interfaceInfo in NativeWifi.EnumerateInterfaces())
+		{
+			var connectionQualityInfo = NativeWifi.GetConnectionQualityInfo(interfaceInfo.Id);
+			if (connectionQualityInfo is null)
+				continue;
+
+			Trace.WriteLine($"{{Interface: {interfaceInfo.Description} ({interfaceInfo.Id})");
+			Trace.WriteLine($" Id: {connectionQualityInfo.Id}");
+			Trace.WriteLine($" LinkQuality: {connectionQualityInfo.LinkQuality}");
+			Trace.WriteLine($" RxRate: {connectionQualityInfo.RxRate} Kbps");
+			Trace.WriteLine($" TxRate: {connectionQualityInfo.TxRate} Kbps");
+			Trace.WriteLine($" IsMultiLinkOperation: {connectionQualityInfo.IsMultiLinkOperation}");
+
+			if (connectionQualityInfo.Links.Count == 0)
+				continue;
+
+			Trace.WriteLine($" Links ({connectionQualityInfo.Links.Count}) :");
+
+			foreach (var link in connectionQualityInfo.Links)
+			{
+				Trace.WriteLine($"\t{{LinkId: {link.LinkId}");
+				Trace.WriteLine($"\tRssi: {link.Rssi}");
+				Trace.WriteLine($"\tBandwidth: {link.Bandwidth} MHz");
+				Trace.WriteLine($"\tFrequency: {link.Frequency} MHz}}");
+			}
+
+			Trace.WriteLine($"}}");
 		}
 	}
 }
