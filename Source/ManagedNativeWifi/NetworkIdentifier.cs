@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text;
 
 using static ManagedNativeWifi.Win32.NativeMethod;
 
@@ -13,10 +14,7 @@ public class NetworkIdentifier
 	private readonly byte[] _rawBytes;
 	private readonly string _rawString;
 
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	public NetworkIdentifier(byte[] rawBytes, string rawString)
+	internal NetworkIdentifier(byte[] rawBytes, string rawString)
 	{
 		this._rawBytes = rawBytes;
 		this._rawString = rawString;
@@ -29,14 +27,30 @@ public class NetworkIdentifier
 	{ }
 
 	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="rawString">Raw string</param>
+	/// <remarks>Raw byte array will be filled with that encoded by UTF-8.</remarks>
+	public NetworkIdentifier(string rawString) : this(Encoding.UTF8.GetBytes(rawString), rawString)
+	{ }
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="rawBytes">Raw byte array</param>
+	/// <remarks>Raw string will be left null because byte array cannot always be decoded by UTF-8.</remarks>
+	public NetworkIdentifier(byte[] rawBytes) : this(rawBytes, null)
+	{ }
+
+	/// <summary>
 	/// Returns the identifier in byte array.
 	/// </summary>
 	/// <returns>Identifier in byte array</returns>
 	public byte[] ToBytes() => _rawBytes?.ToArray();
 
 	/// <summary>
-	/// Returns the identifier in UTF-8 string.
+	/// Returns the identifier in string decoded by UTF-8.
 	/// </summary>
-	/// <returns>Identifier in UTF-8 string</returns>
+	/// <returns>Identifier in string decoded by UTF-8</returns>
 	public override string ToString() => _rawString;
 }

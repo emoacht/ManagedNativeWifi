@@ -449,9 +449,9 @@ internal static class NativeMethod
 				DecoderFallback.ExceptionFallback));
 
 		/// <summary>
-		/// Returns the UTF-8 string representation of SSID
+		/// Returns the string representation of SSID decoded by UTF-8.
 		/// </summary>
-		/// <returns>UTF-8 string if successfully converted the byte array of SSID. Null if failed.</returns>
+		/// <returns>String representation of SSID if successfully decoded by UTF-8 from the byte array of SSID. Null if failed.</returns>
 		public override string ToString()
 		{
 			if (ucSSID is not null)
@@ -464,6 +464,23 @@ internal static class NativeMethod
 				{ }
 			}
 			return null;
+		}
+
+		internal static bool TryCreate(byte[] rawBytes, out DOT11_SSID ssid)
+		{
+			if (rawBytes is not { Length: > 0 and <= 32 })
+			{
+				ssid = default;
+				return false;
+			}
+
+			ssid = new DOT11_SSID
+			{
+				uSSIDLength = (uint)rawBytes.Length,
+				ucSSID = new byte[32] // Array filled with 0
+			};
+			Buffer.BlockCopy(rawBytes, 0, ssid.ucSSID, 0, rawBytes.Length);
+			return true;
 		}
 	}
 
