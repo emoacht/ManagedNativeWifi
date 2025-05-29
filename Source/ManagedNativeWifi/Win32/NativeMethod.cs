@@ -1076,6 +1076,7 @@ internal static class NativeMethod
 	public const uint ERROR_ALREADY_EXISTS = 183;
 	public const uint ERROR_BAD_PROFILE = 1206;
 	public const uint ERROR_NO_MATCH = 1169;
+	public const uint ERROR_BUSY = 170;
 	public const uint ERROR_GEN_FAILURE = 31;
 
 	public const uint WLAN_REASON_CODE_SUCCESS = 0;

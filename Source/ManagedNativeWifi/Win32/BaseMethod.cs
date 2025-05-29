@@ -167,20 +167,36 @@ internal static class BaseMethod
 		}
 	}
 
-	public static bool Scan(SafeClientHandle clientHandle, Guid interfaceId)
+	public static bool Scan(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid)
 	{
-		var result = WlanScan(
-			clientHandle,
-			interfaceId,
-			IntPtr.Zero,
-			IntPtr.Zero,
-			IntPtr.Zero);
+		var queryData = IntPtr.Zero;
+		try
+		{
+			if (!ssid.Equals(default(DOT11_SSID)))
+			{
+				queryData = WlanAllocateMemory((uint)Marshal.SizeOf(ssid));
+				Marshal.StructureToPtr(ssid, queryData, false);
+			}
 
-		// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
-		// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
-		// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
-		// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
-		return CheckResult(nameof(WlanScan), result, false);
+			var result = WlanScan(
+				clientHandle,
+				interfaceId,
+				queryData,
+				IntPtr.Zero,
+				IntPtr.Zero);
+
+			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
+			// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
+			// ERROR_BUSY: The requested resource is in use.
+			return CheckResult(nameof(WlanScan), result, false);
+		}
+		finally
+		{
+			if (queryData != IntPtr.Zero)
+				WlanFreeMemory(queryData);
+		}
 	}
 
 	public static IEnumerable<WLAN_AVAILABLE_NETWORK> GetAvailableNetworkList(SafeClientHandle clientHandle, Guid interfaceId)
@@ -669,6 +685,7 @@ internal static class BaseMethod
 			case ERROR_NDIS_DOT11_AUTO_CONFIG_ENABLED:
 			case ERROR_NDIS_DOT11_MEDIA_IN_USE:
 			case ERROR_NDIS_DOT11_POWER_STATE_INVALID:
+			case ERROR_BUSY:
 			case ERROR_GEN_FAILURE:
 				if (throwOnFailure || ThrowsOnAnyFailure)
 					goto default;
