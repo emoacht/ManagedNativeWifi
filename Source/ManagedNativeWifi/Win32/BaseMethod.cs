@@ -248,7 +248,7 @@ internal static class BaseMethod
 		var wlanBssList = IntPtr.Zero;
 		try
 		{
-			queryData = Marshal.AllocHGlobal(Marshal.SizeOf(ssid));
+			queryData = WlanAllocateMemory((uint)Marshal.SizeOf(ssid));
 			Marshal.StructureToPtr(ssid, queryData, false);
 
 			var result = WlanGetNetworkBssList(
@@ -266,7 +266,7 @@ internal static class BaseMethod
 		}
 		finally
 		{
-			Marshal.FreeHGlobal(queryData);
+			WlanFreeMemory(queryData);
 
 			if (wlanBssList != IntPtr.Zero)
 				WlanFreeMemory(wlanBssList);
@@ -481,7 +481,7 @@ internal static class BaseMethod
 
 		try
 		{
-			connectionParameters.pDesiredBssidList = Marshal.AllocHGlobal(Marshal.SizeOf(bssidList));
+			connectionParameters.pDesiredBssidList = WlanAllocateMemory((uint)Marshal.SizeOf(bssidList));
 			Marshal.StructureToPtr(bssidList, connectionParameters.pDesiredBssidList, false);
 
 			var result = WlanConnect(
@@ -494,7 +494,7 @@ internal static class BaseMethod
 		}
 		finally
 		{
-			Marshal.FreeHGlobal(connectionParameters.pDesiredBssidList);
+			WlanFreeMemory(connectionParameters.pDesiredBssidList);
 		}
 	}
 
@@ -564,18 +564,18 @@ internal static class BaseMethod
 
 	public static bool SetPhyRadioState(SafeClientHandle clientHandle, Guid interfaceId, WLAN_PHY_RADIO_STATE state)
 	{
-		var size = Marshal.SizeOf(state);
+		var size = (uint)Marshal.SizeOf(state);
 		var setData = IntPtr.Zero;
 		try
 		{
-			setData = Marshal.AllocHGlobal(size);
+			setData = WlanAllocateMemory(size);
 			Marshal.StructureToPtr(state, setData, false);
 
 			var result = WlanSetInterface(
 				clientHandle,
 				interfaceId,
 				WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
-				(uint)size,
+				size,
 				setData,
 				IntPtr.Zero);
 
@@ -587,7 +587,7 @@ internal static class BaseMethod
 		}
 		finally
 		{
-			Marshal.FreeHGlobal(setData);
+			WlanFreeMemory(setData);
 		}
 	}
 
@@ -627,18 +627,18 @@ internal static class BaseMethod
 
 	private static bool SetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode, int value)
 	{
-		var size = Marshal.SizeOf(value);
+		var size = (uint)Marshal.SizeOf(value);
 		var setData = IntPtr.Zero;
 		try
 		{
-			setData = Marshal.AllocHGlobal(size);
+			setData = WlanAllocateMemory(size);
 			Marshal.WriteInt32(setData, value);
 
 			var result = WlanSetInterface(
 				clientHandle,
 				interfaceId,
 				wlanIntfOpcode,
-				(uint)size,
+				size,
 				setData,
 				IntPtr.Zero);
 
@@ -646,7 +646,7 @@ internal static class BaseMethod
 		}
 		finally
 		{
-			Marshal.FreeHGlobal(setData);
+			WlanFreeMemory(setData);
 		}
 	}
 

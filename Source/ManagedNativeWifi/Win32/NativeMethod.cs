@@ -24,6 +24,9 @@ internal static class NativeMethod
 		IntPtr hClientHandle,
 		IntPtr pReserved);
 
+	[DllImport("Wlanapi.dll", SetLastError = true)]
+	public static extern IntPtr WlanAllocateMemory(uint dwMemorySize);
+
 	[DllImport("Wlanapi.dll")]
 	public static extern void WlanFreeMemory(IntPtr pMemory);
 
