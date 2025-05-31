@@ -221,11 +221,13 @@ internal static class NativeMethod
 			dwIndex = (uint)Marshal.ReadInt32(ppInterfaceList, uintSize /* Offset for dwNumberOfItems */);
 			InterfaceInfo = new WLAN_INTERFACE_INFO[dwNumberOfItems];
 
+			var itemSize = Marshal.SizeOf<WLAN_INTERFACE_INFO>();
+
 			for (int i = 0; i < dwNumberOfItems; i++)
 			{
 				var interfaceInfo = new IntPtr(ppInterfaceList.ToInt64()
 					+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-					+ (Marshal.SizeOf<WLAN_INTERFACE_INFO>() * i) /* Offset for preceding items */);
+					+ (itemSize * i) /* Offset for preceding items */);
 
 				InterfaceInfo[i] = Marshal.PtrToStructure<WLAN_INTERFACE_INFO>(interfaceInfo);
 			}
@@ -281,11 +283,13 @@ internal static class NativeMethod
 			dwNumberOfPhys = (uint)Marshal.ReadInt32(ppData, 0);
 			PhyRadioState = new WLAN_PHY_RADIO_STATE[dwNumberOfPhys];
 
+			var itemSize = Marshal.SizeOf<WLAN_PHY_RADIO_STATE>();
+
 			for (int i = 0; i < dwNumberOfPhys; i++)
 			{
 				var phyRadioState = new IntPtr(ppData.ToInt64()
 					+ uintSize /* Offset for dwNumberOfPhys */
-					+ (Marshal.SizeOf<WLAN_PHY_RADIO_STATE>() * i) /* Offset for preceding items */);
+					+ (itemSize * i) /* Offset for preceding items */);
 
 				PhyRadioState[i] = Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(phyRadioState);
 			}
@@ -331,11 +335,13 @@ internal static class NativeMethod
 			dwIndex = (uint)Marshal.ReadInt32(ppAvailableNetworkList, uintSize /* Offset for dwNumberOfItems */);
 			Network = new WLAN_AVAILABLE_NETWORK[dwNumberOfItems];
 
+			var itemSize = Marshal.SizeOf<WLAN_AVAILABLE_NETWORK>();
+
 			for (int i = 0; i < dwNumberOfItems; i++)
 			{
 				var availableNetwork = new IntPtr(ppAvailableNetworkList.ToInt64()
-					+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-					+ (Marshal.SizeOf<WLAN_AVAILABLE_NETWORK>() * i) /* Offset for preceding items */);
+					+ (uintSize * 2) /* Offset for dwNumberOfItems + dwIndex */
+					+ (itemSize * i) /* Offset for preceding items */);
 
 				Network[i] = Marshal.PtrToStructure<WLAN_AVAILABLE_NETWORK>(availableNetwork);
 			}
@@ -372,19 +378,21 @@ internal static class NativeMethod
 		public uint dwNumberOfItems;
 		public WLAN_BSS_ENTRY[] wlanBssEntries;
 
-		public WLAN_BSS_LIST(IntPtr ppWlanBssList)
+		public WLAN_BSS_LIST(IntPtr ppBssList)
 		{
 			var uintSize = Marshal.SizeOf<uint>(); // 4
 
-			dwTotalSize = (uint)Marshal.ReadInt32(ppWlanBssList, 0);
-			dwNumberOfItems = (uint)Marshal.ReadInt32(ppWlanBssList, uintSize /* Offset for dwTotalSize */);
+			dwTotalSize = (uint)Marshal.ReadInt32(ppBssList, 0);
+			dwNumberOfItems = (uint)Marshal.ReadInt32(ppBssList, uintSize /* Offset for dwTotalSize */);
 			wlanBssEntries = new WLAN_BSS_ENTRY[dwNumberOfItems];
+
+			var itemSize = Marshal.SizeOf<WLAN_BSS_ENTRY>();
 
 			for (int i = 0; i < dwNumberOfItems; i++)
 			{
-				var wlanBssEntry = new IntPtr(ppWlanBssList.ToInt64()
-					+ (uintSize * 2) /* Offset for dwTotalSize and dwNumberOfItems */
-					+ (Marshal.SizeOf<WLAN_BSS_ENTRY>() * i) /* Offset for preceding items */);
+				var wlanBssEntry = new IntPtr(ppBssList.ToInt64()
+					+ (uintSize * 2) /* Offset for dwTotalSize + dwNumberOfItems */
+					+ (itemSize * i) /* Offset for preceding items */);
 
 				wlanBssEntries[i] = Marshal.PtrToStructure<WLAN_BSS_ENTRY>(wlanBssEntry);
 			}
@@ -414,13 +422,54 @@ internal static class NativeMethod
 			dwIndex = (uint)Marshal.ReadInt32(ppProfileList, uintSize /* Offset for dwNumberOfItems */);
 			ProfileInfo = new WLAN_PROFILE_INFO[dwNumberOfItems];
 
+			var itemSize = Marshal.SizeOf<WLAN_PROFILE_INFO>();
+
 			for (int i = 0; i < dwNumberOfItems; i++)
 			{
 				var profileInfo = new IntPtr(ppProfileList.ToInt64()
-					+ (uintSize * 2) /* Offset for dwNumberOfItems and dwIndex */
-					+ (Marshal.SizeOf<WLAN_PROFILE_INFO>() * i) /* Offset for preceding items */);
+					+ (uintSize * 2) /* Offset for dwNumberOfItems + dwIndex */
+					+ (itemSize * i) /* Offset for preceding items */);
 
 				ProfileInfo[i] = Marshal.PtrToStructure<WLAN_PROFILE_INFO>(profileInfo);
+			}
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct WLAN_REALTIME_CONNECTION_QUALITY
+	{
+		public DOT11_PHY_TYPE dot11PhyType;
+		public uint ulLinkQuality;
+		public uint ulRxRate;
+		public uint ulTxRate;
+
+		[MarshalAs(UnmanagedType.Bool)]
+		public bool bIsMLOConnection; // The original type is BOOL.
+
+		public uint ulNumLinks;
+		public WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[] LinksInfo;
+
+		public WLAN_REALTIME_CONNECTION_QUALITY(IntPtr ppLinkList)
+		{
+			var uintSize = Marshal.SizeOf<uint>(); // 4
+
+			dot11PhyType = (DOT11_PHY_TYPE)Marshal.ReadInt32(ppLinkList, 0);
+			ulLinkQuality = (uint)Marshal.ReadInt32(ppLinkList, uintSize /* Offset for dot11PhyType */);
+			ulRxRate = (uint)Marshal.ReadInt32(ppLinkList, uintSize * 2 /* Offset for dot11PhyType + ulLinkQuality */);
+			ulTxRate = (uint)Marshal.ReadInt32(ppLinkList, uintSize * 3 /* Offset for dot11PhyType + ulLinkQuality + ulRxRate */);
+			bIsMLOConnection = Convert.ToBoolean(Marshal.ReadInt32(ppLinkList, uintSize * 4 /* Offset for dot11PhyType + ulLinkQuality + ulRxRate + ulTxRate */));
+			ulNumLinks = (uint)Marshal.ReadInt32(ppLinkList, uintSize * 5 /* Offset for dot11PhyType + ulLinkQuality + ulRxRate + ulTxRate + bIsMLOConnection */);
+			LinksInfo = new WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[ulNumLinks];
+
+			var itemSize = Marshal.SizeOf<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>();
+
+			for (int i = 0; i < ulNumLinks; i++)
+			{
+				var linkInfo = new IntPtr(ppLinkList.ToInt64()
+					+ (uintSize * 6) /* Offset for dot11PhyType + ulLinkQuality + ulRxRate + ulTxRate + bIsMLOConnection + ulNumLinks */
+					+ (itemSize * i) /* Offset for preceding items */);
+
+				LinksInfo[i] = Marshal.PtrToStructure<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>(linkInfo);
 			}
 		}
 	}
@@ -613,18 +662,6 @@ internal static class NativeMethod
 		public uint ulBandwidth;
 		public int lRssi;
 		public WLAN_RATE_SET wlanRateSet;
-	}
-
-	[StructLayout(LayoutKind.Sequential)]
-	public struct WLAN_REALTIME_CONNECTION_QUALITY
-	{
-		public DOT11_PHY_TYPE dot11PhyType;
-		public uint ulLinkQuality;
-		public uint ulRxRate;
-		public uint ulTxRate;
-		[MarshalAs(UnmanagedType.Bool)]
-		public bool bIsMLOConnection;
-		public uint ulNumLinks;
 	}
 
 	#endregion
