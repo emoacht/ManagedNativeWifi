@@ -289,7 +289,7 @@ internal static class BaseMethod
 		}
 	}
 
-	public static WLAN_CONNECTION_ATTRIBUTES GetConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
+	public static WLAN_CONNECTION_ATTRIBUTES GetCurrentConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
 	{
 		var queryData = IntPtr.Zero;
 		try
@@ -303,7 +303,7 @@ internal static class BaseMethod
 				out queryData,
 				IntPtr.Zero);
 
-			// ERROR_INVALID_STATE: The client is not connected to a network.
+			// ERROR_INVALID_STATE: The interface is not connected to a network.
 			return CheckResult(nameof(WlanQueryInterface), result, false)
 				? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
 				: default;

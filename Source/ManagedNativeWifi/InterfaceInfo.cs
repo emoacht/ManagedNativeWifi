@@ -48,11 +48,6 @@ public class InterfaceInfo
 public class InterfaceConnectionInfo : InterfaceInfo
 {
 	/// <summary>
-	/// Connection mode
-	/// </summary>
-	public ConnectionMode ConnectionMode { get; }
-
-	/// <summary>
 	/// Whether the radio of the wireless interface is on
 	/// </summary>
 	public bool IsRadioOn { get; }
@@ -63,23 +58,14 @@ public class InterfaceConnectionInfo : InterfaceInfo
 	public bool IsConnected { get; }
 
 	/// <summary>
-	/// Wireless profile name when the wireless profile is used for the connection
-	/// </summary>
-	public string ProfileName { get; }
-
-	/// <summary>
 	/// Constructor
 	/// </summary>
 	internal InterfaceConnectionInfo(
 		WLAN_INTERFACE_INFO info,
-		ConnectionMode connectionMode,
 		bool isRadioOn,
-		bool isConnected,
-		string profileName) : base(info)
+		bool isConnected) : base(info)
 	{
-		this.ConnectionMode = connectionMode;
 		this.IsRadioOn = isRadioOn;
 		this.IsConnected = isConnected;
-		this.ProfileName = profileName;
 	}
 }

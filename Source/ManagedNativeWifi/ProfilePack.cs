@@ -104,8 +104,7 @@ public class ProfileRadioPack : ProfilePack
 	/// <summary>
 	/// Whether associated wireless interface is connected to associated wireless LAN
 	/// </summary>
-	public bool IsConnected => Interface.IsConnected
-		&& string.Equals(this.Name, Interface.ProfileName, StringComparison.Ordinal);
+	public bool IsConnected { get; }
 
 	/// <summary>
 	/// PHY type of associated wireless LAN
@@ -143,6 +142,7 @@ public class ProfileRadioPack : ProfilePack
 	public ProfileRadioPack(
 		string name,
 		InterfaceConnectionInfo interfaceInfo,
+		bool isConnected,
 		ProfileType profileType,
 		string profileXml,
 		int position,
@@ -158,6 +158,7 @@ public class ProfileRadioPack : ProfilePack
 			profileXml: profileXml,
 			position: position)
 	{
+		this.IsConnected = isConnected;
 		this.PhyType = phyType;
 		this.SignalQuality = signalQuality;
 		this.LinkQuality = linkQuality;

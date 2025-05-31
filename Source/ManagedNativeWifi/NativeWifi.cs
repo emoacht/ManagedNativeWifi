@@ -51,18 +51,14 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 		{
-			var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
-
 			var isConnected = (interfaceInfo.isState is WLAN_INTERFACE_STATE.wlan_interface_state_connected);
 			var isRadioOn = isConnected ||
 				EnumerateInterfaceRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
 
 			yield return new InterfaceConnectionInfo(
 				interfaceInfo,
-				connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
 				isRadioOn: isRadioOn,
-				isConnected: isConnected,
-				profileName: connection.strProfileName);
+				isConnected: isConnected);
 		}
 	}
 
@@ -265,7 +261,7 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 		{
-			var connection = Base.GetConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
+			var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
 			if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 				continue;
 
@@ -296,13 +292,9 @@ public class NativeWifi
 		{
 			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id))
 			{
-				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
-					continue;
-
-				if (!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm))
-					continue;
-
-				if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
+					!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
+					!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
 					continue;
 
 				yield return new AvailableNetworkPack(
@@ -346,13 +338,9 @@ public class NativeWifi
 	{
 		foreach (var availableNetwork in Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id))
 		{
-			if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType))
-				continue;
-
-			if (!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm))
-				continue;
-
-			if (!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+			if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
+				!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
+				!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
 				continue;
 
 			var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
@@ -417,6 +405,58 @@ public class NativeWifi
 			band: band,
 			channel: channel);
 		return true;
+	}
+
+	#endregion
+
+	#region Get current connection
+
+	/// <summary>
+	/// Gets wireless connection information of current connection.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <returns>
+	/// Wireless connection information if the interface is connected and the function succeeded.
+	/// Null if the interface is disconnected or the function failed.
+	/// </returns>
+	public static CurrentConnectionInfo GetCurrentConnection(Guid interfaceId)
+	{
+		return GetCurrentConnection(null, interfaceId);
+	}
+
+	internal static CurrentConnectionInfo GetCurrentConnection(Base.WlanClient client, Guid interfaceId)
+	{
+		if (interfaceId == Guid.Empty)
+			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
+
+		using var container = new DisposableContainer<Base.WlanClient>(client);
+
+		var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceId);
+		if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
+			return null;
+
+		if (!BssTypeConverter.TryConvert(connection.wlanAssociationAttributes.dot11BssType, out BssType bssType) ||
+			!AuthenticationAlgorithmConverter.TryConvert(connection.wlanSecurityAttributes.dot11AuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
+			!CipherAlgorithmConverter.TryConvert(connection.wlanSecurityAttributes.dot11CipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+			return null;
+
+		return new CurrentConnectionInfo(
+			interfaceId: interfaceId,
+			interfaceState: InterfaceStateConverter.Convert(connection.isState),
+			connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
+			profileName: connection.strProfileName,
+			ssid: new NetworkIdentifier(connection.wlanAssociationAttributes.dot11Ssid),
+			bssType: bssType,
+			bssid: new NetworkIdentifier(connection.wlanAssociationAttributes.dot11Bssid),
+			phyType: PhyTypeConverter.Convert(connection.wlanAssociationAttributes.dot11PhyType),
+			phyIndex: connection.wlanAssociationAttributes.uDot11PhyIndex,
+			signalQuality: (int)connection.wlanAssociationAttributes.wlanSignalQuality,
+			rxRate: (int)connection.wlanAssociationAttributes.ulRxRate,
+			txRate: (int)connection.wlanAssociationAttributes.ulTxRate,
+			isSecurityEnabled: connection.wlanSecurityAttributes.bSecurityEnabled,
+			isOneXEnabled: connection.wlanSecurityAttributes.bOneXEnabled,
+			authenticationAlgorithm: authenticationAlgorithm,
+			cipherAlgorithm: cipherAlgorithm);
 	}
 
 	#endregion
@@ -502,6 +542,13 @@ public class NativeWifi
 
 			foreach (var profileInfo in Base.GetProfileInfoList(container.Content.Handle, interfaceConnectionInfo.Id))
 			{
+				var isConnected = interfaceConnectionInfo.IsConnected;
+				if (isConnected)
+				{
+					var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceConnectionInfo.Id);
+					isConnected = string.Equals(profileInfo.strProfileName, connection.strProfileName, StringComparison.Ordinal);
+				}
+
 				var profileXml = Base.GetProfile(container.Content.Handle, interfaceConnectionInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
 				if (string.IsNullOrWhiteSpace(profileXml))
 					continue;
@@ -514,6 +561,7 @@ public class NativeWifi
 				yield return new ProfileRadioPack(
 					name: profileInfo.strProfileName,
 					interfaceInfo: interfaceConnectionInfo,
+					isConnected: isConnected,
 					profileType: profileType,
 					profileXml: profileXml,
 					position: position++,
