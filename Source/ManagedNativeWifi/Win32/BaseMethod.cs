@@ -315,6 +315,32 @@ internal static class BaseMethod
 		}
 	}
 
+	public static int? GetRssi(SafeClientHandle clientHandle, Guid interfaceId)
+	{
+		var queryData = IntPtr.Zero;
+		try
+		{
+			var result = WlanQueryInterface(
+				clientHandle,
+				interfaceId,
+				WLAN_INTF_OPCODE.wlan_intf_opcode_rssi,
+				IntPtr.Zero,
+				out _,
+				out queryData,
+				IntPtr.Zero);
+
+			// ERROR_INVALID_STATE: The interface is not connected to a network.
+			return CheckResult(nameof(WlanQueryInterface), result, false)
+				? Marshal.ReadInt32(queryData)
+				: null;
+		}
+		finally
+		{
+			if (queryData != IntPtr.Zero)
+				WlanFreeMemory(queryData);
+		}
+	}
+
 	public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
 	{
 		var profileList = IntPtr.Zero;
