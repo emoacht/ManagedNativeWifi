@@ -459,6 +459,29 @@ public class NativeWifi
 			cipherAlgorithm: cipherAlgorithm);
 	}
 
+	/// <summary>
+	/// Gets Received Signal Strength Indicator (RSSI) of current connection.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <returns>
+	/// RSSI if the interface is connected and the function succeeded.
+	/// Null if the interface is disconnected or the function failed.
+	/// </returns>
+	public static int? GetRssi(Guid interfaceId)
+	{
+		return GetRssi(null, interfaceId);
+	}
+
+	internal static int? GetRssi(Base.WlanClient client, Guid interfaceId)
+	{
+		if (interfaceId == Guid.Empty)
+			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
+
+		using var container = new DisposableContainer<Base.WlanClient>(client);
+
+		return Base.GetRssi(container.Content.Handle, interfaceId);
+	}
+
 	#endregion
 
 	#region Enumerate profiles
