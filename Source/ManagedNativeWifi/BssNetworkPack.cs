@@ -32,9 +32,9 @@ public class BssNetworkPack
 	public PhyType PhyType { get; }
 
 	/// <summary>
-	/// Signal strength (RSSI)
+	/// Received Signal Strength Indicator (RSSI) (dBm)
 	/// </summary>
-	public int SignalStrength { get; }
+	public int Rssi { get; }
 
 	/// <summary>
 	/// Link quality (0-100)
@@ -42,7 +42,7 @@ public class BssNetworkPack
 	public int LinkQuality { get; }
 
 	/// <summary>
-	/// Frequency (KHz)
+	/// Channel center frequency (KHz)
 	/// </summary>
 	public int Frequency { get; }
 
@@ -65,7 +65,7 @@ public class BssNetworkPack
 		BssType bssType,
 		NetworkIdentifier bssid,
 		PhyType phyType,
-		int signalStrength,
+		int rssi,
 		int linkQuality,
 		int frequency,
 		float band,
@@ -76,7 +76,7 @@ public class BssNetworkPack
 		this.BssType = bssType;
 		this.Bssid = bssid;
 		this.PhyType = phyType;
-		this.SignalStrength = signalStrength;
+		this.Rssi = rssi;
 		this.LinkQuality = linkQuality;
 		this.Frequency = frequency;
 		this.Band = band;

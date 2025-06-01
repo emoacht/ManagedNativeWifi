@@ -94,7 +94,7 @@ public class AvailableNetworkGroupPack : AvailableNetworkPack
 	public int LinkQuality { get; }
 
 	/// <summary>
-	/// Frequency (KHz) of associated BSS network which has the highest link quality
+	/// Channel center frequency (KHz) of associated BSS network which has the highest link quality
 	/// </summary>
 	public int Frequency { get; }
 
@@ -130,7 +130,7 @@ public class AvailableNetworkGroupPack : AvailableNetworkPack
 			authenticationAlgorithm: authenticationAlgorithm,
 			cipherAlgorithm: cipherAlgorithm)
 	{
-		this.BssNetworks = Array.AsReadOnly(bssNetworks?.OrderByDescending(x => x.LinkQuality).ToArray() ?? Array.Empty<BssNetworkPack>());
+		this.BssNetworks = Array.AsReadOnly(bssNetworks?.OrderByDescending(x => x.LinkQuality).ToArray() ?? []);
 		if (this.BssNetworks is not { Count: > 0 })
 			return;
 

@@ -122,7 +122,7 @@ public class ProfileRadioPack : ProfilePack
 	public int LinkQuality { get; }
 
 	/// <summary>
-	/// Frequency (KHz) of associated wireless LAN
+	/// Channel center frequency (KHz) of associated wireless LAN
 	/// </summary>
 	public int Frequency { get; }
 

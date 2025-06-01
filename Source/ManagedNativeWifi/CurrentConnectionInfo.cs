@@ -1,9 +1,8 @@
-﻿using System;
-
+﻿
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Current connection information
+/// Current wireless connection information
 /// </summary>
 /// <remarks>
 /// Partly equivalent to WLAN_CONNECTION_ATTRIBUTES:
@@ -11,11 +10,6 @@ namespace ManagedNativeWifi;
 /// </remarks>
 public class CurrentConnectionInfo
 {
-	/// <summary>
-	/// Interface ID
-	/// </summary>
-	public Guid InterfaceId { get; }
-
 	/// <summary>
 	/// Interface state
 	/// </summary>
@@ -91,11 +85,7 @@ public class CurrentConnectionInfo
 	/// </summary>
 	public CipherAlgorithm CipherAlgorithm { get; }
 
-	/// <summary>
-	/// Constructor
-	/// </summary>
 	internal CurrentConnectionInfo(
-		Guid interfaceId,
 		InterfaceState interfaceState,
 		ConnectionMode connectionMode,
 		string profileName,
@@ -112,7 +102,6 @@ public class CurrentConnectionInfo
 		AuthenticationAlgorithm authenticationAlgorithm,
 		CipherAlgorithm cipherAlgorithm)
 	{
-		this.InterfaceId = interfaceId;
 		this.InterfaceState = interfaceState;
 		this.ConnectionMode = connectionMode;
 		this.ProfileName = profileName;

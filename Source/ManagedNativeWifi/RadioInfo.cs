@@ -12,7 +12,7 @@ public class RadioInfo
 	/// <summary>
 	/// Interface ID
 	/// </summary>
-	public Guid Id { get; }
+	public Guid InterfaceId { get; }
 
 	/// <summary>
 	/// Radio information
@@ -22,9 +22,9 @@ public class RadioInfo
 	/// <summary>
 	/// Constructor
 	/// </summary>
-	public RadioInfo(Guid id, IEnumerable<RadioSet> radioSets)
+	public RadioInfo(Guid interfaceId, IEnumerable<RadioSet> radioSets)
 	{
-		this.Id = id;
-		this.RadioSets = Array.AsReadOnly(radioSets?.ToArray() ?? Array.Empty<RadioSet>());
+		this.InterfaceId = interfaceId;
+		this.RadioSets = Array.AsReadOnly(radioSets?.ToArray() ?? []);
 	}
 }

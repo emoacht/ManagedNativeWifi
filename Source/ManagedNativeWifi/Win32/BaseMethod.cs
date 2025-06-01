@@ -96,6 +96,10 @@ internal static class BaseMethod
 			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
 			// ERROR_INVALID_PARAMETER: A parameter is incorrect.
 			// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
+			// ERROR_ACCESS_DENIED: When WLAN_NOTIFICATION_SOURCE_MSM flag is set in dwNotifSource,
+			// the wiFiControl device capability is required but that capability is not granted.
+			// Requesting the wiFiControl device capability will will require consent from the user
+			// regarding location access.
 			CheckResult(nameof(WlanRegisterNotification), result, true);
 		}
 
@@ -228,7 +232,7 @@ internal static class BaseMethod
 
 	public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var wlanBssList = IntPtr.Zero;
+		var bssList = IntPtr.Zero;
 		try
 		{
 			var result = WlanGetNetworkBssList(
@@ -238,7 +242,7 @@ internal static class BaseMethod
 				DOT11_BSS_TYPE.dot11_BSS_type_any,
 				false,
 				IntPtr.Zero,
-				out wlanBssList);
+				out bssList);
 
 			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
 			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
@@ -248,20 +252,20 @@ internal static class BaseMethod
 			// ERROR_NOT_SUPPORTED: The WLAN AutoConfig service is disabled.
 			// ERROR_SERVICE_NOT_ACTIVE: The WLAN AutoConfig service has not been started.
 			return CheckResult(nameof(WlanGetNetworkBssList), result, false)
-				? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+				? new WLAN_BSS_LIST(bssList).wlanBssEntries
 				: Enumerable.Empty<WLAN_BSS_ENTRY>();
 		}
 		finally
 		{
-			if (wlanBssList != IntPtr.Zero)
-				WlanFreeMemory(wlanBssList);
+			if (bssList != IntPtr.Zero)
+				WlanFreeMemory(bssList);
 		}
 	}
 
 	public static WLAN_BSS_ENTRY[] GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid, DOT11_BSS_TYPE bssType, bool isSecurityEnabled)
 	{
 		var queryData = IntPtr.Zero;
-		var wlanBssList = IntPtr.Zero;
+		var bssList = IntPtr.Zero;
 		try
 		{
 			queryData = WlanAllocateMemory((uint)Marshal.SizeOf(ssid));
@@ -274,22 +278,22 @@ internal static class BaseMethod
 				bssType,
 				isSecurityEnabled,
 				IntPtr.Zero,
-				out wlanBssList);
+				out bssList);
 
 			return CheckResult(nameof(WlanGetNetworkBssList), result, false)
-				? new WLAN_BSS_LIST(wlanBssList).wlanBssEntries
+				? new WLAN_BSS_LIST(bssList).wlanBssEntries
 				: Array.Empty<WLAN_BSS_ENTRY>();
 		}
 		finally
 		{
 			WlanFreeMemory(queryData);
 
-			if (wlanBssList != IntPtr.Zero)
-				WlanFreeMemory(wlanBssList);
+			if (bssList != IntPtr.Zero)
+				WlanFreeMemory(bssList);
 		}
 	}
 
-	public static WLAN_CONNECTION_ATTRIBUTES GetCurrentConnectionAttributes(SafeClientHandle clientHandle, Guid interfaceId)
+	public static WLAN_CONNECTION_ATTRIBUTES GetCurrentConnection(SafeClientHandle clientHandle, Guid interfaceId)
 	{
 		var queryData = IntPtr.Zero;
 		try
@@ -304,6 +308,7 @@ internal static class BaseMethod
 				IntPtr.Zero);
 
 			// ERROR_INVALID_STATE: The interface is not connected to a network.
+			// ERROR_NOT_FOUND: The specified interface is not found.
 			return CheckResult(nameof(WlanQueryInterface), result, false)
 				? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
 				: default;
@@ -330,8 +335,37 @@ internal static class BaseMethod
 				IntPtr.Zero);
 
 			// ERROR_INVALID_STATE: The interface is not connected to a network.
+			// ERROR_NOT_FOUND: The specified interface is not found.
 			return CheckResult(nameof(WlanQueryInterface), result, false)
 				? Marshal.ReadInt32(queryData)
+				: null;
+		}
+		finally
+		{
+			if (queryData != IntPtr.Zero)
+				WlanFreeMemory(queryData);
+		}
+	}
+
+	public static WLAN_REALTIME_CONNECTION_QUALITY? GetRealtimeConnectionQuality(SafeClientHandle clientHandle, Guid interfaceId)
+	{
+		var queryData = IntPtr.Zero;
+		try
+		{
+			var result = WlanQueryInterface(
+				clientHandle,
+				interfaceId,
+				WLAN_INTF_OPCODE.wlan_intf_opcode_realtime_connection_quality,
+				IntPtr.Zero,
+				out _,
+				out queryData,
+				IntPtr.Zero);
+
+			// ERROR_INVALID_STATE: The interface is not connected to a network.
+			// ERROR_NOT_FOUND: The specified interface is not found.
+			// ERROR_NOT_SUPPORTED: This query is not supported by the OS.
+			return (CheckResult(nameof(WlanQueryInterface), result, false))
+				? new WLAN_REALTIME_CONNECTION_QUALITY(queryData)
 				: null;
 		}
 		finally
@@ -689,52 +723,6 @@ internal static class BaseMethod
 		finally
 		{
 			WlanFreeMemory(setData);
-		}
-	}
-
-	public static (WLAN_REALTIME_CONNECTION_QUALITY?, WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[] links) GetRealtimeConnectionQuality(SafeClientHandle clientHandle, Guid interfaceId)
-	{
-		var queryData = IntPtr.Zero;
-		try
-		{
-			var result = WlanQueryInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_realtime_connection_quality,
-				IntPtr.Zero,
-				out _,
-				out queryData,
-				IntPtr.Zero);
-
-			if (!CheckResult(nameof(WlanQueryInterface), result, false))
-				return (null, null);
-
-			// Marshal the fixed-size part of the structure
-			var quality = Marshal.PtrToStructure<WLAN_REALTIME_CONNECTION_QUALITY>(queryData);
-
-			// Now manually marshal the variable-length links array
-			WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[] links = null;
-			if (quality.ulNumLinks > 0)
-			{
-				links = new WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO[quality.ulNumLinks];
-
-				// Calculate the offset to the start of the links array
-				int fixedSize = Marshal.SizeOf<WLAN_REALTIME_CONNECTION_QUALITY>();
-
-				// Marshal each link info struct
-				for (int i = 0; i < quality.ulNumLinks; i++)
-				{
-					IntPtr linkPtr = IntPtr.Add(queryData, fixedSize + i * Marshal.SizeOf<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>());
-					links[i] = Marshal.PtrToStructure<WLAN_REALTIME_CONNECTION_QUALITY_LINK_INFO>(linkPtr);
-				}
-			}
-
-			return (quality, links);
-		}
-		finally
-		{
-			if (queryData != IntPtr.Zero)
-				WlanFreeMemory(queryData);
 		}
 	}
 

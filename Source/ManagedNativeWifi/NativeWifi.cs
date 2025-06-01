@@ -261,7 +261,7 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 		{
-			var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceInfo.InterfaceGuid);
+			var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceInfo.InterfaceGuid);
 			if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 				continue;
 
@@ -399,7 +399,7 @@ public class NativeWifi
 			bssType: bssType,
 			bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
 			phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType),
-			signalStrength: bssEntry.lRssi,
+			rssi: bssEntry.lRssi,
 			linkQuality: (int)bssEntry.uLinkQuality,
 			frequency: (int)bssEntry.ulChCenterFrequency,
 			band: band,
@@ -409,10 +409,10 @@ public class NativeWifi
 
 	#endregion
 
-	#region Get current connection
+	#region Get current connection/real-time connection quality
 
 	/// <summary>
-	/// Gets wireless connection information of current connection.
+	/// Gets current wireless connection information for a specified wireless interface.
 	/// </summary>
 	/// <param name="interfaceId">Interface ID</param>
 	/// <returns>
@@ -431,7 +431,7 @@ public class NativeWifi
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceId);
+		var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceId);
 		if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 			return null;
 
@@ -441,7 +441,6 @@ public class NativeWifi
 			return null;
 
 		return new CurrentConnectionInfo(
-			interfaceId: interfaceId,
 			interfaceState: InterfaceStateConverter.Convert(connection.isState),
 			connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
 			profileName: connection.strProfileName,
@@ -460,7 +459,7 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Gets Received Signal Strength Indicator (RSSI) of current connection.
+	/// Gets Received Signal Strength Indicator (RSSI) for a specified wireless interface.
 	/// </summary>
 	/// <param name="interfaceId">Interface ID</param>
 	/// <returns>
@@ -480,6 +479,49 @@ public class NativeWifi
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
 		return Base.GetRssi(container.Content.Handle, interfaceId);
+	}
+
+	/// <summary>
+	/// Gets real-time wireless connection quality information for a specified wireless interface.
+	/// </summary>
+	/// <param name="interfaceId">Interface ID</param>
+	/// <returns>
+	/// Wireless connection quality information if the interface is connected and the function succeeded.
+	/// Null if the interface is disconnected or the function failed
+	/// </returns>
+	/// <remarks>
+	/// This method is supported on Windows 11 (10.0.26100) or newer.
+	/// This method does not require location access permissions.
+	/// </remarks>
+	public static RealtimeConnectionQualityInfo GetRealtimeConnectionQuality(Guid interfaceId)
+	{
+		return GetRealtimeConnectionQuality(null, interfaceId);
+	}
+
+	internal static RealtimeConnectionQualityInfo GetRealtimeConnectionQuality(Base.WlanClient client, Guid interfaceId)
+	{
+		if (interfaceId == Guid.Empty)
+			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
+
+		using var container = new DisposableContainer<Base.WlanClient>(client);
+
+		var connection = Base.GetRealtimeConnectionQuality(container.Content.Handle, interfaceId);
+		if (connection is null)
+			return null;
+
+		var links = connection.Value.LinksInfo.Select(link => new RealtimeConnectionQualityLinkInfo(
+			linkId: link.ucLinkID,
+			rssi: link.lRssi,
+			frequency: (int)link.ulChannelCenterFrequencyMhz,
+			bandwidth: (int)link.ulBandwidth));
+
+		return new RealtimeConnectionQualityInfo(
+			phyType: PhyTypeConverter.Convert(connection.Value.dot11PhyType),
+			linkQuality: (int)connection.Value.ulLinkQuality,
+			rxRate: (int)connection.Value.ulRxRate,
+			txRate: (int)connection.Value.ulTxRate,
+			isMultiLinkOperation: connection.Value.bIsMLOConnection,
+			links: links);
 	}
 
 	#endregion
@@ -568,7 +610,7 @@ public class NativeWifi
 				var isConnected = interfaceConnectionInfo.IsConnected;
 				if (isConnected)
 				{
-					var connection = Base.GetCurrentConnectionAttributes(container.Content.Handle, interfaceConnectionInfo.Id);
+					var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceConnectionInfo.Id);
 					isConnected = string.Equals(profileInfo.strProfileName, connection.strProfileName, StringComparison.Ordinal);
 				}
 
@@ -998,7 +1040,7 @@ public class NativeWifi
 			return null;
 
 		return new RadioInfo(
-			id: interfaceId,
+			interfaceId: interfaceId,
 			radioSets: radioSets);
 	}
 
@@ -1090,48 +1132,7 @@ public class NativeWifi
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		return Base.IsAutoConfig(container.Content.Handle, interfaceId).GetValueOrDefault();
-	}
-
-	#endregion
-
-	#region Connection quality
-
-	/// <summary>
-	/// Gets real-time connection quality information for a specified wireless interface.
-	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <returns>Connection quality information if succeeded. Null if failed or interface is not connected.</returns>
-	public static ConnectionQualityInfo GetConnectionQualityInfo(Guid interfaceId)
-	{
-		return GetConnectionQualityInfo(null, interfaceId);
-	}
-
-	internal static ConnectionQualityInfo GetConnectionQualityInfo(Base.WlanClient client, Guid interfaceId)
-	{
-		if (interfaceId == Guid.Empty)
-			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
-
-		using var container = new DisposableContainer<Base.WlanClient>(client);
-
-		(var connectionQuality, var links ) = Base.GetRealtimeConnectionQuality(container.Content.Handle, interfaceId);
-		if (connectionQuality is null || links is null)
-			return null;
-
-		var linkInfos = links.Select(link => new ConnectionQualityLinkInfo(
-			linkId: link.ucLinkID,
-			rssi: link.lRssi,
-			frequency: (int)link.ulChannelCenterFrequencyMhz,
-			bandwidth: (int)link.ulBandwidth
-		)).ToArray();
-
-		return new ConnectionQualityInfo(
-			interfaceId,
-			linkQuality: (int)connectionQuality.Value.ulLinkQuality,
-			rxRate: (int)connectionQuality.Value.ulRxRate,
-			txRate: (int)connectionQuality.Value.ulTxRate,
-			isMultiLinkOperation: connectionQuality.Value.bIsMLOConnection,
-			links: linkInfos);
+		return Base.IsAutoConfig(container.Content.Handle, interfaceId);
 	}
 
 	#endregion
@@ -1150,7 +1151,7 @@ public class NativeWifi
 	/// <summary>
 	/// Attempts to detect frequency band and channel from center frequency.
 	/// </summary>
-	/// <param name="frequency">Center frequency (KHz)</param>
+	/// <param name="frequency">Channel center frequency (KHz)</param>
 	/// <param name="band">Frequency band (GHz)</param>
 	/// <param name="channel">Channel</param>
 	/// <returns>True if successfully detected. False if failed.</returns>

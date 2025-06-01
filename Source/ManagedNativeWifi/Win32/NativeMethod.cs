@@ -798,10 +798,15 @@ internal static class NativeMethod
 		wlan_intf_opcode_certified_safe_mode,
 		wlan_intf_opcode_hosted_network_capable,
 		wlan_intf_opcode_management_frame_protection_capable,
+
+		// Derived from wlanapi.h of Windows SDK (10.0.22000.0)
 		wlan_intf_opcode_secondary_sta_interfaces,
 		wlan_intf_opcode_secondary_sta_synchronized_connections,
+
+		// Derived from wlanapi.h of Windows SDK (10.0.26100.0)
 		wlan_intf_opcode_realtime_connection_quality,
 		wlan_intf_opcode_qos_info,
+
 		wlan_intf_opcode_autoconf_end = 0x0fffffff,
 		wlan_intf_opcode_msm_start = 0x10000100,
 		wlan_intf_opcode_statistics,
