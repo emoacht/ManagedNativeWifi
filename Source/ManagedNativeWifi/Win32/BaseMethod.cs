@@ -147,7 +147,7 @@ internal static class BaseMethod
 
 	#endregion
 
-	public static IEnumerable<WLAN_INTERFACE_INFO> GetInterfaceInfoList(SafeClientHandle clientHandle)
+	public static WLAN_INTERFACE_INFO[] GetInterfaceInfoList(SafeClientHandle clientHandle)
 	{
 		var interfaceList = IntPtr.Zero;
 		try
@@ -203,7 +203,7 @@ internal static class BaseMethod
 		}
 	}
 
-	public static IEnumerable<WLAN_AVAILABLE_NETWORK> GetAvailableNetworkList(SafeClientHandle clientHandle, Guid interfaceId)
+	public static (ActionResult result, WLAN_AVAILABLE_NETWORK[] list) GetAvailableNetworkList(SafeClientHandle clientHandle, Guid interfaceId)
 	{
 		var availableNetworkList = IntPtr.Zero;
 		try
@@ -219,9 +219,15 @@ internal static class BaseMethod
 			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
 			// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
 			// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
-			return CheckResult(nameof(WlanGetAvailableNetworkList), result, false)
-				? new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network
-				: Enumerable.Empty<WLAN_AVAILABLE_NETWORK>();
+			// ERROR_NOT_FOUND: The specified interface is not found.
+			CheckResult(nameof(WlanGetAvailableNetworkList), result, false);
+
+			return result switch
+			{
+				ERROR_SUCCESS => (ActionResult.Success, new WLAN_AVAILABLE_NETWORK_LIST(availableNetworkList).Network),
+				ERROR_NOT_FOUND => (ActionResult.NotFound, Array.Empty<WLAN_AVAILABLE_NETWORK>()),
+				_ => (ActionResult.OtherError, Array.Empty<WLAN_AVAILABLE_NETWORK>())
+			};
 		}
 		finally
 		{
@@ -230,46 +236,27 @@ internal static class BaseMethod
 		}
 	}
 
-	public static IEnumerable<WLAN_BSS_ENTRY> GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId)
+	public static (ActionResult result, WLAN_BSS_ENTRY[] list) GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var bssList = IntPtr.Zero;
-		try
-		{
-			var result = WlanGetNetworkBssList(
-				clientHandle,
-				interfaceId,
-				IntPtr.Zero,
-				DOT11_BSS_TYPE.dot11_BSS_type_any,
-				false,
-				IntPtr.Zero,
-				out bssList);
-
-			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
-			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
-			// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
-			// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
-			// ERROR_NOT_FOUND: The inteface GUID could not be found.
-			// ERROR_NOT_SUPPORTED: The WLAN AutoConfig service is disabled.
-			// ERROR_SERVICE_NOT_ACTIVE: The WLAN AutoConfig service has not been started.
-			return CheckResult(nameof(WlanGetNetworkBssList), result, false)
-				? new WLAN_BSS_LIST(bssList).wlanBssEntries
-				: Enumerable.Empty<WLAN_BSS_ENTRY>();
-		}
-		finally
-		{
-			if (bssList != IntPtr.Zero)
-				WlanFreeMemory(bssList);
-		}
+		return GetNetworkBssEntryList(
+			clientHandle,
+			interfaceId,
+			default(DOT11_SSID),
+			DOT11_BSS_TYPE.dot11_BSS_type_any,
+			false);
 	}
 
-	public static WLAN_BSS_ENTRY[] GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid, DOT11_BSS_TYPE bssType, bool isSecurityEnabled)
+	public static (ActionResult result, WLAN_BSS_ENTRY[] list) GetNetworkBssEntryList(SafeClientHandle clientHandle, Guid interfaceId, DOT11_SSID ssid, DOT11_BSS_TYPE bssType, bool isSecurityEnabled)
 	{
 		var queryData = IntPtr.Zero;
 		var bssList = IntPtr.Zero;
 		try
 		{
-			queryData = WlanAllocateMemory((uint)Marshal.SizeOf(ssid));
-			Marshal.StructureToPtr(ssid, queryData, false);
+			if (!ssid.Equals(default(DOT11_SSID)))
+			{
+				queryData = WlanAllocateMemory((uint)Marshal.SizeOf(ssid));
+				Marshal.StructureToPtr(ssid, queryData, false);
+			}
 
 			var result = WlanGetNetworkBssList(
 				clientHandle,
@@ -280,102 +267,67 @@ internal static class BaseMethod
 				IntPtr.Zero,
 				out bssList);
 
-			return CheckResult(nameof(WlanGetNetworkBssList), result, false)
-				? new WLAN_BSS_LIST(bssList).wlanBssEntries
-				: Array.Empty<WLAN_BSS_ENTRY>();
+			// ERROR_INVALID_HANDLE: The client handle was not found in the handle table.
+			// ERROR_INVALID_PARAMETER: A parameter is incorrect. The interface is removed.
+			// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
+			// ERROR_NDIS_DOT11_POWER_STATE_INVALID: The interface is turned off.
+			// ERROR_NOT_FOUND: The specified interface is not found.
+			// ERROR_NOT_SUPPORTED: The WLAN AutoConfig service is disabled.
+			// ERROR_SERVICE_NOT_ACTIVE: The WLAN AutoConfig service has not been started.
+			CheckResult(nameof(WlanGetNetworkBssList), result, false);
+
+			return result switch
+			{
+				ERROR_SUCCESS => (ActionResult.Success, new WLAN_BSS_LIST(bssList).wlanBssEntries),
+				ERROR_NOT_FOUND => (ActionResult.NotFound, Array.Empty<WLAN_BSS_ENTRY>()),
+				_ => (ActionResult.OtherError, Array.Empty<WLAN_BSS_ENTRY>())
+			};
 		}
 		finally
 		{
-			WlanFreeMemory(queryData);
+			if (queryData != IntPtr.Zero)
+				WlanFreeMemory(queryData);
 
 			if (bssList != IntPtr.Zero)
 				WlanFreeMemory(bssList);
 		}
 	}
 
-	public static WLAN_CONNECTION_ATTRIBUTES GetCurrentConnection(SafeClientHandle clientHandle, Guid interfaceId)
+	public static (ActionResult result, WLAN_CONNECTION_ATTRIBUTES value) GetCurrentConnection(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var queryData = IntPtr.Zero;
-		try
-		{
-			var result = WlanQueryInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
-				IntPtr.Zero,
-				out _,
-				out queryData,
-				IntPtr.Zero);
-
-			// ERROR_INVALID_STATE: The interface is not connected to a network.
-			// ERROR_NOT_FOUND: The specified interface is not found.
-			return CheckResult(nameof(WlanQueryInterface), result, false)
-				? Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData)
-				: default;
-		}
-		finally
-		{
-			if (queryData != IntPtr.Zero)
-				WlanFreeMemory(queryData);
-		}
+		// ERROR_INVALID_STATE: The interface is not connected to a network.
+		// ERROR_NOT_FOUND: The specified interface is not found.
+		return QueryInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_current_connection,
+			create: (queryData) => Marshal.PtrToStructure<WLAN_CONNECTION_ATTRIBUTES>(queryData));
 	}
 
-	public static int? GetRssi(SafeClientHandle clientHandle, Guid interfaceId)
+	public static (ActionResult result, int value) GetRssi(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var queryData = IntPtr.Zero;
-		try
-		{
-			var result = WlanQueryInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_rssi,
-				IntPtr.Zero,
-				out _,
-				out queryData,
-				IntPtr.Zero);
-
-			// ERROR_INVALID_STATE: The interface is not connected to a network.
-			// ERROR_NOT_FOUND: The specified interface is not found.
-			return CheckResult(nameof(WlanQueryInterface), result, false)
-				? Marshal.ReadInt32(queryData)
-				: null;
-		}
-		finally
-		{
-			if (queryData != IntPtr.Zero)
-				WlanFreeMemory(queryData);
-		}
+		// ERROR_INVALID_STATE: The interface is not connected to a network.
+		// ERROR_NOT_FOUND: The specified interface is not found.
+		return QueryInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_rssi,
+			create: (queryData) => Marshal.ReadInt32(queryData));
 	}
 
-	public static WLAN_REALTIME_CONNECTION_QUALITY? GetRealtimeConnectionQuality(SafeClientHandle clientHandle, Guid interfaceId)
+	public static (ActionResult result, WLAN_REALTIME_CONNECTION_QUALITY value) GetRealtimeConnectionQuality(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var queryData = IntPtr.Zero;
-		try
-		{
-			var result = WlanQueryInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_realtime_connection_quality,
-				IntPtr.Zero,
-				out _,
-				out queryData,
-				IntPtr.Zero);
-
-			// ERROR_INVALID_STATE: The interface is not connected to a network.
-			// ERROR_NOT_FOUND: The specified interface is not found.
-			// ERROR_NOT_SUPPORTED: This query is not supported by the OS.
-			return (CheckResult(nameof(WlanQueryInterface), result, false))
-				? new WLAN_REALTIME_CONNECTION_QUALITY(queryData)
-				: null;
-		}
-		finally
-		{
-			if (queryData != IntPtr.Zero)
-				WlanFreeMemory(queryData);
-		}
+		// ERROR_INVALID_STATE: The interface is not connected to a network.
+		// ERROR_NOT_FOUND: The specified interface is not found.
+		// ERROR_NOT_SUPPORTED: This query is not supported by the OS.
+		return QueryInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_realtime_connection_quality,
+			create: (queryData) => new WLAN_REALTIME_CONNECTION_QUALITY(queryData));
 	}
 
-	public static IEnumerable<WLAN_PROFILE_INFO> GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
+	public static WLAN_PROFILE_INFO[] GetProfileInfoList(SafeClientHandle clientHandle, Guid interfaceId)
 	{
 		var profileList = IntPtr.Zero;
 		try
@@ -391,7 +343,7 @@ internal static class BaseMethod
 			// ERROR_NOT_ENOUGH_MEMORY: Not enough memory is available to process this request.
 			return CheckResult(nameof(WlanGetProfileList), result, false)
 				? new WLAN_PROFILE_INFO_LIST(profileList).ProfileInfo
-				: Enumerable.Empty<WLAN_PROFILE_INFO>();
+				: Array.Empty<WLAN_PROFILE_INFO>();
 		}
 		finally
 		{
@@ -613,70 +565,48 @@ internal static class BaseMethod
 		}
 	}
 
-	public static IEnumerable<WLAN_PHY_RADIO_STATE> GetPhyRadioStates(SafeClientHandle clientHandle, Guid interfaceId)
+	public static WLAN_PHY_RADIO_STATE[] GetPhyRadioStates(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var queryData = IntPtr.Zero;
-		try
-		{
-			var result = WlanQueryInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
-				IntPtr.Zero,
-				out _,
-				out queryData,
-				IntPtr.Zero);
+		var (result, value) = QueryInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
+			create: (queryData) => new WLAN_RADIO_STATE(queryData));
 
-			return CheckResult(nameof(WlanQueryInterface), result, false)
-				? new WLAN_RADIO_STATE(queryData).PhyRadioState
-				: Enumerable.Empty<WLAN_PHY_RADIO_STATE>();
-		}
-		finally
-		{
-			if (queryData != IntPtr.Zero)
-				WlanFreeMemory(queryData);
-		}
+		return (result is ActionResult.Success)
+			? value.PhyRadioState
+			: Array.Empty<WLAN_PHY_RADIO_STATE>();
 	}
 
 	public static bool SetPhyRadioState(SafeClientHandle clientHandle, Guid interfaceId, WLAN_PHY_RADIO_STATE state)
 	{
-		var size = (uint)Marshal.SizeOf(state);
-		var setData = IntPtr.Zero;
-		try
-		{
-			setData = WlanAllocateMemory(size);
-			Marshal.StructureToPtr(state, setData, false);
+		// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
+		// By default, only a user who is logged on as a member of the Administrators group or
+		// the Network Configuration Operators group can set the operation mode of the interface.
+		// ERROR_GEN_FAILURE: The OpCode is not supported by the driver or NIC.
+		var result = SetInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
+			marshal: (setData, state) => Marshal.StructureToPtr(state, setData, false),
+			state);
 
-			var result = WlanSetInterface(
-				clientHandle,
-				interfaceId,
-				WLAN_INTF_OPCODE.wlan_intf_opcode_radio_state,
-				size,
-				setData,
-				IntPtr.Zero);
-
-			// ERROR_ACCESS_DENIED: The caller does not have sufficient permissions.
-			// By default, only a user who is logged on as a member of the Administrators group or
-			// the Network Configuration Operators group can set the operation mode of the interface.
-			// ERROR_GEN_FAILURE: The OpCode is not supported by the driver or NIC.
-			return CheckResult(nameof(WlanSetInterface), result, false);
-		}
-		finally
-		{
-			WlanFreeMemory(setData);
-		}
+		return (result is ActionResult.Success);
 	}
 
-	public static bool? IsAutoConfig(SafeClientHandle clientHandle, Guid interfaceId)
+	public static bool IsAutoConfig(SafeClientHandle clientHandle, Guid interfaceId)
 	{
-		var value = GetInterfaceInt(clientHandle, interfaceId, WLAN_INTF_OPCODE.wlan_intf_opcode_autoconf_enabled);
+		var (result, value) = QueryInterface(
+			clientHandle,
+			interfaceId,
+			WLAN_INTF_OPCODE.wlan_intf_opcode_autoconf_enabled,
+			create: (queryData) => Marshal.ReadInt32(queryData));
 
-		return value.HasValue
-			? (value.Value is not 0) // True = other than 0. False = 0.
-			: (bool?)null;
+		return (result is ActionResult.Success)
+			&& (value is not 0); // True = other than 0. False = 0.
 	}
 
-	private static int? GetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode)
+	private static (ActionResult result, TValue value) QueryInterface<TValue>(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE opCode, Func<IntPtr, TValue> create)
 	{
 		var queryData = IntPtr.Zero;
 		try
@@ -684,15 +614,22 @@ internal static class BaseMethod
 			var result = WlanQueryInterface(
 				clientHandle,
 				interfaceId,
-				wlanIntfOpcode,
+				opCode,
 				IntPtr.Zero,
 				out _,
 				out queryData,
 				IntPtr.Zero);
 
-			return CheckResult(nameof(WlanQueryInterface), result, false)
-				? Marshal.ReadInt32(queryData)
-				: (int?)null;
+			CheckResult(nameof(WlanQueryInterface), result, false);
+
+			return result switch
+			{
+				ERROR_SUCCESS => (ActionResult.Success, create.Invoke(queryData)),
+				ERROR_INVALID_STATE => (ActionResult.NotConnected, default),
+				ERROR_NOT_FOUND => (ActionResult.NotFound, default),
+				ERROR_NOT_SUPPORTED => (ActionResult.NotSupported, default),
+				_ => (ActionResult.OtherError, default)
+			};
 		}
 		finally
 		{
@@ -701,24 +638,33 @@ internal static class BaseMethod
 		}
 	}
 
-	private static bool SetInterfaceInt(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE wlanIntfOpcode, int value)
+	private static ActionResult SetInterface<TValue>(SafeClientHandle clientHandle, Guid interfaceId, WLAN_INTF_OPCODE opCode, Action<IntPtr, TValue> marshal, TValue value)
 	{
 		var size = (uint)Marshal.SizeOf(value);
 		var setData = IntPtr.Zero;
 		try
 		{
 			setData = WlanAllocateMemory(size);
-			Marshal.WriteInt32(setData, value);
+			marshal.Invoke(setData, value);
 
 			var result = WlanSetInterface(
 				clientHandle,
 				interfaceId,
-				wlanIntfOpcode,
+				opCode,
 				size,
 				setData,
 				IntPtr.Zero);
 
-			return CheckResult(nameof(WlanSetInterface), result, false);
+			CheckResult(nameof(WlanSetInterface), result, false);
+
+			return result switch
+			{
+				ERROR_SUCCESS => ActionResult.Success,
+				ERROR_INVALID_STATE => ActionResult.NotConnected,
+				ERROR_NOT_FOUND => ActionResult.NotFound,
+				ERROR_NOT_SUPPORTED => ActionResult.NotSupported,
+				_ => ActionResult.OtherError
+			};
 		}
 		finally
 		{

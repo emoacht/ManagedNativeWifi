@@ -241,7 +241,7 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 		{
-			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid))
+			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.InterfaceGuid).list)
 				yield return new NetworkIdentifier(availableNetwork.dot11Ssid);
 		}
 	}
@@ -261,11 +261,14 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in Base.GetInterfaceInfoList(container.Content.Handle))
 		{
-			var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceInfo.InterfaceGuid);
-			if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
+			if (interfaceInfo.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
 				continue;
 
-			var association = connection.wlanAssociationAttributes;
+			var (result, value) = Base.GetCurrentConnection(container.Content.Handle, interfaceInfo.InterfaceGuid);
+			if (result is not ActionResult.Success)
+				continue;
+
+			var association = value.wlanAssociationAttributes;
 
 			yield return new NetworkIdentifier(association.dot11Ssid);
 		}
@@ -290,7 +293,7 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 		{
-			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id))
+			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id).list)
 			{
 				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
 					!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
@@ -336,7 +339,7 @@ public class NativeWifi
 
 	private static IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups(Base.WlanClient client, InterfaceInfo interfaceInfo)
 	{
-		foreach (var availableNetwork in Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id))
+		foreach (var availableNetwork in Base.GetAvailableNetworkList(client.Handle, interfaceInfo.Id).list)
 		{
 			if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
 				!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
@@ -344,7 +347,7 @@ public class NativeWifi
 				continue;
 
 			var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
-				availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled)
+				availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled).list
 				.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
 				.Where(x => x is not null);
 
@@ -376,7 +379,7 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 		{
-			foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id))
+			foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id).list)
 			{
 				if (TryConvertBssNetwork(interfaceInfo, networkBssEntry, out BssNetworkPack bssNetwork))
 					yield return bssNetwork;
@@ -412,66 +415,76 @@ public class NativeWifi
 	#region Get current connection/real-time connection quality
 
 	/// <summary>
-	/// Gets current wireless connection information for a specified wireless interface.
+	/// Gets current wireless connection information associated with a specified wireless
+	/// interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>
-	/// Wireless connection information if the interface is connected and the function succeeded.
-	/// Null if the interface is disconnected or the function failed.
+	/// <para>
+	/// result: Action result.
+	/// Success if the interface is connected and the function succeeded.
+	/// Other if the interface is not connected or the function failed.
+	/// </para>
+	/// <para>value: Wireless connection information if succeeded</para>
 	/// </returns>
-	public static CurrentConnectionInfo GetCurrentConnection(Guid interfaceId)
+	public static (ActionResult result, CurrentConnectionInfo value) GetCurrentConnection(Guid interfaceId)
 	{
 		return GetCurrentConnection(null, interfaceId);
 	}
 
-	internal static CurrentConnectionInfo GetCurrentConnection(Base.WlanClient client, Guid interfaceId)
+	internal static (ActionResult result, CurrentConnectionInfo value) GetCurrentConnection(Base.WlanClient client, Guid interfaceId)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceId);
-		if (connection.isState is not WLAN_INTERFACE_STATE.wlan_interface_state_connected)
-			return null;
+		var (result, value) = Base.GetCurrentConnection(container.Content.Handle, interfaceId);
+		if (result is not ActionResult.Success)
+			return (result, null);
 
-		if (!BssTypeConverter.TryConvert(connection.wlanAssociationAttributes.dot11BssType, out BssType bssType) ||
-			!AuthenticationAlgorithmConverter.TryConvert(connection.wlanSecurityAttributes.dot11AuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
-			!CipherAlgorithmConverter.TryConvert(connection.wlanSecurityAttributes.dot11CipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
-			return null;
+		if (!BssTypeConverter.TryConvert(value.wlanAssociationAttributes.dot11BssType, out BssType bssType) ||
+			!AuthenticationAlgorithmConverter.TryConvert(value.wlanSecurityAttributes.dot11AuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
+			!CipherAlgorithmConverter.TryConvert(value.wlanSecurityAttributes.dot11CipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+			return (ActionResult.OtherError, null);
 
-		return new CurrentConnectionInfo(
-			interfaceState: InterfaceStateConverter.Convert(connection.isState),
-			connectionMode: ConnectionModeConverter.Convert(connection.wlanConnectionMode),
-			profileName: connection.strProfileName,
-			ssid: new NetworkIdentifier(connection.wlanAssociationAttributes.dot11Ssid),
+		return (ActionResult.Success, new CurrentConnectionInfo(
+			interfaceState: InterfaceStateConverter.Convert(value.isState),
+			connectionMode: ConnectionModeConverter.Convert(value.wlanConnectionMode),
+			profileName: value.strProfileName,
+			ssid: new NetworkIdentifier(value.wlanAssociationAttributes.dot11Ssid),
 			bssType: bssType,
-			bssid: new NetworkIdentifier(connection.wlanAssociationAttributes.dot11Bssid),
-			phyType: PhyTypeConverter.Convert(connection.wlanAssociationAttributes.dot11PhyType),
-			phyIndex: connection.wlanAssociationAttributes.uDot11PhyIndex,
-			signalQuality: (int)connection.wlanAssociationAttributes.wlanSignalQuality,
-			rxRate: (int)connection.wlanAssociationAttributes.ulRxRate,
-			txRate: (int)connection.wlanAssociationAttributes.ulTxRate,
-			isSecurityEnabled: connection.wlanSecurityAttributes.bSecurityEnabled,
-			isOneXEnabled: connection.wlanSecurityAttributes.bOneXEnabled,
+			bssid: new NetworkIdentifier(value.wlanAssociationAttributes.dot11Bssid),
+			phyType: PhyTypeConverter.Convert(value.wlanAssociationAttributes.dot11PhyType),
+			phyIndex: value.wlanAssociationAttributes.uDot11PhyIndex,
+			signalQuality: (int)value.wlanAssociationAttributes.wlanSignalQuality,
+			rxRate: (int)value.wlanAssociationAttributes.ulRxRate,
+			txRate: (int)value.wlanAssociationAttributes.ulTxRate,
+			isSecurityEnabled: value.wlanSecurityAttributes.bSecurityEnabled,
+			isOneXEnabled: value.wlanSecurityAttributes.bOneXEnabled,
 			authenticationAlgorithm: authenticationAlgorithm,
-			cipherAlgorithm: cipherAlgorithm);
+			cipherAlgorithm: cipherAlgorithm));
 	}
 
 	/// <summary>
-	/// Gets Received Signal Strength Indicator (RSSI) for a specified wireless interface.
+	/// Gets Received Signal Strength Indicator (RSSI) associated with a specified wireless
+	/// interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>
-	/// RSSI if the interface is connected and the function succeeded.
-	/// Null if the interface is disconnected or the function failed.
+	/// <para>
+	/// result: Action result.
+	/// Success if the interface is connected and the function succeeded.
+	/// Other if the interface is not connected or the function failed.
+	/// </para>
+	/// <para>value: RSSI if succeeded</para>
 	/// </returns>
-	public static int? GetRssi(Guid interfaceId)
+	public static (ActionResult result, int value) GetRssi(Guid interfaceId)
 	{
 		return GetRssi(null, interfaceId);
 	}
 
-	internal static int? GetRssi(Base.WlanClient client, Guid interfaceId)
+	internal static (ActionResult result, int value) GetRssi(Base.WlanClient client, Guid interfaceId)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
@@ -482,46 +495,51 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Gets real-time wireless connection quality information for a specified wireless interface.
+	/// Gets real-time wireless connection quality information associated with a specified wireless
+	/// interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>
-	/// Wireless connection quality information if the interface is connected and the function succeeded.
-	/// Null if the interface is disconnected or the function failed
+	/// <para>
+	/// result: Action result.
+	/// Success if the interface is connected and the function succeeded.
+	/// Other if the interface is not connected or the function failed.
+	/// </para>
+	/// <para>value: Wireless connection quality information if succeeded</para>
 	/// </returns>
 	/// <remarks>
 	/// This method is supported on Windows 11 (10.0.26100) or newer.
 	/// This method does not require location access permissions.
 	/// </remarks>
-	public static RealtimeConnectionQualityInfo GetRealtimeConnectionQuality(Guid interfaceId)
+	public static (ActionResult result, RealtimeConnectionQualityInfo value) GetRealtimeConnectionQuality(Guid interfaceId)
 	{
 		return GetRealtimeConnectionQuality(null, interfaceId);
 	}
 
-	internal static RealtimeConnectionQualityInfo GetRealtimeConnectionQuality(Base.WlanClient client, Guid interfaceId)
+	internal static (ActionResult result, RealtimeConnectionQualityInfo value) GetRealtimeConnectionQuality(Base.WlanClient client, Guid interfaceId)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var connection = Base.GetRealtimeConnectionQuality(container.Content.Handle, interfaceId);
-		if (connection is null)
-			return null;
+		var (result, value) = Base.GetRealtimeConnectionQuality(container.Content.Handle, interfaceId);
+		if (result is not ActionResult.Success)
+			return (result, null);
 
-		var links = connection.Value.LinksInfo.Select(link => new RealtimeConnectionQualityLinkInfo(
+		var links = value.LinksInfo.Select(link => new RealtimeConnectionQualityLinkInfo(
 			linkId: link.ucLinkID,
 			rssi: link.lRssi,
 			frequency: (int)link.ulChannelCenterFrequencyMhz,
 			bandwidth: (int)link.ulBandwidth));
 
-		return new RealtimeConnectionQualityInfo(
-			phyType: PhyTypeConverter.Convert(connection.Value.dot11PhyType),
-			linkQuality: (int)connection.Value.ulLinkQuality,
-			rxRate: (int)connection.Value.ulRxRate,
-			txRate: (int)connection.Value.ulTxRate,
-			isMultiLinkOperation: connection.Value.bIsMLOConnection,
-			links: links);
+		return (ActionResult.Success, new RealtimeConnectionQualityInfo(
+			phyType: PhyTypeConverter.Convert(value.dot11PhyType),
+			linkQuality: (int)value.ulLinkQuality,
+			rxRate: (int)value.ulRxRate,
+			txRate: (int)value.ulTxRate,
+			isMultiLinkOperation: value.bIsMLOConnection,
+			links: links));
 	}
 
 	#endregion
@@ -610,8 +628,9 @@ public class NativeWifi
 				var isConnected = interfaceConnectionInfo.IsConnected;
 				if (isConnected)
 				{
-					var connection = Base.GetCurrentConnection(container.Content.Handle, interfaceConnectionInfo.Id);
-					isConnected = string.Equals(profileInfo.strProfileName, connection.strProfileName, StringComparison.Ordinal);
+					var (result, value) = Base.GetCurrentConnection(container.Content.Handle, interfaceConnectionInfo.Id);
+					isConnected = (result is ActionResult.Success)
+						&& string.Equals(profileInfo.strProfileName, value.strProfileName, StringComparison.Ordinal);
 				}
 
 				var profileXml = Base.GetProfile(container.Content.Handle, interfaceConnectionInfo.Id, profileInfo.strProfileName, out uint profileTypeFlag);
