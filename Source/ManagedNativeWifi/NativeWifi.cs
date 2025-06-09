@@ -70,7 +70,7 @@ public class NativeWifi
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
 	/// <param name="timeout">Timeout duration</param>
-	/// <returns>Interface IDs that were successfully scanned before the timeout</returns>
+	/// <returns>Wireless interface IDs that were successfully scanned before the timeout</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout)
 	{
 		return ScanNetworksAsync(null, ScanMode.All, interfaceIds: null, ssid: null, timeout, CancellationToken.None);
@@ -81,7 +81,7 @@ public class NativeWifi
 	/// </summary>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
-	/// <returns>Interface IDs that were successfully scanned before the timeout</returns>
+	/// <returns>Wireless interface IDs that were successfully scanned before the timeout</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		return ScanNetworksAsync(null, ScanMode.All, interfaceIds: null, ssid: null, timeout, cancellationToken);
@@ -91,10 +91,10 @@ public class NativeWifi
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
 	/// <param name="mode">Mode to scan</param>
-	/// <param name="interfaceIds">Interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
+	/// <param name="interfaceIds">Wireless interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
-	/// <returns>Interface IDs that were successfully scanned before the timeout</returns>
+	/// <returns>Wireless interface IDs that were successfully scanned before the timeout</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(ScanMode mode, IEnumerable<Guid> interfaceIds, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		return ScanNetworksAsync(null, mode, interfaceIds, ssid: null, timeout, cancellationToken);
@@ -104,11 +104,11 @@ public class NativeWifi
 	/// Asynchronously requests wireless interfaces to scan wireless LANs.
 	/// </summary>
 	/// <param name="mode">Mode to scan</param>
-	/// <param name="interfaceIds">Interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
+	/// <param name="interfaceIds">Wireless interface IDs to specify wireless interfaces when mode is OnlySpecified</param>
 	/// <param name="ssid">SSID of wireless LAN to be scanned</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
-	/// <returns>Interface IDs that were successfully scanned before the timeout</returns>
+	/// <returns>Wireless interface IDs that were successfully scanned before the timeout</returns>
 	public static Task<IEnumerable<Guid>> ScanNetworksAsync(ScanMode mode, IEnumerable<Guid> interfaceIds, NetworkIdentifier ssid, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		return ScanNetworksAsync(null, mode, interfaceIds, ssid, timeout, cancellationToken);
@@ -284,7 +284,7 @@ public class NativeWifi
 	/// </remarks>
 	public static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks()
 	{
-		return EnumerateAvailableNetworks(null);
+		return EnumerateAvailableNetworks((Base.WlanClient)null);
 	}
 
 	internal static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks(Base.WlanClient client)
@@ -293,28 +293,65 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 		{
-			foreach (var availableNetwork in Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id).list)
-			{
-				if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
-					!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
-					!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
-					continue;
+			var (_, list) = Base.GetAvailableNetworkList(container.Content.Handle, interfaceInfo.Id);
 
-				yield return new AvailableNetworkPack(
-					interfaceInfo: interfaceInfo,
-					ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
-					bssType: bssType,
-					signalQuality: (int)availableNetwork.wlanSignalQuality,
-					isSecurityEnabled: availableNetwork.bSecurityEnabled,
-					profileName: availableNetwork.strProfileName,
-					authenticationAlgorithm: authenticationAlgorithm,
-					cipherAlgorithm: cipherAlgorithm);
-			}
+			foreach (var availableNetworkInfo in EnumerateAvailableNetworks(list))
+				yield return new AvailableNetworkPack(interfaceInfo, availableNetworkInfo);
 		}
 	}
 
 	/// <summary>
-	/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
+	/// Enumerates wireless LAN information on available networks associated with a specified
+	/// wireless interface.
+	/// </summary>
+	/// <param name="interfaceId">Wireless interface ID</param>
+	/// <returns>
+	/// <para>
+	/// result: Action result.
+	/// Success if the interface is found and the function succeeded.
+	/// Other if the interface is is found or the function failed.
+	/// </para>
+	/// <para>value: Wireless LAN information on available networks if succeeded</para>
+	/// </returns>
+	public static (ActionResult result, IEnumerable<AvailableNetworkInfo> list) EnumerateAvailableNetworks(Guid interfaceId)
+	{
+		return EnumerateAvailableNetworks(null, interfaceId);
+	}
+
+	internal static (ActionResult result, IEnumerable<AvailableNetworkInfo> list) EnumerateAvailableNetworks(Base.WlanClient client, Guid interfaceId)
+	{
+		using var container = new DisposableContainer<Base.WlanClient>(client);
+
+		var (result, list) = Base.GetAvailableNetworkList(container.Content.Handle, interfaceId);
+		if (result is not ActionResult.Success)
+			return (result, null);
+
+		return (ActionResult.Success, EnumerateAvailableNetworks(list));
+	}
+
+	private static IEnumerable<AvailableNetworkInfo> EnumerateAvailableNetworks(IEnumerable<WLAN_AVAILABLE_NETWORK> availableNetworks)
+	{
+		foreach (var availableNetwork in availableNetworks)
+		{
+			if (!BssTypeConverter.TryConvert(availableNetwork.dot11BssType, out BssType bssType) ||
+				!AuthenticationAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultAuthAlgorithm, out AuthenticationAlgorithm authenticationAlgorithm) ||
+				!CipherAlgorithmConverter.TryConvert(availableNetwork.dot11DefaultCipherAlgorithm, out CipherAlgorithm cipherAlgorithm))
+				continue;
+
+			yield return new AvailableNetworkInfo(
+				ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
+				bssType: bssType,
+				signalQuality: (int)availableNetwork.wlanSignalQuality,
+				isSecurityEnabled: availableNetwork.bSecurityEnabled,
+				profileName: availableNetwork.strProfileName,
+				authenticationAlgorithm: authenticationAlgorithm,
+				cipherAlgorithm: cipherAlgorithm);
+		}
+	}
+
+	/// <summary>
+	/// Enumerates wireless LAN information on available networks and group of associated BSS
+	/// networks.
 	/// </summary>
 	/// <returns>Wireless LAN information on available networks and group of associated BSS networks</returns>
 	/// <remarks>
@@ -348,7 +385,7 @@ public class NativeWifi
 
 			var bssNetworks = Base.GetNetworkBssEntryList(client.Handle, interfaceInfo.Id,
 				availableNetwork.dot11Ssid, availableNetwork.dot11BssType, availableNetwork.bSecurityEnabled).list
-				.Select(x => TryConvertBssNetwork(interfaceInfo, x, out BssNetworkPack bssNetwork) ? bssNetwork : null)
+				.Select(x => TryConvertBssNetwork(x, out BssNetworkInfo bssNetworkInfo) ? new BssNetworkPack(interfaceInfo, bssNetworkInfo) : null)
 				.Where(x => x is not null);
 
 			yield return new AvailableNetworkGroupPack(
@@ -370,7 +407,7 @@ public class NativeWifi
 	/// <returns>Wireless LAN information on BSS networks</returns>
 	public static IEnumerable<BssNetworkPack> EnumerateBssNetworks()
 	{
-		return EnumerateBssNetworks(null);
+		return EnumerateBssNetworks((Base.WlanClient)null);
 	}
 
 	internal static IEnumerable<BssNetworkPack> EnumerateBssNetworks(Base.WlanClient client)
@@ -379,35 +416,71 @@ public class NativeWifi
 
 		foreach (var interfaceInfo in EnumerateInterfaces(container.Content))
 		{
-			foreach (var networkBssEntry in Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id).list)
-			{
-				if (TryConvertBssNetwork(interfaceInfo, networkBssEntry, out BssNetworkPack bssNetwork))
-					yield return bssNetwork;
-			}
+			var (_, list) = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceInfo.Id);
+
+			foreach (var bssNetworkInfo in EnumerateBssNetworks(list))
+				yield return new BssNetworkPack(interfaceInfo, bssNetworkInfo);
 		}
 	}
 
-	private static bool TryConvertBssNetwork(InterfaceInfo interfaceInfo, WLAN_BSS_ENTRY bssEntry, out BssNetworkPack bssNetwork)
+	/// <summary>
+	/// Enumerates wireless LAN information on BSS networks associated with a specified
+	/// wireless interface. 
+	/// </summary>
+	/// <param name="interfaceId">Wireless interface ID</param>
+	/// <returns>
+	/// <para>
+	/// result: Action result.
+	/// Success if the interface is found and the function succeeded.
+	/// Other if the interface is is found or the function failed.
+	/// </para>
+	/// <para>value: Wireless LAN information on BSS networks if succeeded</para>
+	/// </returns>
+	public static (ActionResult result, IEnumerable<BssNetworkInfo> list) EnumerateBssNetworks(Guid interfaceId)
 	{
-		bssNetwork = null;
+		return EnumerateBssNetworks(null, interfaceId);
+	}
 
-		if (!BssTypeConverter.TryConvert(bssEntry.dot11BssType, out BssType bssType))
-			return false;
+	internal static (ActionResult result, IEnumerable<BssNetworkInfo> list) EnumerateBssNetworks(Base.WlanClient client, Guid interfaceId)
+	{
+		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel);
+		var (result, list) = Base.GetNetworkBssEntryList(container.Content.Handle, interfaceId);
+		if (result is not ActionResult.Success)
+			return (result, null);
 
-		bssNetwork = new BssNetworkPack(
-			interfaceInfo: interfaceInfo,
-			ssid: new NetworkIdentifier(bssEntry.dot11Ssid),
-			bssType: bssType,
-			bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
-			phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType),
-			rssi: bssEntry.lRssi,
-			linkQuality: (int)bssEntry.uLinkQuality,
-			frequency: (int)bssEntry.ulChCenterFrequency,
-			band: band,
-			channel: channel);
-		return true;
+		return (ActionResult.Success, EnumerateBssNetworks(list));
+	}
+
+	private static IEnumerable<BssNetworkInfo> EnumerateBssNetworks(WLAN_BSS_ENTRY[] bssEntries)
+	{
+		foreach (var bssEntry in bssEntries)
+		{
+			if (TryConvertBssNetwork(bssEntry, out BssNetworkInfo bssNetworkInfo))
+				yield return bssNetworkInfo;
+		}
+	}
+
+	private static bool TryConvertBssNetwork(WLAN_BSS_ENTRY bssEntry, out BssNetworkInfo bssNetworkInfo)
+	{
+		if (BssTypeConverter.TryConvert(bssEntry.dot11BssType, out BssType bssType))
+		{
+			TryDetectBandChannel(bssEntry.ulChCenterFrequency, out float band, out int channel);
+
+			bssNetworkInfo = new BssNetworkInfo(
+				ssid: new NetworkIdentifier(bssEntry.dot11Ssid),
+				bssType: bssType,
+				bssid: new NetworkIdentifier(bssEntry.dot11Bssid),
+				phyType: PhyTypeConverter.Convert(bssEntry.dot11BssPhyType),
+				rssi: bssEntry.lRssi,
+				linkQuality: (int)bssEntry.uLinkQuality,
+				frequency: (int)bssEntry.ulChCenterFrequency,
+				band: band,
+				channel: channel);
+			return true;
+		}
+		bssNetworkInfo = null;
+		return false;
 	}
 
 	#endregion
