@@ -232,7 +232,15 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.EnumerateAvailableNetworks(_client);
 
 	/// <summary>
-	/// Enumerates wireless LAN information on available networks and group of associated BSS networks.
+	/// Enumerates wireless LAN information on available networks associated with a specified
+	/// wireless interface.
+	/// </summary>
+	public (ActionResult result, IEnumerable<AvailableNetworkInfo> list) EnumerateAvailableNetworks(Guid interfaceId) =>
+		NativeWifi.EnumerateAvailableNetworks(_client, interfaceId);
+
+	/// <summary>
+	/// Enumerates wireless LAN information on available networks and group of associated BSS
+	/// networks.
 	/// </summary>
 	public IEnumerable<AvailableNetworkGroupPack> EnumerateAvailableNetworkGroups() =>
 		NativeWifi.EnumerateAvailableNetworkGroups(_client);
@@ -242,6 +250,34 @@ public class NativeWifiPlayer : IDisposable
 	/// </summary>
 	public IEnumerable<BssNetworkPack> EnumerateBssNetworks() =>
 		NativeWifi.EnumerateBssNetworks(_client);
+
+	/// <summary>
+	/// Enumerates wireless LAN information on BSS networks associated with a specified wireless
+	/// interface.
+	/// </summary>
+	public (ActionResult result, IEnumerable<BssNetworkInfo> list) EnumerateBssNetworks(Guid interfaceId) =>
+		NativeWifi.EnumerateBssNetworks(_client, interfaceId);
+
+	/// <summary>
+	/// Gets current wireless connection information associated with a specified wireless
+	/// interface.
+	/// </summary>
+	public (ActionResult result, CurrentConnectionInfo value) GetCurrentConnection(Guid interfaceId) =>
+		NativeWifi.GetCurrentConnection(_client, interfaceId);
+
+	/// <summary>
+	/// Gets Received Signal Strength Indicator (RSSI) associated with a specified wireless
+	/// interface.
+	/// </summary>
+	public (ActionResult result, int value) GetRssi(Guid interfaceId) =>
+		NativeWifi.GetRssi(_client, interfaceId);
+
+	/// <summary>
+	/// Gets real-time wireless connection quality information associated with a specified wireless
+	/// interface.
+	/// </summary>
+	public (ActionResult result, RealtimeConnectionQualityInfo value) GetRealtimeConnectionQuality(Guid interfaceId) =>
+		NativeWifi.GetRealtimeConnectionQuality(_client, interfaceId);
 
 	/// <summary>
 	/// Enumerates wireless profile names in preference order.
@@ -298,7 +334,8 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.ConnectNetwork(_client, interfaceId, profileName, bssType);
 
 	/// <summary>
-	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless
+	/// profile.
 	/// </summary>
 	public Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken) =>
 		NativeWifi.ConnectNetworkAsync(_client, interfaceId, profileName, bssType, null, timeout, cancellationToken);
@@ -310,7 +347,8 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.DisconnectNetwork(_client, interfaceId);
 
 	/// <summary>
-	/// Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.
+	/// Asynchronously disconnects from the wireless LAN associated to a specified wireless
+	/// interface.
 	/// </summary>
 	public Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeout, CancellationToken cancellationToken) =>
 		NativeWifi.DisconnectNetworkAsync(_client, interfaceId, timeout, cancellationToken);
