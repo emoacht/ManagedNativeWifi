@@ -17,12 +17,12 @@ public enum ScanMode
 	All,
 
 	/// <summary>
-	/// Only disconnected wireless interfaces are requested to scan.
+	/// Only wireless interfaces that are not connected to wireless LANs, are requested to scan.
 	/// </summary>
-	OnlyDisconnected,
+	OnlyNotConnected,
 
 	/// <summary>
-	/// Only specified wireless interfaces are requested to scan.
+	/// Only wireless interfaces that are specified, are requested to scan.
 	/// </summary>
 	OnlySpecified
 }

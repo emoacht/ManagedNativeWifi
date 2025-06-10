@@ -135,7 +135,7 @@ public class NativeWifi
 			ScanMode.All => Base.GetInterfaceInfoList(container.Content.Handle)
 				.Select(x => x.InterfaceGuid)
 				.ToArray(),
-			ScanMode.OnlyDisconnected => Base.GetInterfaceInfoList(container.Content.Handle)
+			ScanMode.OnlyNotConnected => Base.GetInterfaceInfoList(container.Content.Handle)
 				.Where(x => (x.isState is WLAN_INTERFACE_STATE.wlan_interface_state_disconnected))
 				.Select(x => x.InterfaceGuid)
 				.ToArray(),
