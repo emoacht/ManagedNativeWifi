@@ -341,6 +341,7 @@ public class NativeWifi
 			yield return new AvailableNetworkInfo(
 				ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
 				bssType: bssType,
+				isConnectable: availableNetwork.bNetworkConnectable,
 				signalQuality: (int)availableNetwork.wlanSignalQuality,
 				isSecurityEnabled: availableNetwork.bSecurityEnabled,
 				profileName: availableNetwork.strProfileName,
@@ -392,6 +393,7 @@ public class NativeWifi
 				interfaceInfo: interfaceInfo,
 				ssid: new NetworkIdentifier(availableNetwork.dot11Ssid),
 				bssType: bssType,
+				isConnectable: availableNetwork.bNetworkConnectable,
 				signalQuality: (int)availableNetwork.wlanSignalQuality,
 				isSecurityEnabled: availableNetwork.bSecurityEnabled,
 				profileName: availableNetwork.strProfileName,

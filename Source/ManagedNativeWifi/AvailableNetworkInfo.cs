@@ -7,6 +7,10 @@ namespace ManagedNativeWifi;
 /// <summary>
 /// Wireless LAN information on available network
 /// </summary>
+/// <remarks>
+/// Partly equivalent to WLAN_AVAILABLE_NETWORK:
+/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_available_network
+/// </remarks>
 public class AvailableNetworkInfo
 {
 	/// <summary>
@@ -18,6 +22,11 @@ public class AvailableNetworkInfo
 	/// BSS network type
 	/// </summary>
 	public BssType BssType { get; }
+
+	/// <summary>
+	/// Whether this network is connectable
+	/// </summary>
+	public bool IsConnectable { get; }
 
 	/// <summary>
 	/// Signal quality (0-100)
@@ -50,6 +59,7 @@ public class AvailableNetworkInfo
 	public AvailableNetworkInfo(
 		NetworkIdentifier ssid,
 		BssType bssType,
+		bool isConnectable,
 		int signalQuality,
 		bool isSecurityEnabled,
 		string profileName,
@@ -58,6 +68,7 @@ public class AvailableNetworkInfo
 	{
 		this.Ssid = ssid;
 		this.BssType = bssType;
+		this.IsConnectable = isConnectable;
 		this.SignalQuality = signalQuality;
 		this.IsSecurityEnabled = isSecurityEnabled;
 		this.ProfileName = profileName;
@@ -89,6 +100,7 @@ public class AvailableNetworkPack : AvailableNetworkInfo
 		InterfaceInfo interfaceInfo,
 		NetworkIdentifier ssid,
 		BssType bssType,
+		bool isConnectable,
 		int signalQuality,
 		bool isSecurityEnabled,
 		string profileName,
@@ -96,6 +108,7 @@ public class AvailableNetworkPack : AvailableNetworkInfo
 		CipherAlgorithm cipherAlgorithm) : base(
 			ssid: ssid,
 			bssType: bssType,
+			isConnectable: isConnectable,
 			signalQuality: signalQuality,
 			isSecurityEnabled: isSecurityEnabled,
 			profileName: profileName,
@@ -111,6 +124,7 @@ public class AvailableNetworkPack : AvailableNetworkInfo
 			interfaceInfo: interfaceInfo,
 			ssid: availableNetworkInfo.Ssid,
 			bssType: availableNetworkInfo.BssType,
+			isConnectable: availableNetworkInfo.IsConnectable,
 			signalQuality: availableNetworkInfo.SignalQuality,
 			isSecurityEnabled: availableNetworkInfo.IsSecurityEnabled,
 			profileName: availableNetworkInfo.ProfileName,
@@ -161,6 +175,7 @@ public class AvailableNetworkGroupPack : AvailableNetworkPack
 		InterfaceInfo interfaceInfo,
 		NetworkIdentifier ssid,
 		BssType bssType,
+		bool isConnectable,
 		int signalQuality,
 		bool isSecurityEnabled,
 		string profileName,
@@ -170,6 +185,7 @@ public class AvailableNetworkGroupPack : AvailableNetworkPack
 			interfaceInfo: interfaceInfo,
 			ssid: ssid,
 			bssType: bssType,
+			isConnectable: isConnectable,
 			signalQuality: signalQuality,
 			isSecurityEnabled: isSecurityEnabled,
 			profileName: profileName,
