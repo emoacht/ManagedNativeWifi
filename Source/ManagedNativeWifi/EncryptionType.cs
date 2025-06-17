@@ -6,7 +6,7 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to encryption element in profile XML:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-encryption-authencryption-element
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-authencryption-security-element#encryption
 /// </remarks>
 public enum EncryptionType
 {
@@ -28,7 +28,12 @@ public enum EncryptionType
 	/// <summary>
 	/// AES (CCMP) encryption for WPA/WPA2
 	/// </summary>
-	AES
+	AES,
+
+	/// <summary>
+	/// GCMP-256 encryption for WPA3
+	/// </summary>
+	GCMP_256
 }
 
 internal static class EncryptionTypeConverter
@@ -37,6 +42,9 @@ internal static class EncryptionTypeConverter
 	{
 		switch (source)
 		{
+			case "none":
+				encryption = EncryptionType.None;
+				return true;
 			case "WEP":
 				encryption = EncryptionType.WEP;
 				return true;
@@ -46,11 +54,11 @@ internal static class EncryptionTypeConverter
 			case "AES":
 				encryption = EncryptionType.AES;
 				return true;
-			case "none":
-				encryption = EncryptionType.None;
+			case "GCMP256":
+				encryption = EncryptionType.GCMP_256;
 				return true;
 		}
 		encryption = default;
-		return true;
+		return false;
 	}
 }
