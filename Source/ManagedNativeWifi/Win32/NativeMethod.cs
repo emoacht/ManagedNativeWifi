@@ -729,16 +729,16 @@ internal static class NativeMethod
 		dot11_phy_type_fhss = 1,
 		dot11_phy_type_dsss = 2,
 		dot11_phy_type_irbaseband = 3,
-		dot11_phy_type_ofdm = 4,
-		dot11_phy_type_hrdsss = 5,
-		dot11_phy_type_erp = 6,
-		dot11_phy_type_ht = 7,
-		dot11_phy_type_vht = 8,
+		dot11_phy_type_ofdm = 4,   // 11a
+		dot11_phy_type_hrdsss = 5, // 11b
+		dot11_phy_type_erp = 6,    // 11g
+		dot11_phy_type_ht = 7,     // 11n
+		dot11_phy_type_vht = 8,    // 11ac 
 
-		// Supplemented by description at DOT11_PHY_TYPE enumeration (windot11.h)
-		dot11_phy_type_dmg = 9,
-		dot11_phy_type_he = 10,
-		dot11_phy_type_eht = 11,
+		// Supplemented by windot11.h of Windows SDK
+		dot11_phy_type_dmg = 9,    // 11ad
+		dot11_phy_type_he = 10,    // 11ax
+		dot11_phy_type_eht = 11,   // 11be
 
 		dot11_phy_type_IHV_start = 0x80000000,
 		dot11_phy_type_IHV_end = 0xffffffff
@@ -754,7 +754,7 @@ internal static class NativeMethod
 		DOT11_AUTH_ALGO_RSNA = 6,
 		DOT11_AUTH_ALGO_RSNA_PSK = 7,
 
-		// Derived from wlantypes.h of Windows SDK (10.0.26100.0)
+		// Supplemented by wlantypes.h of Windows SDK (10.0.26100.0)
 		DOT11_AUTH_ALGO_WPA3 = 8,
 		DOT11_AUTH_ALGO_WPA3_ENT_192 = DOT11_AUTH_ALGO_WPA3,
 		DOT11_AUTH_ALGO_WPA3_SAE = 9,
@@ -772,6 +772,16 @@ internal static class NativeMethod
 		DOT11_CIPHER_ALGO_TKIP = 0x02,
 		DOT11_CIPHER_ALGO_CCMP = 0x04,
 		DOT11_CIPHER_ALGO_WEP104 = 0x05,
+
+		// Supplemented by wlantypes.h of Windows SDK
+		DOT11_CIPHER_ALGO_BIP = 0x06,          // BIP-CMAC-128
+		DOT11_CIPHER_ALGO_GCMP = 0x08,         // GCMP-128
+		DOT11_CIPHER_ALGO_GCMP_256 = 0x09,     // GCMP-256
+		DOT11_CIPHER_ALGO_CCMP_256 = 0x0a,     // CCMP-256
+		DOT11_CIPHER_ALGO_BIP_GMAC_128 = 0x0b, // BIP-GMAC-128
+		DOT11_CIPHER_ALGO_BIP_GMAC_256 = 0x0c, // BIP-GMAC-256
+		DOT11_CIPHER_ALGO_BIP_CMAC_256 = 0x0d, // BIP-CMAC-256
+
 		DOT11_CIPHER_ALGO_WPA_USE_GROUP = 0x100,
 		DOT11_CIPHER_ALGO_RSN_USE_GROUP = 0x100,
 		DOT11_CIPHER_ALGO_WEP = 0x101,
@@ -799,11 +809,11 @@ internal static class NativeMethod
 		wlan_intf_opcode_hosted_network_capable,
 		wlan_intf_opcode_management_frame_protection_capable,
 
-		// Derived from wlanapi.h of Windows SDK (10.0.22000.0)
+		// Supplemented by wlanapi.h of Windows SDK (10.0.22000.0)
 		wlan_intf_opcode_secondary_sta_interfaces,
 		wlan_intf_opcode_secondary_sta_synchronized_connections,
 
-		// Derived from wlanapi.h of Windows SDK (10.0.26100.0)
+		// Supplemented by wlanapi.h of Windows SDK (10.0.26100.0)
 		wlan_intf_opcode_realtime_connection_quality,
 		wlan_intf_opcode_qos_info,
 

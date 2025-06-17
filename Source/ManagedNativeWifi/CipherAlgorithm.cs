@@ -8,7 +8,7 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to DOT11_CIPHER_ALGORITHM:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-cipher-algorithm
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/dot11-cipher-algorithm
 /// </remarks>
 public enum CipherAlgorithm
 {
@@ -25,12 +25,12 @@ public enum CipherAlgorithm
 	/// <summary>
 	/// WEP algorithm with a 40-bit cipher key
 	/// </summary>
-	WEP40,
+	WEP_40,
 
 	/// <summary>
 	/// WEP algorithm with a 104-bit cipher key
 	/// </summary>
-	WEP104,
+	WEP_104,
 
 	/// <summary>
 	/// Temporal Key Integrity Protocol (TKIP) algorithm
@@ -41,6 +41,41 @@ public enum CipherAlgorithm
 	/// AES-CCMP algorithm
 	/// </summary>
 	CCMP,
+
+	/// <summary>
+	/// BIP-CMAC-128 algorithm
+	/// </summary>
+	BIP,
+
+	/// <summary>
+	/// GCMP-128 algorithm
+	/// </summary>	
+	GCMP,
+
+	/// <summary>
+	/// GCMP-256 algorithm
+	/// </summary>	
+	GCMP_256,
+
+	/// <summary>
+	/// CCMP-256 algorithm
+	/// </summary>	
+	CCMP_256,
+
+	/// <summary>
+	/// BIP-GMAC-128 algorithm
+	/// </summary>
+	BIP_GMAC_128,
+
+	/// <summary>
+	/// BIP-GMAC-256 algorithm
+	/// </summary>	
+	BIP_GMAC_256,
+
+	/// <summary>
+	/// BIP-CMAC-256 algorithm
+	/// </summary>	
+	BIP_CMAC_256,
 
 	/// <summary>
 	/// Wi-Fi Protected Access (WPA) Use Group Key cipher suite
@@ -73,7 +108,7 @@ internal static class CipherAlgorithmConverter
 				cipherAlgorithm = CipherAlgorithm.None;
 				return true;
 			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WEP40:
-				cipherAlgorithm = CipherAlgorithm.WEP40;
+				cipherAlgorithm = CipherAlgorithm.WEP_40;
 				return true;
 			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_TKIP:
 				cipherAlgorithm = CipherAlgorithm.TKIP;
@@ -82,8 +117,31 @@ internal static class CipherAlgorithmConverter
 				cipherAlgorithm = CipherAlgorithm.CCMP;
 				return true;
 			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WEP104:
-				cipherAlgorithm = CipherAlgorithm.WEP104;
+				cipherAlgorithm = CipherAlgorithm.WEP_104;
 				return true;
+
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_BIP:
+				cipherAlgorithm = CipherAlgorithm.BIP;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_GCMP:
+				cipherAlgorithm = CipherAlgorithm.GCMP;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_GCMP_256:
+				cipherAlgorithm = CipherAlgorithm.GCMP_256;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_CCMP_256:
+				cipherAlgorithm = CipherAlgorithm.CCMP_256;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_BIP_GMAC_128:
+				cipherAlgorithm = CipherAlgorithm.BIP_GMAC_128;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_BIP_GMAC_256:
+				cipherAlgorithm = CipherAlgorithm.BIP_GMAC_256;
+				return true;
+			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_BIP_CMAC_256:
+				cipherAlgorithm = CipherAlgorithm.BIP_CMAC_256;
+				return true;
+
 			case DOT11_CIPHER_ALGORITHM.DOT11_CIPHER_ALGO_WPA_USE_GROUP:
 				cipherAlgorithm = CipherAlgorithm.WPA_USE_GROUP;
 				return true;
