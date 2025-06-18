@@ -8,14 +8,20 @@ namespace ManagedNativeWifi;
 public class ProfilePack
 {
 	/// <summary>
-	/// Profile name
+	/// Associated wireless interface information
 	/// </summary>
-	public string Name { get; }
+	public InterfaceInfo InterfaceInfo { get; }
 
 	/// <summary>
 	/// Associated wireless interface information
 	/// </summary>
-	public InterfaceInfo Interface { get; }
+	[Obsolete("Use InterfaceInfo property instead.")]
+	public InterfaceInfo Interface => InterfaceInfo;
+
+	/// <summary>
+	/// Profile name
+	/// </summary>
+	public string Name { get; }
 
 	/// <summary>
 	/// Profile type
@@ -72,14 +78,14 @@ public class ProfilePack
 	/// Constructor
 	/// </summary>
 	public ProfilePack(
-		string name,
 		InterfaceInfo interfaceInfo,
+		string name,
 		ProfileType profileType,
 		string profileXml,
 		int position)
 	{
+		this.InterfaceInfo = interfaceInfo;
 		this.Name = name;
-		this.Interface = interfaceInfo;
 		this.ProfileType = profileType;
 		Document = new ProfileDocument(profileXml);
 		this.Position = position;
@@ -94,12 +100,18 @@ public class ProfileRadioPack : ProfilePack
 	/// <summary>
 	/// Associated wireless interface and associated information
 	/// </summary>
-	public new InterfaceConnectionInfo Interface => (InterfaceConnectionInfo)base.Interface;
+	public new InterfaceConnectionInfo InterfaceInfo => (InterfaceConnectionInfo)base.InterfaceInfo;
+
+	/// <summary>
+	/// Associated wireless interface and associated information
+	/// </summary>
+	[Obsolete("Use InterfaceInfo property instead.")]
+	public new InterfaceConnectionInfo Interface => InterfaceInfo;
 
 	/// <summary>
 	/// Whether radio of associated wireless interface is on
 	/// </summary>
-	public bool IsRadioOn => Interface.IsRadioOn;
+	public bool IsRadioOn => InterfaceInfo.IsRadioOn;
 
 	/// <summary>
 	/// Whether associated wireless interface is connected to associated wireless LAN
@@ -140,8 +152,8 @@ public class ProfileRadioPack : ProfilePack
 	/// Constructor
 	/// </summary>
 	public ProfileRadioPack(
-		string name,
 		InterfaceConnectionInfo interfaceInfo,
+		string name,
 		bool isConnected,
 		ProfileType profileType,
 		string profileXml,
@@ -152,8 +164,8 @@ public class ProfileRadioPack : ProfilePack
 		int frequency,
 		float band,
 		int channel) : base(
-			name: name,
 			interfaceInfo: interfaceInfo,
+			name: name,
 			profileType: profileType,
 			profileXml: profileXml,
 			position: position)

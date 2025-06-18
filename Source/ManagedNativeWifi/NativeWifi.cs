@@ -668,8 +668,8 @@ public class NativeWifi
 					continue;
 
 				yield return new ProfilePack(
-					name: profileInfo.strProfileName,
 					interfaceInfo: interfaceInfo,
+					name: profileInfo.strProfileName,					
 					profileType: profileType,
 					profileXml: profileXml,
 					position: position++);
@@ -717,9 +717,9 @@ public class NativeWifi
 
 				var availableNetworkGroup = availableNetworkGroups.FirstOrDefault(x => string.Equals(x.ProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
 
-				yield return new ProfileRadioPack(
-					name: profileInfo.strProfileName,
+				yield return new ProfileRadioPack(					
 					interfaceInfo: interfaceConnectionInfo,
+					name: profileInfo.strProfileName,
 					isConnected: isConnected,
 					profileType: profileType,
 					profileXml: profileXml,

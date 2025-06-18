@@ -82,16 +82,18 @@ public class ProfileDocument
 		var ssidNameString = ssidElement?.Descendants(XName.Get("name", Namespace)).FirstOrDefault()?.Value;
 		Ssid = new NetworkIdentifier(ssidHexBytes, ssidNameString);
 
+		int count = 0;
+
 		var connectionTypeString = Root.Descendants(XName.Get("connectionType", Namespace)).FirstOrDefault()?.Value;
-		if (!BssTypeConverter.TryParse(connectionTypeString, out BssType bssType)) return;
+		if (BssTypeConverter.TryParse(connectionTypeString, out BssType bssType)) count++;
 		this.BssType = bssType;
 
 		AuthenticationString = Root.Descendants(XName.Get("authentication", Namespace)).FirstOrDefault()?.Value;
-		if (!AuthenticationMethodConverter.TryParse(AuthenticationString, out AuthenticationMethod authentication)) return;
+		if (AuthenticationMethodConverter.TryParse(AuthenticationString, out AuthenticationMethod authentication)) count++;
 		this.Authentication = authentication;
 
 		EncryptionString = Root.Descendants(XName.Get("encryption", Namespace)).FirstOrDefault()?.Value;
-		if (!EncryptionTypeConverter.TryParse(EncryptionString, out EncryptionType encryption)) return;
+		if (EncryptionTypeConverter.TryParse(EncryptionString, out EncryptionType encryption)) count++;
 		this.Encryption = encryption;
 
 		//Debug.WriteLine("SSID: {0}, BssType: {1}, Authentication: {2}, Encryption: {3}",
@@ -101,12 +103,11 @@ public class ProfileDocument
 		//	Encryption);
 
 		_connectionModeElement = Root.Descendants(XName.Get("connectionMode", Namespace)).FirstOrDefault();
-		if (_connectionModeElement is null)
-			return;
+		if (_connectionModeElement is not null) count++;
 
 		_autoSwitchElement = Root.Descendants(XName.Get("autoSwitch", Namespace)).FirstOrDefault();
 
-		IsValid = true;
+		IsValid = (count == 4);
 	}
 
 	private static XDocument Parse(string xml)
@@ -215,20 +216,20 @@ internal static class HexadecimalStringConverter
 		if (string.IsNullOrWhiteSpace(source))
 			return null;
 
-		var buff = new byte[source.Length / 2];
+		var buffer = new byte[source.Length / 2];
 
-		for (int i = 0; i < buff.Length; i++)
+		for (int i = 0; i < buffer.Length; i++)
 		{
 			try
 			{
-				buff[i] = Convert.ToByte(source.Substring(i * 2, 2), 16);
+				buffer[i] = Convert.ToByte(source.Substring(i * 2, 2), 16);
 			}
 			catch (FormatException)
 			{
 				break;
 			}
 		}
-		return buff;
+		return buffer;
 	}
 
 	/// <summary>
