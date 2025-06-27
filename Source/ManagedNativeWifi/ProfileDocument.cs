@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+
+using ManagedNativeWifi.Common;
 
 namespace ManagedNativeWifi;
 
@@ -78,7 +79,7 @@ public class ProfileDocument
 
 		var ssidElement = Root.Descendants(XName.Get("SSID", Namespace)).FirstOrDefault();
 		var ssidHexString = ssidElement?.Descendants(XName.Get("hex", Namespace)).FirstOrDefault()?.Value;
-		var ssidHexBytes = HexadecimalStringConverter.ToBytes(ssidHexString);
+		var ssidHexBytes = HexadecimalHelper.ToBytes(ssidHexString);
 		var ssidNameString = ssidElement?.Descendants(XName.Get("name", Namespace)).FirstOrDefault()?.Value;
 		Ssid = new NetworkIdentifier(ssidHexBytes, ssidNameString);
 
@@ -202,44 +203,4 @@ public class ProfileDocument
 	/// </summary>
 	/// <returns>Cloned instance</returns>
 	public virtual ProfileDocument Clone() => new ProfileDocument(new XDocument(Root));
-}
-
-internal static class HexadecimalStringConverter
-{
-	/// <summary>
-	/// Converts string which represents a byte array in hexadecimal format to the byte array.
-	/// </summary>
-	/// <param name="source">Hexadecimal string</param>
-	/// <returns>Original byte array</returns>
-	public static byte[] ToBytes(string source)
-	{
-		if (string.IsNullOrWhiteSpace(source))
-			return null;
-
-		var buffer = new byte[source.Length / 2];
-
-		for (int i = 0; i < buffer.Length; i++)
-		{
-			try
-			{
-				buffer[i] = Convert.ToByte(source.Substring(i * 2, 2), 16);
-			}
-			catch (FormatException)
-			{
-				break;
-			}
-		}
-		return buffer;
-	}
-
-	/// <summary>
-	/// Converts a byte array to string which represents the byte array in hexadecimal format.
-	/// </summary>
-	/// <param name="source">Original byte array</param>
-	/// <returns>Hexadecimal string</returns>
-	public static string ToHexadecimalString(byte[] source) =>
-		BitConverter.ToString(source).Replace("-", "");
-
-	public static string ToHexadecimalString(string source) =>
-		ToHexadecimalString(Encoding.UTF8.GetBytes(source));
 }
