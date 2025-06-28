@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -124,9 +123,9 @@ public class NativeWifi
 		if ((mode is ScanMode.OnlySpecified) && (specifiedIds is not { Length: > 0 }))
 			throw new ArgumentException("The interface IDs must be provided when mode is OnlySpecified.", nameof(interfaceIds));
 
-		var buffer = default(DOT11_SSID);
-		if ((ssid is not null) && !DOT11_SSID.TryCreate(ssid.ToBytes(), out buffer))
-			throw new ArgumentException("The SSID is invalid", nameof(ssid));
+		var dot11Ssid = default(DOT11_SSID);
+		if ((ssid is not null) && !DOT11_SSID.TryCreate(ssid.ToBytes(), out dot11Ssid))
+			throw new ArgumentException("The specified SSID is invalid", nameof(ssid));
 
 		using var container = new DisposableContainer<Base.WlanNotificationClient>(client);
 
@@ -162,7 +161,7 @@ public class NativeWifi
 
 		foreach (var targetId in targetIds)
 		{
-			var result = Base.Scan(container.Content.Handle, targetId, buffer);
+			var result = Base.Scan(container.Content.Handle, targetId, dot11Ssid);
 			if (!result)
 				counter.SetFailure(targetId);
 		}
@@ -669,7 +668,7 @@ public class NativeWifi
 
 				yield return new ProfilePack(
 					interfaceInfo: interfaceInfo,
-					name: profileInfo.strProfileName,					
+					name: profileInfo.strProfileName,
 					profileType: profileType,
 					profileXml: profileXml,
 					position: position++);
@@ -717,7 +716,7 @@ public class NativeWifi
 
 				var availableNetworkGroup = availableNetworkGroups.FirstOrDefault(x => string.Equals(x.ProfileName, profileInfo.strProfileName, StringComparison.Ordinal));
 
-				yield return new ProfileRadioPack(					
+				yield return new ProfileRadioPack(
 					interfaceInfo: interfaceConnectionInfo,
 					name: profileInfo.strProfileName,
 					isConnected: isConnected,
@@ -889,25 +888,28 @@ public class NativeWifi
 	/// <param name="interfaceId">Interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
-	/// <param name="bssid">BSSID of the network</param>
+	/// <param name="bssid">BSSID of wireless LAN to be connected</param>
 	/// <returns>True if successfully requested the connection. False if failed.</returns>
-	public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid = null)
+	public static bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType, NetworkIdentifier bssid = null)
 	{
 		return ConnectNetwork(null, interfaceId, profileName, bssType, bssid);
 	}
 
-	internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid = null)
+	internal static bool ConnectNetwork(Base.WlanClient client, Guid interfaceId, string profileName, BssType bssType, NetworkIdentifier bssid = null)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 		if (string.IsNullOrWhiteSpace(profileName))
 			throw new ArgumentNullException(nameof(profileName));
 
+		var dot11MacAddress = default(DOT11_MAC_ADDRESS);
+		if ((bssid is not null) && !DOT11_MAC_ADDRESS.TryCreate(bssid.ToBytes(), out dot11MacAddress))
+			throw new ArgumentException("The specified BSSID is invalid", nameof(bssid));
+
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
 		if (bssid is not null)
 		{
-			var dot11MacAddress = new DOT11_MAC_ADDRESS { ucDot11MacAddress = bssid.GetAddressBytes() };
 			return Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
 		}
 		else
@@ -949,21 +951,26 @@ public class NativeWifi
 	/// <param name="interfaceId">Interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
-	/// <param name="bssid">BSSID of the network</param>
+	/// <param name="bssid">BSSID of wireless LAN to be connected</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
 	/// <returns>True if successfully connected. False if failed or timed out.</returns>
-	public static Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid, TimeSpan timeout, CancellationToken cancellationToken)
+	public static Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, NetworkIdentifier bssid, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		return ConnectNetworkAsync(null, interfaceId, profileName, bssType, bssid, timeout, cancellationToken);
 	}
 
-	internal static async Task<bool> ConnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, string profileName, BssType bssType, PhysicalAddress bssid, TimeSpan timeout, CancellationToken cancellationToken)
+	internal static async Task<bool> ConnectNetworkAsync(Base.WlanNotificationClient client, Guid interfaceId, string profileName, BssType bssType, NetworkIdentifier bssid, TimeSpan timeout, CancellationToken cancellationToken)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 		if (string.IsNullOrWhiteSpace(profileName))
 			throw new ArgumentNullException(nameof(profileName));
+
+		var dot11MacAddress = default(DOT11_MAC_ADDRESS);
+		if ((bssid is not null) && !DOT11_MAC_ADDRESS.TryCreate(bssid.ToBytes(), out dot11MacAddress))
+			throw new ArgumentException("The specified BSSID is invalid", nameof(bssid));
+
 		if (timeout <= TimeSpan.Zero)
 			throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout duration must be positive.");
 
@@ -1008,7 +1015,6 @@ public class NativeWifi
 		bool result;
 		if (bssid is not null)
 		{
-			var dot11MacAddress = new DOT11_MAC_ADDRESS { ucDot11MacAddress = bssid.GetAddressBytes() };
 			result = Base.Connect(container.Content.Handle, interfaceId, profileName, BssTypeConverter.ConvertBack(bssType), dot11MacAddress);
 		}
 		else

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 
 using static ManagedNativeWifi.Win32.NativeMethod;
@@ -41,6 +42,16 @@ public class NetworkIdentifier
 	/// <remarks>Raw string will be left null because byte array cannot always be decoded by UTF-8.</remarks>
 	public NetworkIdentifier(byte[] rawBytes) : this(rawBytes, null)
 	{ }
+
+	/// <summary>
+	/// Converts <see cref="System.Net.NetworkInformation.PhysicalAddress"/> to NetworkIdentifier.
+	/// </summary>
+	public static implicit operator NetworkIdentifier(PhysicalAddress value) => new(value.GetAddressBytes(), null);
+
+	/// <summary>
+	/// Converts NetworkIdentifier to <see cref="System.Net.NetworkInformation.PhysicalAddress"/>.
+	/// </summary>
+	public static implicit operator PhysicalAddress(NetworkIdentifier value) => new(value.ToBytes());
 
 	/// <summary>
 	/// Returns the identifier in byte array.

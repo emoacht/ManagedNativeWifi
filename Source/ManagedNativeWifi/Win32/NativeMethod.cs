@@ -555,6 +555,18 @@ internal static class NativeMethod
 				? BitConverter.ToString(ucDot11MacAddress).Replace('-', ':')
 				: null;
 		}
+
+		internal static bool TryCreate(byte[] rawBytes, out DOT11_MAC_ADDRESS bssid)
+		{
+			if (rawBytes is not { Length: 6 })
+			{
+				bssid = default;
+				return false;
+			}
+
+			bssid = new DOT11_MAC_ADDRESS { ucDot11MacAddress = rawBytes };
+			return true;
+		}
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
