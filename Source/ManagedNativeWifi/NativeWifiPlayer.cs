@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -138,8 +139,8 @@ public class NativeWifiPlayer : IDisposable
 				switch (msmCode)
 				{
 					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_radio_state_change when (RadioStateChanged is not null):
-						var phyRadioStateInfo = new PhyRadioStateInfo(Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
-						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, phyRadioStateInfo));
+						var radioState = GetRadioState(_client, e.InterfaceGuid, Marshal.PtrToStructure<WLAN_PHY_RADIO_STATE>(e.pData));
+						RadioStateChanged?.Invoke(this, new RadioStateChangedEventArgs(e.InterfaceGuid, radioState));
 						break;
 
 					case WLAN_NOTIFICATION_MSM.wlan_notification_msm_signal_quality_change when (SignalQualityChanged is not null):
@@ -149,6 +150,26 @@ public class NativeWifiPlayer : IDisposable
 				}
 				break;
 		}
+	}
+
+	private Dictionary<Guid, IReadOnlyList<PhyType>> _phyTypesCache;
+
+	private RadioStateSet GetRadioState(Base.WlanClient client, Guid interfaceId, WLAN_PHY_RADIO_STATE state)
+	{
+		_phyTypesCache ??= [];
+		if (!_phyTypesCache.TryGetValue(interfaceId, out IReadOnlyList<PhyType> phyTypes))
+		{
+			var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
+			var dot11PhyTypes = capability.dot11PhyTypes /* This value may be null. */ ?? [];
+			phyTypes = Array.AsReadOnly(dot11PhyTypes.Select(x => PhyTypeConverter.Convert(x)).ToArray());
+			_phyTypesCache[interfaceId] = phyTypes;
+		}
+
+		PhyType phyType = default;
+		if (state.dwPhyIndex < phyTypes.Count)
+			phyType = phyTypes[(int)state.dwPhyIndex];
+
+		return new RadioStateSet(phyType, state);
 	}
 
 	#region Dispose

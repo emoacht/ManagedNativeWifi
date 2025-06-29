@@ -13,18 +13,18 @@ public class RadioStateChangedEventArgs : EventArgs
 	public Guid InterfaceId { get; }
 
 	/// <summary>
-	/// PHY radio state information
+	/// Radio state information
 	/// </summary>
-	public PhyRadioStateInfo PhyRadioStateInfo { get; }
+	public RadioStateSet RadioState { get; }
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="RadioStateChangedEventArgs"/> class.
 	/// </summary>
 	/// <param name="interfaceId">Interface ID</param>
-	/// <param name="phyRadioStateInfo">PHY radio state information</param>
-	public RadioStateChangedEventArgs(Guid interfaceId, PhyRadioStateInfo phyRadioStateInfo)
+	/// <param name="radioState">Radio state information</param>
+	public RadioStateChangedEventArgs(Guid interfaceId, RadioStateSet radioState)
 	{
-		InterfaceId = interfaceId;
-		PhyRadioStateInfo = phyRadioStateInfo;
+		this.InterfaceId = interfaceId;
+		this.RadioState = radioState;
 	}
 }

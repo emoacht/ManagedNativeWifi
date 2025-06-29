@@ -52,7 +52,7 @@ public class NativeWifi
 		{
 			var isConnected = (interfaceInfo.isState is WLAN_INTERFACE_STATE.wlan_interface_state_connected);
 			var isRadioOn = isConnected ||
-				EnumerateRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
+				EnumerateRadioStates(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.IsOn);
 
 			yield return new InterfaceConnectionInfo(
 				interfaceInfo,
@@ -1135,41 +1135,25 @@ public class NativeWifi
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var radioSets = EnumerateRadioSets(container.Content, interfaceId).ToArray();
-		if (radioSets is not { Length: > 0 })
+		var radioStates = EnumerateRadioStates(container.Content, interfaceId).ToArray();
+		if (radioStates is not { Length: > 0 })
 			return null;
 
-		return new RadioInfo(
-			interfaceId: interfaceId,
-			radioSets: radioSets);
+		return new RadioInfo(radioStates);
 	}
 
-	private static IEnumerable<RadioSet> EnumerateRadioSets(Base.WlanClient client, Guid interfaceId)
+	private static IEnumerable<RadioStateSet> EnumerateRadioStates(Base.WlanClient client, Guid interfaceId)
 	{
 		var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
-		var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
+		var dot11PhyTypes = capability.dot11PhyTypes /* This value may be null. */ ?? [];
 
-		if ((capability.interfaceType is WLAN_INTERFACE_TYPE.wlan_interface_type_invalid) ||
-			(capability.dwNumberOfSupportedPhys != states.Count()) ||
-			(capability.dot11PhyTypes is not { Length: > 0 })) // This value may be null.
-			return Enumerable.Empty<RadioSet>();
-
-		return Enumerable.Zip(
-			capability.dot11PhyTypes,
-			states.OrderBy(x => x.dwPhyIndex),
-			(x, y) => new RadioSet(
-				type: PhyTypeConverter.Convert(x),
-				hardwareOn: ConvertToNullableBoolean(y.dot11HardwareRadioState),
-				softwareOn: ConvertToNullableBoolean(y.dot11SoftwareRadioState)));
-
-		static bool? ConvertToNullableBoolean(DOT11_RADIO_STATE source)
+		foreach (var state in Base.GetPhyRadioStates(client.Handle, interfaceId))
 		{
-			return source switch
-			{
-				DOT11_RADIO_STATE.dot11_radio_state_on => true,
-				DOT11_RADIO_STATE.dot11_radio_state_off => false,
-				_ => (bool?)null,
-			};
+			PhyType phyType = default;
+			if (state.dwPhyIndex < dot11PhyTypes.Length)
+				phyType = PhyTypeConverter.Convert(dot11PhyTypes[state.dwPhyIndex]);
+
+			yield return new RadioStateSet(phyType, state);
 		}
 	}
 
@@ -1199,16 +1183,16 @@ public class NativeWifi
 		return TurnRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
 	}
 
-	internal static bool TurnRadio(Base.WlanClient client, Guid interfaceId, DOT11_RADIO_STATE radioState)
+	internal static bool TurnRadio(Base.WlanClient client, Guid interfaceId, DOT11_RADIO_STATE dot11RadioState)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var phyRadioState = new WLAN_PHY_RADIO_STATE { dot11SoftwareRadioState = radioState, };
+		var state = new WLAN_PHY_RADIO_STATE { dot11SoftwareRadioState = dot11RadioState, };
 
-		return Base.SetPhyRadioState(container.Content.Handle, interfaceId, phyRadioState);
+		return Base.SetPhyRadioState(container.Content.Handle, interfaceId, state);
 	}
 
 	#endregion
