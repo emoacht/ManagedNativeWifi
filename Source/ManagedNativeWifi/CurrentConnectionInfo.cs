@@ -2,7 +2,7 @@
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Current wireless connection information
+/// Wireless connection information
 /// </summary>
 /// <remarks>
 /// Partly equivalent to WLAN_CONNECTION_ATTRIBUTES:

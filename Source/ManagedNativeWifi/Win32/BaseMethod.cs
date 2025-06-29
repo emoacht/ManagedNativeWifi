@@ -98,7 +98,7 @@ internal static class BaseMethod
 			// ERROR_NOT_ENOUGH_MEMORY: Failed to allocate memory for the query results.
 			// ERROR_ACCESS_DENIED: When WLAN_NOTIFICATION_SOURCE_MSM flag is set in dwNotifSource,
 			// the wiFiControl device capability is required but that capability is not granted.
-			// Requesting the wiFiControl device capability will will require consent from the user
+			// Requesting the wiFiControl device capability will require consent from the user
 			// regarding location access.
 			CheckResult(nameof(WlanRegisterNotification), result, true);
 		}

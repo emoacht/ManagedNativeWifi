@@ -8,8 +8,8 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to DOT11_PHY_TYPE:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-phy-type
-/// https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/windot11/ne-windot11-_dot11_phy_type
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/dot11-phy-type
+/// https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/windot11/ne-windot11-_dot11_phy_type
 /// </remarks>
 public enum PhyType
 {
@@ -145,9 +145,9 @@ internal static class PhyTypeConverter
 public static class PhyTypeExtension
 {
 	/// <summary>
-	/// Converts the value of this instance to its equivalent protocol name.
+	/// Converts PHY type to the equivalent protocol name.
 	/// </summary>
-	/// <param name="phyType">PhyType</param>
+	/// <param name="phyType">PHY type</param>
 	/// <returns>Protocol name</returns>
 	public static string ToProtocolName(this PhyType phyType)
 	{

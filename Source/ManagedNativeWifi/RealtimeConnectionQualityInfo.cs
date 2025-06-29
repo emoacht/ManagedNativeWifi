@@ -5,7 +5,7 @@ using System.Linq;
 namespace ManagedNativeWifi;
 
 /// <summary>
-/// Real-time wireless connection quality information
+/// Wireless connection quality information
 /// </summary>
 /// <remarks>
 /// Partly equivalent to WLAN_REALTIME_CONNECTION_QUALITY:
@@ -61,7 +61,7 @@ public class RealtimeConnectionQualityInfo
 }
 
 /// <summary>
-/// Link information for a radio link in real-time wireless connection quality information
+/// Link information for a radio link in wireless connection quality information
 /// </summary>
 public class RealtimeConnectionQualityLinkInfo
 {

@@ -8,7 +8,7 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to DOT11_AUTH_ALGORITHM:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-auth-algorithm
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/dot11-auth-algorithm
 /// </remarks>
 public enum AuthenticationAlgorithm
 {

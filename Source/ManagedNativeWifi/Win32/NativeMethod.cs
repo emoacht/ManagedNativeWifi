@@ -1019,9 +1019,9 @@ internal static class NativeMethod
 
 		/// <summary>
 		/// <para>The screen power has changed.</para>
-		/// <para>The pData member points to a BOOL value that indicates the value of
-		/// the screen power change. When this value is TRUE, the screen changed to on.
-		/// When this value is FALSE, the screen changed to off.</para>
+		/// <para>The pData member points to a BOOL value that indicates the value of the screen
+		/// power change. When this value is TRUE, the screen changed to on. When this value is
+		/// FALSE, the screen changed to off.</para>
 		/// </summary>
 		wlan_notification_acm_screen_power_change,
 

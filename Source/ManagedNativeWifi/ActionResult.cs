@@ -32,7 +32,7 @@ public enum ActionResult
 	NotSupported,
 
 	/// <summary>
-	/// The action failed because of other error.
+	/// The action failed due to other error.
 	/// </summary>
 	OtherError
 }

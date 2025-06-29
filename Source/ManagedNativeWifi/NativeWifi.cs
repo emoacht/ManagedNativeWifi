@@ -278,8 +278,8 @@ public class NativeWifi
 	/// </summary>
 	/// <returns>Wireless LAN information on available networks</returns>
 	/// <remarks>
-	/// If multiple profiles are associated with a same network, there will be multiple entries with
-	/// the same SSID.
+	/// If multiple profiles are associated with a same network, there will be multiple entries
+	/// with the same SSID.
 	/// </remarks>
 	public static IEnumerable<AvailableNetworkPack> EnumerateAvailableNetworks()
 	{
@@ -310,7 +310,7 @@ public class NativeWifi
 	/// Success if the interface is found and the function succeeded.
 	/// Other if the interface is is found or the function failed.
 	/// </para>
-	/// <para>value: Wireless LAN information on available networks if succeeded</para>
+	/// <para>list: Wireless LAN information on available networks if succeeded</para>
 	/// </returns>
 	public static (ActionResult result, IEnumerable<AvailableNetworkInfo> list) EnumerateAvailableNetworks(Guid interfaceId)
 	{
@@ -435,7 +435,7 @@ public class NativeWifi
 	/// Success if the interface is found and the function succeeded.
 	/// Other if the interface is is found or the function failed.
 	/// </para>
-	/// <para>value: Wireless LAN information on BSS networks if succeeded</para>
+	/// <para>list: Wireless LAN information on BSS networks if succeeded</para>
 	/// </returns>
 	public static (ActionResult result, IEnumerable<BssNetworkInfo> list) EnumerateBssNetworks(Guid interfaceId)
 	{
@@ -486,11 +486,10 @@ public class NativeWifi
 
 	#endregion
 
-	#region Get current connection/real-time connection quality
+	#region Get connection/connection quality
 
 	/// <summary>
-	/// Gets current wireless connection information associated with a specified wireless
-	/// interface.
+	/// Gets wireless connection information associated with a specified wireless interface.
 	/// </summary>
 	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>
@@ -569,7 +568,7 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Gets real-time wireless connection quality information associated with a specified wireless
+	/// Gets wireless connection quality information associated with a specified wireless
 	/// interface.
 	/// </summary>
 	/// <param name="interfaceId">Wireless interface ID</param>
@@ -623,7 +622,7 @@ public class NativeWifi
 	/// <summary>
 	/// Enumerates wireless profile names in preference order.
 	/// </summary>
-	/// <returns>Wireless profile names</returns>
+	/// <returns>Profile names</returns>
 	public static IEnumerable<string> EnumerateProfileNames()
 	{
 		return EnumerateProfileNames(null);
@@ -740,7 +739,7 @@ public class NativeWifi
 	/// <summary>
 	/// Sets (adds or overwrites) the content of a specified wireless profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileType">Profile type</param>
 	/// <param name="profileXml">Profile XML</param>
 	/// <param name="profileSecurity">Security descriptor for all-user profile</param>
@@ -749,7 +748,7 @@ public class NativeWifi
 	/// <remarks>
 	/// If the content of the profile XML is not valid, a Win32Exception will be thrown.
 	/// In such case, check the reason code in the message and see
-	/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-reason-code
+	/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/wlan-reason-code
 	/// https://technet.microsoft.com/en-us/library/3ed3d027-5ae8-4cb0-ade5-0a7c446cd4f7#BKMK_AppndxE
 	/// </remarks>
 	public static bool SetProfile(Guid interfaceId, ProfileType profileType, string profileXml, string profileSecurity, bool overwrite)
@@ -774,7 +773,7 @@ public class NativeWifi
 	/// <summary>
 	/// Sets (add or overwirte) the user data (credentials) for a specified wireless profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="eapXmlType">EAP XML type</param>
 	/// <param name="userDataXml">User data XML</param>
@@ -792,7 +791,7 @@ public class NativeWifi
 	internal static bool SetProfileEapXmlUserData(Base.WlanClient client, Guid interfaceId, string profileName, EapXmlType eapXmlType, string userDataXml)
 	{
 		if (interfaceId == Guid.Empty)
-			throw new ArgumentException(nameof(interfaceId));
+			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 		if (string.IsNullOrWhiteSpace(userDataXml))
 			throw new ArgumentNullException(nameof(userDataXml));
 
@@ -806,7 +805,7 @@ public class NativeWifi
 	/// <summary>
 	/// Sets the position of a specified wireless profile in preference order.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="position">Position (starting at 0)</param>
 	/// <returns>True if successfully set. False if failed.</returns>
@@ -832,7 +831,7 @@ public class NativeWifi
 	/// <summary>
 	/// Renames a specified wireless profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="oldProfileName">Old profile name</param>
 	/// <param name="newProfileName">New profile name</param>
 	/// <returns>True if successfully renamed. False if failed.</returns>
@@ -858,7 +857,7 @@ public class NativeWifi
 	/// <summary>
 	/// Deletes a specified wireless profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <returns>True if successfully deleted. False if failed.</returns>
 	public static bool DeleteProfile(Guid interfaceId, string profileName)
@@ -883,9 +882,9 @@ public class NativeWifi
 	#region Connect/Disconnect
 
 	/// <summary>
-	/// Attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Attempts to connect to the wireless LAN associated with a specified wireless profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
 	/// <param name="bssid">BSSID of wireless LAN to be connected</param>
@@ -919,9 +918,10 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Asynchronously attempts to connect to the wireless LAN associated with a specified wireless
+	/// profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
 	/// <param name="timeout">Timeout duration</param>
@@ -932,9 +932,10 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Asynchronously attempts to connect to the wireless LAN associated with a specified wireless
+	/// profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
 	/// <param name="timeout">Timeout duration</param>
@@ -946,9 +947,10 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Asynchronously attempts to connect to the wireless LAN associated with a specified wireless
+	/// profile.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="profileName">Profile name</param>
 	/// <param name="bssType">BSS network type</param>
 	/// <param name="bssid">BSSID of wireless LAN to be connected</param>
@@ -1034,9 +1036,9 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Disconnects from the wireless LAN associated to a specified wireless interface.
+	/// Disconnects from the wireless LAN associated with a specified wireless interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if successfully requested the disconnection. False if failed.</returns>
 	public static bool DisconnectNetwork(Guid interfaceId)
 	{
@@ -1054,9 +1056,10 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.
+	/// Asynchronously disconnects from the wireless LAN associated with a specified wireless
+	/// interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wirelss interface ID</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
 	public static Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeout)
@@ -1065,9 +1068,10 @@ public class NativeWifi
 	}
 
 	/// <summary>
-	/// Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.
+	/// Asynchronously disconnects from the wireless LAN associated with a specified wireless
+	/// interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <param name="timeout">Timeout duration</param>
 	/// <param name="cancellationToken">Cancellation token</param>
 	/// <returns>True if successfully disconnected. False if failed or timed out.</returns>
@@ -1163,7 +1167,7 @@ public class NativeWifi
 	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if successfully changed radio state. False if failed.</returns>
 	/// <exception cref="UnauthorizedAccessException">
-	/// If the user is not logged on as a member of Administrators group.
+	/// Thrown when the user is not logged on as a member of Administrators group.
 	/// </exception>
 	public static bool TurnOnRadio(Guid interfaceId)
 	{
@@ -1176,7 +1180,7 @@ public class NativeWifi
 	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if successfully changed radio state. False if failed.</returns>
 	/// <exception cref="UnauthorizedAccessException">
-	/// If the user is not logged on as a member of Administrators group.
+	/// Throw when the user is not logged on as a member of Administrators group.
 	/// </exception>
 	public static bool TurnOffRadio(Guid interfaceId)
 	{

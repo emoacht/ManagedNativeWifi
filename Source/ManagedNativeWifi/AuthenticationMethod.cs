@@ -6,9 +6,9 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to authentication element in profile XML:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-authentication-authencryption-element
-/// WPA3 values are found in:
-/// https://docs.microsoft.com/en-us/uwp/api/windows.networking.connectivity.networkauthenticationtype
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-authencryption-security-element
+/// Some descriptions found in terms of NetworkAuthenticationType:
+/// https://learn.microsoft.com/en-us/uwp/api/windows.networking.connectivity.networkauthenticationtype
 /// </remarks>
 public enum AuthenticationMethod
 {

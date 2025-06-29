@@ -9,9 +9,9 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Partly equivalent to DOT11_BSS_TYPE:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/dot11-bss-type
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/dot11-bss-type
 /// Also equivalent to connectionType element in profile XML:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-connectiontype-wlanprofile-element
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-wlanprofile-element#connectiontype
 /// </remarks>
 public enum BssType
 {

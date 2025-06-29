@@ -12,7 +12,7 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// The elements of profile XML are defined as:
-/// https://docs.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-wlanprofile-element
+/// https://learn.microsoft.com/en-us/windows/win32/nativewifi/wlan-profileschema-elements
 /// </remarks>
 public class ProfileDocument
 {

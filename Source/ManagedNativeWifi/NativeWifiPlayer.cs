@@ -280,7 +280,7 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.EnumerateBssNetworks(_client, interfaceId);
 
 	/// <summary>
-	/// Gets current wireless connection information associated with a specified wireless
+	/// Gets wireless connection information associated with a specified wireless
 	/// interface.
 	/// </summary>
 	public (ActionResult result, CurrentConnectionInfo value) GetCurrentConnection(Guid interfaceId) =>
@@ -294,7 +294,7 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.GetRssi(_client, interfaceId);
 
 	/// <summary>
-	/// Gets real-time wireless connection quality information associated with a specified wireless
+	/// Gets wireless connection quality information associated with a specified wireless
 	/// interface.
 	/// </summary>
 	public (ActionResult result, RealtimeConnectionQualityInfo value) GetRealtimeConnectionQuality(Guid interfaceId) =>
@@ -349,26 +349,26 @@ public class NativeWifiPlayer : IDisposable
 		NativeWifi.DeleteProfile(_client, interfaceId, profileName);
 
 	/// <summary>
-	/// Attempts to connect to the wireless LAN associated to a specified wireless profile.
+	/// Attempts to connect to the wireless LAN associated with a specified wireless profile.
 	/// </summary>
 	public bool ConnectNetwork(Guid interfaceId, string profileName, BssType bssType) =>
 		NativeWifi.ConnectNetwork(_client, interfaceId, profileName, bssType);
 
 	/// <summary>
-	/// Asynchronously attempts to connect to the wireless LAN associated to a specified wireless
+	/// Asynchronously attempts to connect to the wireless LAN associated with a specified wireless
 	/// profile.
 	/// </summary>
 	public Task<bool> ConnectNetworkAsync(Guid interfaceId, string profileName, BssType bssType, TimeSpan timeout, CancellationToken cancellationToken) =>
 		NativeWifi.ConnectNetworkAsync(_client, interfaceId, profileName, bssType, null, timeout, cancellationToken);
 
 	/// <summary>
-	/// Disconnects from the wireless LAN associated to a specified wireless interface.
+	/// Disconnects from the wireless LAN associated with a specified wireless interface.
 	/// </summary>
 	public bool DisconnectNetwork(Guid interfaceId) =>
 		NativeWifi.DisconnectNetwork(_client, interfaceId);
 
 	/// <summary>
-	/// Asynchronously disconnects from the wireless LAN associated to a specified wireless
+	/// Asynchronously disconnects from the wireless LAN associated with a specified wireless
 	/// interface.
 	/// </summary>
 	public Task<bool> DisconnectNetworkAsync(Guid interfaceId, TimeSpan timeout, CancellationToken cancellationToken) =>

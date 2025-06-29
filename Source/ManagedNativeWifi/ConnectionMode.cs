@@ -8,7 +8,7 @@ namespace ManagedNativeWifi;
 /// </summary>
 /// <remarks>
 /// Equivalent to WLAN_CONNECTION_MODE:
-/// https://docs.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_connection_mode
+/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ne-wlanapi-wlan_connection_mode
 /// </remarks>
 public enum ConnectionMode
 {

@@ -5,6 +5,10 @@ namespace ManagedNativeWifi;
 /// <summary>
 /// Wireless LAN information on BSS network
 /// </summary>
+/// <remarks>
+/// Partly equivalent to WLAN_BSS_ENTRY:
+/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_bss_entry
+/// </remarks>
 public class BssNetworkInfo
 {
 	/// <summary>
