@@ -52,7 +52,7 @@ public class NativeWifi
 		{
 			var isConnected = (interfaceInfo.isState is WLAN_INTERFACE_STATE.wlan_interface_state_connected);
 			var isRadioOn = isConnected ||
-				EnumerateInterfaceRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
+				EnumerateRadioSets(container.Content, interfaceInfo.InterfaceGuid).Any(x => x.On.GetValueOrDefault());
 
 			yield return new InterfaceConnectionInfo(
 				interfaceInfo,
@@ -1119,23 +1119,23 @@ public class NativeWifi
 	#region Turn on/off
 
 	/// <summary>
-	/// Gets wireless interface radio information of a specified wireless interface.
+	/// Gets radio information of a specified wireless interface.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <returns>Wireless interface radio information if succeeded. Null if failed.</returns>
-	public static RadioInfo GetInterfaceRadio(Guid interfaceId)
+	/// <param name="interfaceId">Wireless interface ID</param>
+	/// <returns>Radio information if succeeded. Null if failed.</returns>
+	public static RadioInfo GetRadio(Guid interfaceId)
 	{
-		return GetInterfaceRadio(null, interfaceId);
+		return GetRadio(null, interfaceId);
 	}
 
-	internal static RadioInfo GetInterfaceRadio(Base.WlanClient client, Guid interfaceId)
+	internal static RadioInfo GetRadio(Base.WlanClient client, Guid interfaceId)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
 
 		using var container = new DisposableContainer<Base.WlanClient>(client);
 
-		var radioSets = EnumerateInterfaceRadioSets(container.Content, interfaceId).ToArray();
+		var radioSets = EnumerateRadioSets(container.Content, interfaceId).ToArray();
 		if (radioSets is not { Length: > 0 })
 			return null;
 
@@ -1144,7 +1144,7 @@ public class NativeWifi
 			radioSets: radioSets);
 	}
 
-	private static IEnumerable<RadioSet> EnumerateInterfaceRadioSets(Base.WlanClient client, Guid interfaceId)
+	private static IEnumerable<RadioSet> EnumerateRadioSets(Base.WlanClient client, Guid interfaceId)
 	{
 		var capability = Base.GetInterfaceCapability(client.Handle, interfaceId);
 		var states = Base.GetPhyRadioStates(client.Handle, interfaceId); // The underlying collection is array.
@@ -1176,30 +1176,30 @@ public class NativeWifi
 	/// <summary>
 	/// Turns on the radio of a specified wireless interface (software radio state only).
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if successfully changed radio state. False if failed.</returns>
 	/// <exception cref="UnauthorizedAccessException">
 	/// If the user is not logged on as a member of Administrators group.
 	/// </exception>
-	public static bool TurnOnInterfaceRadio(Guid interfaceId)
+	public static bool TurnOnRadio(Guid interfaceId)
 	{
-		return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_on);
+		return TurnRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_on);
 	}
 
 	/// <summary>
 	/// Turns off the radio of a specified wireless interface (software radio state only).
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if successfully changed radio state. False if failed.</returns>
 	/// <exception cref="UnauthorizedAccessException">
 	/// If the user is not logged on as a member of Administrators group.
 	/// </exception>
-	public static bool TurnOffInterfaceRadio(Guid interfaceId)
+	public static bool TurnOffRadio(Guid interfaceId)
 	{
-		return TurnInterfaceRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
+		return TurnRadio(null, interfaceId, DOT11_RADIO_STATE.dot11_radio_state_off);
 	}
 
-	internal static bool TurnInterfaceRadio(Base.WlanClient client, Guid interfaceId, DOT11_RADIO_STATE radioState)
+	internal static bool TurnRadio(Base.WlanClient client, Guid interfaceId, DOT11_RADIO_STATE radioState)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
@@ -1218,14 +1218,14 @@ public class NativeWifi
 	/// <summary>
 	/// Checks if automatic configuration of a specified wireless interface is enabled.
 	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
+	/// <param name="interfaceId">Wireless interface ID</param>
 	/// <returns>True if enabled. False if disabled or failed to check.</returns>
-	public static bool IsInterfaceAutoConfig(Guid interfaceId)
+	public static bool IsAutoConfig(Guid interfaceId)
 	{
-		return IsInterfaceAutoConfig(null, interfaceId);
+		return IsAutoConfig(null, interfaceId);
 	}
 
-	internal static bool IsInterfaceAutoConfig(Base.WlanClient client, Guid interfaceId)
+	internal static bool IsAutoConfig(Base.WlanClient client, Guid interfaceId)
 	{
 		if (interfaceId == Guid.Empty)
 			throw new ArgumentException("The specified interface ID is invalid.", nameof(interfaceId));
