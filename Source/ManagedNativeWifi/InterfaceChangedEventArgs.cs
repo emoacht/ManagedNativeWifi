@@ -17,12 +17,7 @@ public class InterfaceChangedEventArgs : EventArgs
 	/// </summary>
 	public InterfaceChangedState ChangedState { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="T:InterfaceChangedEventArgs"/> class.
-	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <param name="changedState">Interface changed state</param>
-	public InterfaceChangedEventArgs(Guid interfaceId, InterfaceChangedState changedState)
+	internal InterfaceChangedEventArgs(Guid interfaceId, InterfaceChangedState changedState)
 	{
 		this.InterfaceId = interfaceId;
 		this.ChangedState = changedState;

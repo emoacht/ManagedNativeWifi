@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static ManagedNativeWifi.Win32.NativeMethod;
+
 namespace ManagedNativeWifi;
 
 /// <summary>
@@ -13,22 +15,16 @@ public class ConnectionChangedEventArgs : EventArgs
 	public Guid InterfaceId { get; }
 
 	/// <summary>
-	/// Connection changed state
+	/// Wireless connection changed state
 	/// </summary>
 	public ConnectionChangedState ChangedState { get; }
 
 	/// <summary>
-	/// Connection notification data
+	/// Wireless connection notification data
 	/// </summary>
 	public ConnectionNotificationData Data { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="T:ConnectionChangedEventArgs"/> class.
-	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <param name="changedState">Connection changed state</param>
-	/// <param name="data">Connection notification data</param>
-	public ConnectionChangedEventArgs(Guid interfaceId, ConnectionChangedState changedState, ConnectionNotificationData data)
+	internal ConnectionChangedEventArgs(Guid interfaceId, ConnectionChangedState changedState, ConnectionNotificationData data)
 	{
 		this.InterfaceId = interfaceId;
 		this.ChangedState = changedState;
@@ -37,7 +33,7 @@ public class ConnectionChangedEventArgs : EventArgs
 }
 
 /// <summary>
-/// Connection changed state
+/// Wireless connection changed state
 /// </summary>
 public enum ConnectionChangedState
 {
@@ -70,4 +66,51 @@ public enum ConnectionChangedState
 	/// The current connection has disconnected.
 	/// </summary>
 	Disconnected
+}
+
+/// <summary>
+/// Wireless connection notification data
+/// </summary>
+/// <remarks>
+/// Partly equivalent to WLAN_CONNECTION_NOTIFICATION_DATA structure:
+/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_connection_notification_data
+/// </remarks>
+public class ConnectionNotificationData
+{
+	/// <summary>
+	/// Connection mode
+	/// </summary>
+	public ConnectionMode ConnectionMode { get; }
+
+	/// <summary>
+	/// Associated wireless profile name
+	/// </summary>
+	public string ProfileName { get; }
+
+	/// <summary>
+	/// SSID of associated wireless LAN
+	/// </summary>
+	public NetworkIdentifier Ssid { get; }
+
+	/// <summary>
+	/// BSS network type of associated wireless LAN
+	/// </summary>
+	public BssType BssType { get; }
+
+	/// <summary>
+	/// Whether security is enabled on this network
+	/// </summary>
+	public bool IsSecurityEnabled { get; }
+
+	internal ConnectionNotificationData(WLAN_CONNECTION_NOTIFICATION_DATA data)
+	{
+		ConnectionMode = ConnectionModeConverter.Convert(data.wlanConnectionMode);
+		ProfileName = data.strProfileName;
+		Ssid = new NetworkIdentifier(data.dot11Ssid);
+
+		if (BssTypeConverter.TryConvert(data.dot11BssType, out BssType bssType))
+			this.BssType = bssType;
+
+		IsSecurityEnabled = data.bSecurityEnabled;
+	}
 }

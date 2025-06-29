@@ -17,12 +17,7 @@ public class AvailabilityChangedEventArgs : EventArgs
 	/// </summary>
 	public AvailabilityChangedState ChangedState { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="T:AvailabilityChangedEventArgs"/> class.
-	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <param name="changedState">Availability changed state</param>
-	public AvailabilityChangedEventArgs(Guid interfaceId, AvailabilityChangedState changedState)
+	internal AvailabilityChangedEventArgs(Guid interfaceId, AvailabilityChangedState changedState)
 	{
 		this.InterfaceId = interfaceId;
 		this.ChangedState = changedState;

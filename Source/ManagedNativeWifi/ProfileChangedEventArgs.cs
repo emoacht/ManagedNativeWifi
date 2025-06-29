@@ -17,12 +17,7 @@ public class ProfileChangedEventArgs : EventArgs
 	/// </summary>
 	public ProfileChangedState ChangedState { get; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="T:ProfileChangedEventArgs"/> class.
-	/// </summary>
-	/// <param name="interfaceId">Interface ID</param>
-	/// <param name="changedState">Profile changed state</param>
-	public ProfileChangedEventArgs(Guid interfaceId, ProfileChangedState changedState)
+	internal ProfileChangedEventArgs(Guid interfaceId, ProfileChangedState changedState)
 	{
 		this.InterfaceId = interfaceId;
 		this.ChangedState = changedState;
