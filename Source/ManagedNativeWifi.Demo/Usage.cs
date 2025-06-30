@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ManagedNativeWifi.Demo;
@@ -18,6 +20,17 @@ public static class Usage
 	}
 
 	/// <summary>
+	/// Enumerates tuples of SSID and signal quality of available wireless LANs.
+	/// </summary>
+	/// <returns>Tuples of SSID string and signal quality</returns>
+	public static IEnumerable<(string ssidString, int signalQuality)>
+		EnumerateNetworkSsidsAndSignalQualities()
+	{
+		return NativeWifi.EnumerateAvailableNetworks()
+			.Select(x => (x.Ssid.ToString(), x.SignalQuality));
+	}
+
+	/// <summary>
 	/// Connects to the available wireless LAN which has the highest signal quality.
 	/// </summary>
 	/// <returns>True if successfully connected. False if not.</returns>
@@ -32,7 +45,7 @@ public static class Usage
 			return false;
 
 		return await NativeWifi.ConnectNetworkAsync(
-			interfaceId: availableNetwork.Interface.Id,
+			interfaceId: availableNetwork.InterfaceInfo.Id,
 			profileName: availableNetwork.ProfileName,
 			bssType: availableNetwork.BssType,
 			timeout: TimeSpan.FromSeconds(10));
@@ -44,6 +57,45 @@ public static class Usage
 	public static Task RefreshAsync()
 	{
 		return NativeWifi.ScanNetworksAsync(timeout: TimeSpan.FromSeconds(10));
+	}
+
+	/// <summary>
+	/// Refreshes available wireless LANs using wireless interfaces that are not connected.
+	/// </summary>
+	public static Task RefreshNotConnectedAsync()
+	{
+		return NativeWifi.ScanNetworksAsync(
+			mode: ScanMode.OnlyNotConnected,
+			null,
+			null,
+			timeout: TimeSpan.FromSeconds(10),
+			CancellationToken.None);
+	}
+
+	/// <summary>
+	/// Refreshes available wireless LANs using wireless interfaces that are specified.
+	/// </summary>
+	public static Task RefreshSpecifiedAsync(Guid interfaceId)
+	{
+		return NativeWifi.ScanNetworksAsync(
+			mode: ScanMode.OnlySpecified,
+			interfaceIds: [interfaceId],
+			null,
+			timeout: TimeSpan.FromSeconds(10),
+			CancellationToken.None);
+	}
+
+	/// <summary>
+	/// Refreshes available wireless LANs with a specified SSID string.
+	/// </summary>
+	public static Task RefreshSsidAsync(string ssidString)
+	{
+		return NativeWifi.ScanNetworksAsync(
+			mode: ScanMode.All,
+			null,
+			ssid: new NetworkIdentifier(ssidString),
+			timeout: TimeSpan.FromSeconds(10),
+			CancellationToken.None);
 	}
 
 	/// <summary>
@@ -62,20 +114,72 @@ public static class Usage
 			return false;
 
 		return NativeWifi.DeleteProfile(
-			interfaceId: targetProfile.Interface.Id,
+			interfaceId: targetProfile.InterfaceInfo.Id,
 			profileName: profileName);
 	}
 
 	/// <summary>
-	/// Enumerates wireless LAN channels whose signal strength go beyond a specified threshold.
+	/// Enumerates wireless LAN channels whose RSSI go beyond a specified threshold.
 	/// </summary>
-	/// <param name="signalStrengthThreshold">Threshold of signal strength</param>
+	/// <param name="rssiThreshold">Threshold of RSSI</param>
 	/// <returns>Channel numbers</returns>
-	public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
+	public static IEnumerable<int> EnumerateNetworkChannels(int rssiThreshold)
 	{
 		return NativeWifi.EnumerateBssNetworks()
-			.Where(x => x.SignalStrength > signalStrengthThreshold)
+			.Where(x => x.Rssi > rssiThreshold)
 			.Select(x => x.Channel);
+	}
+
+	/// <summary>
+	/// Shows wireless connection information of connected wireless interfaces.
+	/// </summary>
+	public static void ShowConnectedNetworkInformation()
+	{
+		foreach (var interfaceId in NativeWifi.EnumerateInterfaces()
+			.Where(x => x.State is InterfaceState.Connected)
+			.Select(x => x.Id))
+		{
+			// Following methods work only with connected wireless interfaces.
+			var (result, cc) = NativeWifi.GetCurrentConnection(interfaceId);
+			if (result is ActionResult.Success)
+			{
+				Trace.WriteLine($"Profile: {cc.ProfileName}");
+				Trace.WriteLine($"SSID: {cc.Ssid}");
+				Trace.WriteLine($"PHY type: 802.11{cc.PhyType.ToProtocolName()}");
+				Trace.WriteLine($"Authentication algorithm: {cc.AuthenticationAlgorithm}");
+				Trace.WriteLine($"Cipher algorithm: {cc.CipherAlgorithm}");
+				Trace.WriteLine($"Signal quality: {cc.SignalQuality}");
+				Trace.WriteLine($"Rx rate: {cc.RxRate} Kbps");
+				Trace.WriteLine($"Tx rate: {cc.TxRate} Kbps");
+			}
+
+			// GetRealtimeConnectionQuality method works only on Windows 11 24H2.
+			(result, var rcq) = NativeWifi.GetRealtimeConnectionQuality(interfaceId);
+			if (result is ActionResult.Success)
+			{
+				Trace.WriteLine($"PHY type: 802.11{rcq.PhyType.ToProtocolName()}");
+				Trace.WriteLine($"Link quality: {rcq.LinkQuality}");
+				Trace.WriteLine($"Rx rate: {rcq.RxRate} Kbps");
+				Trace.WriteLine($"Tx rate: {rcq.TxRate} Kbps");
+				Trace.WriteLine($"MLO connection: {rcq.IsMultiLinkOperation}");
+
+				if (rcq.Links.Count > 0)
+				{
+					var link = rcq.Links[0];
+					Trace.WriteLine($"RSSI: {link.Rssi}");
+					Trace.WriteLine($"Frequency: {link.Frequency} MHz");
+					Trace.WriteLine($"Bandwidth: {link.Bandwidth} MHz");
+				}
+			}
+			else if (result is ActionResult.NotSupported)
+			{
+				(result, int rssi) = NativeWifi.GetRssi(interfaceId);
+				if (result is ActionResult.Success)
+				{
+					Trace.WriteLine($"RSSI: {rssi}");
+				}
+			}
+		}
 	}
 
 	/// <summary>
@@ -87,14 +191,14 @@ public static class Usage
 		var targetInterface = NativeWifi.EnumerateInterfaces()
 			.FirstOrDefault(x =>
 			{
-				var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
-				if (radioSet is null)
+				var radioState = NativeWifi.GetRadio(x.Id)?.RadioStates.FirstOrDefault();
+				if (radioState is null)
 					return false;
 
-				if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
+				if (!radioState.IsHardwareOn) // Hardware radio state is off.
 					return false;
 
-				return (radioSet.SoftwareOn is false); // Software radio state is off.
+				return !radioState.IsSoftwareOn; // Software radio state is off.
 			});
 
 		if (targetInterface is null)
@@ -102,7 +206,7 @@ public static class Usage
 
 		try
 		{
-			return await Task.Run(() => NativeWifi.TurnOnInterfaceRadio(targetInterface.Id));
+			return await Task.Run(() => NativeWifi.TurnOnRadio(targetInterface.Id));
 		}
 		catch (UnauthorizedAccessException)
 		{
@@ -134,7 +238,7 @@ public static class Usage
 		targetProfile.Document.IsAutoSwitchEnabled = enableAutoSwitch;
 
 		return NativeWifi.SetProfile(
-			interfaceId: targetProfile.Interface.Id,
+			interfaceId: targetProfile.InterfaceInfo.Id,
 			profileType: targetProfile.ProfileType,
 			profileXml: targetProfile.Document.Xml,
 			profileSecurity: null, // No change
