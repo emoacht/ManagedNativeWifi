@@ -28,7 +28,12 @@ public enum BssType
 	/// <summary>
 	/// Independent BSS (IBSS) network (Ad hoc network)
 	/// </summary>
-	Independent
+	Independent,
+
+	/// <summary>
+	/// Either infrastructure or independent BSS network
+	/// </summary>
+	Any
 }
 
 internal static class BssTypeConverter
@@ -49,6 +54,9 @@ internal static class BssTypeConverter
 			case DOT11_BSS_TYPE.dot11_BSS_type_independent:
 				bssType = BssType.Independent;
 				return true;
+			case DOT11_BSS_TYPE.dot11_BSS_type_any:
+				bssType = BssType.Any;
+				return true;
 		}
 		bssType = default;
 		return false;
@@ -60,7 +68,8 @@ internal static class BssTypeConverter
 		{
 			BssType.Infrastructure => DOT11_BSS_TYPE.dot11_BSS_type_infrastructure,
 			BssType.Independent => DOT11_BSS_TYPE.dot11_BSS_type_independent,
-			_ => DOT11_BSS_TYPE.dot11_BSS_type_any
+			BssType.Any => DOT11_BSS_TYPE.dot11_BSS_type_any,
+			_ => default // Non-defined invalid value
 		};
 	}
 
