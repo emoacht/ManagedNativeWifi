@@ -4,18 +4,24 @@
     <OutputType>Library</OutputType>
     <Version>2.8.0</Version>
     <Authors>emoacht</Authors>
+    <Title>Managed Native Wifi</Title>
     <Description>ManagedNativeWifi is a managed implementation of Native Wifi API. It provides functionality to manage wireless networks, interfaces and profiles.</Description>
     <Copyright>Copyright © 2015 emoacht</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/emoacht/ManagedNativeWifi</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/emoacht/ManagedNativeWifi#release-notes</PackageReleaseNotes>
+    <PackageTags>WiFi, Wi-Fi, Wireless-LAN, WLAN</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/emoacht/ManagedNativeWifi</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
-    <PackageTags>WiFi, Wi-Fi, Wireless-LAN, WLAN</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="ManagedNativeWifi.Test" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Visible="false" Pack="true" PackagePath=""/>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile>bin\Debug\ManagedNativeWifi.xml</DocumentationFile>
