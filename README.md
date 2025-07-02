@@ -29,6 +29,9 @@ Available methods including asynchronous ones based on TAP.
 | EnumerateAvailableNetworks      | Enumerates wireless LAN information on available networks.                                         |
 | EnumerateAvailableNetworkGroups | Enumerates wireless LAN information on available networks and group of associated BSS networks.    |
 | EnumerateBssNetworks            | Enumerates wireless LAN information on BSS networks.                                               |
+| GetCurrentConnection            | Gets wireless connection information (connected wireless LAN only)                                 |
+| GetRssi                         | Gets RSSI (connected wireless LAN only).                                                           |
+| GetRealtimeConnetionQuality     | Gets wireless connection quality information (connected wireless LAN only, Windows 11 24H2 only)   |
 | EnumerateProfileNames           | Enumerates wireless profile names in preference order.                                             |
 | EnumerateProfiles               | Enumerates wireless profile information in preference order.                                       |
 | EnumerateProfileRadios          | Enumerates wireless profile and related radio information in preference order.                     |
@@ -41,10 +44,10 @@ Available methods including asynchronous ones based on TAP.
 | ConnectNetworkAsync             | Asynchronously attempts to connect to the wireless LAN associated to a specified wireless profile. |
 | DisconnectNetwork               | Disconnects from the wireless LAN associated to a specified wireless interface.                    |
 | DisconnectNetworkAsync          | Asynchronously disconnects from the wireless LAN associated to a specified wireless interface.     |
-| GetInterfaceRadio               | Gets wireless interface radio information of a specified wireless interface.                       |
-| TurnOnInterfaceRadio            | Turns on the radio of a specified wireless interface (software radio state only).                  |
-| TurnOffInterfaceRadio           | Turns off the radio of a specified wireless interface (software radio state only).                 |
-| IsInterfaceAutoConfig           | Checks if automatic configuration of a specified wireless interface is enabled.                    |
+| GetRadio                        | Gets wireless interface radio information of a specified wireless interface.                       |
+| TurnOnRadio                     | Turns on the radio of a specified wireless interface (software radio state only).                  |
+| TurnOffRadio                    | Turns off the radio of a specified wireless interface (software radio state only).                 |
+| IsAutoConfig                    | Checks if automatic configuration of a specified wireless interface is enabled.                    |
 
 ## Properties
 
@@ -66,6 +69,17 @@ public static IEnumerable<string> EnumerateNetworkSsids()
 
 In general, a SSID is represented by a UTF-8 string but it is not guaranteed. So if `ToString` method seems not to produce a valid value, try `ToBytes` method instead.
 
+To check SSID, signal quality or other information on currently available wireless LANs, call `EnumerateAvailableNetworks` method.
+
+```csharp
+public static IEnumerable<(string ssidString, int signalQuality)>
+    EnumerateNetworkSsidsAndSignalQualities()
+{
+    return NativeWifi.EnumerateAvailableNetworks()
+        .Select(x => (x.Ssid.ToString(), x.SignalQuality));
+}
+```
+
 To connect to a wireless LAN, call `ConnectNetworkAsync` asynchronous method.
 
 ```csharp
@@ -80,7 +94,7 @@ public static async Task<bool> ConnectAsync()
         return false;
 
     return await NativeWifi.ConnectNetworkAsync(
-        interfaceId: availableNetwork.Interface.Id,
+        interfaceId: availableNetwork.InterfaceInfo.Id,
         profileName: availableNetwork.ProfileName,
         bssType: availableNetwork.BssType,
         timeout: TimeSpan.FromSeconds(10));
@@ -98,7 +112,23 @@ public static Task RefreshAsync()
 }
 ```
 
-This method requests wireless interfaces to scan wireless LANs in parallel. It takes no more than 4 seconds.
+This method requests wireless interfaces to scan wireless LANs in parallel. The timeout should be ideally no more than 4 seconds, but it can vary depending on the situation.
+
+If you want to avoid disrupting existing wireless connections, you can use `ScanNetworksAsync` overload method with `ScanMode.OnlyNotConnected`.
+
+```csharp
+public static Task RefreshNotConnectedAsync()
+{
+    return NativeWifi.ScanNetworksAsync(
+        mode: ScanMode.OnlyNotConnected,
+        null,
+        null,
+        timeout: TimeSpan.FromSeconds(10),
+        CancellationToken.None);
+}
+```
+
+Please note that if all wireless interfaces are connected, naturally nothing will happen.
 
 To delete an existing wireless profile, use `DeleteProfile` method. Please note that a profile name is case-sensitive.
 
@@ -113,23 +143,23 @@ public static bool DeleteProfile(string profileName)
         return false;
 
     return NativeWifi.DeleteProfile(
-        interfaceId: targetProfile.Interface.Id,
+        interfaceId: targetProfile.InterfaceInfo.Id,
         profileName: profileName);
 }
 ```
 
-To check wireless LAN channels that are already used by surrounding access points, call `EnumerateBssNetworks` method and filter the results by signal strength.
+To check wireless LAN channels that are already used by surrounding access points, call `EnumerateBssNetworks` method and filter the results by RSSI.
 
 ```csharp
-public static IEnumerable<int> EnumerateNetworkChannels(int signalStrengthThreshold)
+public static IEnumerable<int> EnumerateNetworkChannels(int rssiThreshold)
 {
     return NativeWifi.EnumerateBssNetworks()
-        .Where(x => x.SignalStrength > signalStrengthThreshold)
+        .Where(x => x.Rssi > rssiThreshold)
         .Select(x => x.Channel);
 }
 ```
 
-To turn on the radio of a wireless interface, check the current radio state by `GetInterfaceRadio` method and then call `TurnOnInterfaceRadio` method.
+To turn on the radio of a wireless interface, check the current radio state by `GetRadio` method and then call `TurnOnRadio` method.
 
 ```csharp
 public static async Task<bool> TurnOnAsync()
@@ -137,14 +167,14 @@ public static async Task<bool> TurnOnAsync()
     var targetInterface = NativeWifi.EnumerateInterfaces()
         .FirstOrDefault(x =>
         {
-            var radioSet = NativeWifi.GetInterfaceRadio(x.Id)?.RadioSets.FirstOrDefault();
-            if (radioSet is null)
+            var radioState = NativeWifi.GetRadio(x.Id)?.RadioStates.FirstOrDefault();
+            if (radioState is null)
                 return false;
 
-            if (!radioSet.HardwareOn.GetValueOrDefault()) // Hardware radio state is off.
+            if (!radioState.IsHardwareOn) // Hardware radio state is off.
                 return false;
 
-            return (radioSet.SoftwareOn == false); // Software radio state is off.
+            return !radioState.IsSoftwareOn; // Software radio state is off.
         });
 
     if (targetInterface is null)
@@ -152,7 +182,7 @@ public static async Task<bool> TurnOnAsync()
 
     try
     {
-        return await Task.Run(() => NativeWifi.TurnOnInterfaceRadio(targetInterface.Id));
+        return await Task.Run(() => NativeWifi.TurnOnRadio(targetInterface.Id));
     }
     catch (UnauthorizedAccessException)
     {
@@ -163,24 +193,103 @@ public static async Task<bool> TurnOnAsync()
 
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
-## Note
+To check wireless connection information of connected wireless interfaces, you can use `GetCurrentConnection`, `GetRssi`, `GetRealtimeConnectionQuality` methods.
 
- - Creating a wireless profile from scratch is not covered in this library. It is because 1) Native WiFi does not include such functionality, 2) it requires careful consideration on wi-fi technology in use, 3) it involves sensitive security information. Thus, it is left to each user.
+```csharp
+public static void ShowConnectedNetworkInformation()
+{
+    foreach (var interfaceId in NativeWifi.EnumerateInterfaces()
+        .Where(x => x.State is InterfaceState.Connected)
+        .Select(x => x.Id))
+    {
+        // Following methods work only with connected wireless interfaces.
+        var (result, cc) = NativeWifi.GetCurrentConnection(interfaceId);
+        if (result is ActionResult.Success)
+        {
+            Trace.WriteLine($"Profile: {cc.ProfileName}");
+            Trace.WriteLine($"SSID: {cc.Ssid}");
+            Trace.WriteLine($"PHY type: 802.11{cc.PhyType.ToProtocolName()}");
+            Trace.WriteLine($"Authentication algorithm: {cc.AuthenticationAlgorithm}");
+            Trace.WriteLine($"Cipher algorithm: {cc.CipherAlgorithm}");
+            Trace.WriteLine($"Signal quality: {cc.SignalQuality}");
+            Trace.WriteLine($"Rx rate: {cc.RxRate} Kbps");
+            Trace.WriteLine($"Tx rate: {cc.TxRate} Kbps");
+        }
 
-## History
+        // GetRealtimeConnectionQuality method works only on Windows 11 24H2.
+        (result, var rcq) = NativeWifi.GetRealtimeConnectionQuality(interfaceId);
+        if (result is ActionResult.Success)
+        {
+            Trace.WriteLine($"PHY type: 802.11{rcq.PhyType.ToProtocolName()}");
+            Trace.WriteLine($"Link quality: {rcq.LinkQuality}");
+            Trace.WriteLine($"Rx rate: {rcq.RxRate} Kbps");
+            Trace.WriteLine($"Tx rate: {rcq.TxRate} Kbps");
+            Trace.WriteLine($"MLO connection: {rcq.IsMultiLinkOperation}");
 
-Ver 2.8.0 2025-5-18
+            if (rcq.Links.Count > 0)
+            {
+                var link = rcq.Links[0];
+                Trace.WriteLine($"RSSI: {link.Rssi}");
+                Trace.WriteLine($"Frequency: {link.Frequency} MHz");
+                Trace.WriteLine($"Bandwidth: {link.Bandwidth} MHz");
+            }
+        }
+        else if (result is ActionResult.NotSupported)
+        {
+            (result, int rssi) = NativeWifi.GetRssi(interfaceId);
+            if (result is ActionResult.Success)
+            {
+                Trace.WriteLine($"RSSI: {rssi}");
+            }
+        }
+    }
+}
+```
 
-- __Add:__ ScanNetworksAsync overload methods with modes for only disconnected interfaces or only specified interfaces
-- __Add:__ Additional events of instantiatable implementation
+The returned Tuple has `result` member and if the wireless interface is not connected, it will be `ActionResult.NotConnected`.
+
+## Remarks
+
+- Creating a wireless profile from scratch is not covered in this library. It is because 1) Native WiFi does not include such functionality, 2) it requires careful consideration on wi-fi technology in use, 3) it involves sensitive security information. Thus, it is left to each user.
+
+## Release Notes
+
+Ver 3.0 2025-7-3
+
+ - __Add:__ 
+   * ScanNetworksAsync overload method for specified SSID
+   * EnumerateAvailableNetworks overload method for specified wireless interface
+   * EnumerateBssNetworks overload method for specified wireless interface
+   * GetCurrentConnection method for specified wireless interface - This works with connected wireless LAN only.
+   * GetRssi method for specified wireless interface - This works with connected wireless LAN only.
+   * GetRealtimeConnetionQuality method for specified wireless interface - This works with connected wireless LAN only and on Windows 11 24H2 only.
+   * IsConnectable property to AvailableNetworkInfo - This affects EnumerateAvailableNetworks & EnumerateAvailableNetworkGroups methods.
+   * New values of CipherAlgorithm, EncryptionType, BssType enum
+
+ - __Breaking change:__
+   * Remove: ConnectionMode & ProfileName properties from InterfaceConnectionInfo - This affects EnumerateInterfaceConnections method. If those properties are necessary, use GetCurrentConnection method.
+   * Rename: OnlyDisconnectd of ScanMode enum to OnlyNotConnected
+   * Rename: SignalStrength property of BssNetworkPack to Rssi - This affects EnumerateBssNetworks method.
+   * Rename: GetInterfaceRadio method to GetRadio
+   * Rename: TurnOnInterfaceRadio method to TurnOnRadio
+   * Rename: TurnOffInterfaceRadio method to TurnOffRadio
+   * Rename: IsInterfaceAutoConfig method to IsAutoConfig
+   * Remove: Id property of RadioInfo - This affects GetRadio method.
+   * Change: RadioSet & PhyRadioStateInfo to RadioStateSet - This affects GetRadio method & RadioStateChangedEventArgs event args.
+   * Change: Type of bssid parameter of ConnectNetwork & ConnectNetworkAsync methods
+
+Ver 2.8 2025-5-18
+
+ - __Add:__ ScanNetworksAsync overload methods with modes for only disconnected interfaces or only specified interfaces
+ - __Add:__ Additional events of instantiatable implementation
 
 Ver 2.7.1 2025-4-10
 
-- __Fix:__ WPA3 Enterprise is correctly assigned
+ - __Fix:__ WPA3 Enterprise is correctly assigned
 
 Ver 2.7 2025-1-25
 
-- __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated
+ - __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated
 
   | Authentication               | AuthenticationAlgorithm | AuthenticationMethod |
   |------------------------------|-------------------------|----------------------|
@@ -188,39 +297,39 @@ Ver 2.7 2025-1-25
   | WPA3 Enterprise              | WPA3_ENT                | WPA3_Enterprise      |
   | OWE                          | OWE                     | OWE                  |
 
-- __Breaking change:__ .NET 6.0, 7.0 are no longer supported
+ - __Breaking change:__ .NET 6.0, 7.0 are no longer supported
 
 Ver 2.6 2024-7-5
 
-- __Add:__ 6GHz channels
+ - __Add:__ 6GHz channels
 
 Ver 2.5 2023-1-9
 
-- __Add:__ Setting property to throw an exception when any failure occurs; ThrowsOnAnyFailure
+ - __Add:__ Setting property to throw an exception when any failure occurs; ThrowsOnAnyFailure
 
 Ver 2.4 2022-11-24
 
-- __Add:__ Special event args for AvailabilityChanged, InterfaceChanged, ConnectionChanged, ProfileChanged events
-- __Breaking change:__ .NET 5.0 is no longer supported
+ - __Add:__ Special event args for AvailabilityChanged, InterfaceChanged, ConnectionChanged, ProfileChanged events
+ - __Breaking change:__ .NET 5.0 is no longer supported
 
 Ver 2.3 2022-8-1
 
-- __Add:__ PHY types (802.11ad, ax, be)
-- __Add:__ PHY type in profile and related radio information
+ - __Add:__ PHY types (802.11ad, ax, be)
+ - __Add:__ PHY type in profile and related radio information
 
 Ver 2.2 2022-7-25
 
-- __Add:__ Method to set the EAP user credentials
-- __Add:__ PHY type in BSS network
-- __Breaking change:__ .NET Framework 4.6 or older is no longer supported
+ - __Add:__ Method to set the EAP user credentials
+ - __Add:__ PHY type in BSS network
+ - __Breaking change:__ .NET Framework 4.6 or older is no longer supported
 
 Ver 2.1 2021-3-30
 
-- __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information
+ - __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information
 
 Ver 2.0 2021-2-4
 
-- __Add:__ Support for .NET 5.0 and .NET Standard 2.0
+ - __Add:__ Support for .NET 5.0 and .NET Standard 2.0
 
 Ver 1.8 2020-12-20
 
