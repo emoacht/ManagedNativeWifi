@@ -9,7 +9,7 @@ This library works on Windows and compatible with:
 .NET 8.0|.NET Standard 2.0 (including .NET Framework 4.6.1)
 -|-
 
-On Windows 11 (24H2) or newer, some methods require user's permission to access location information. Without the permission, UnauthorizedAccessException will be thrown. The permission can be set in Privacy & security > Location settings. 
+On Windows 11 (24H2) or newer, some methods require user's permission to access location information. Without the permission, UnauthorizedAccessException will be thrown. This permission can be set in Privacy & security > Location settings. 
 
 ## Download
 
@@ -193,7 +193,7 @@ public static async Task<bool> TurnOnAsync()
 
 Please note that this method can only change software radio state and if hardware radio state is off (like hardware Wi-Fi switch is at off position), the radio cannot be turned on programatically.
 
-To check wireless connection information of connected wireless interfaces, you can use `GetCurrentConnection`, `GetRssi`, `GetRealtimeConnectionQuality` methods.
+To retrieve detailed information on wireless connections of connected wireless interfaces, you can use `GetCurrentConnection`, `GetRssi`, `GetRealtimeConnectionQuality` methods depending on your needs.
 
 ```csharp
 public static void ShowConnectedNetworkInformation()
@@ -254,18 +254,17 @@ The returned Tuple has `result` member and if the wireless interface is not conn
 
 ## Release Notes
 
-Ver 3.0 2025-7-3
+Ver 3.0.1 2025-7-4
 
  - __Add:__ 
    * ScanNetworksAsync overload method for specified SSID
    * EnumerateAvailableNetworks overload method for specified wireless interface
    * EnumerateBssNetworks overload method for specified wireless interface
-   * GetCurrentConnection method for specified wireless interface - This works with connected wireless LAN only.
-   * GetRssi method for specified wireless interface - This works with connected wireless LAN only.
-   * GetRealtimeConnetionQuality method for specified wireless interface - This works with connected wireless LAN only and on Windows 11 24H2 only.
-   * IsConnectable property to AvailableNetworkInfo - This affects EnumerateAvailableNetworks & EnumerateAvailableNetworkGroups methods.
+   * GetCurrentConnection method for specified wireless interface - This works only with connected wireless LAN.
+   * GetRssi method for specified wireless interface - This works only with connected wireless LAN.
+   * GetRealtimeConnetionQuality method for specified wireless interface - This works only with connected wireless LAN and only on Windows 11 24H2.
+   * IsConnectable property to AvailableNetworkPack - This affects EnumerateAvailableNetworks & EnumerateAvailableNetworkGroups methods.
    * New values of CipherAlgorithm, EncryptionType, BssType enum
-
  - __Breaking change:__
    * Remove: ConnectionMode & ProfileName properties from InterfaceConnectionInfo - This affects EnumerateInterfaceConnections method. If those properties are necessary, use GetCurrentConnection method.
    * Rename: OnlyDisconnectd of ScanMode enum to OnlyNotConnected
@@ -275,21 +274,21 @@ Ver 3.0 2025-7-3
    * Rename: TurnOffInterfaceRadio method to TurnOffRadio
    * Rename: IsInterfaceAutoConfig method to IsAutoConfig
    * Remove: Id property of RadioInfo - This affects GetRadio method.
-   * Change: RadioSet & PhyRadioStateInfo to RadioStateSet - This affects GetRadio method & RadioStateChangedEventArgs event args.
+   * Replace: RadioSet & PhyRadioStateInfo with RadioStateSet - This affects GetRadio method & RadioStateChangedEventArgs event args.
    * Change: Type of bssid parameter of ConnectNetwork & ConnectNetworkAsync methods
 
 Ver 2.8 2025-5-18
 
  - __Add:__ ScanNetworksAsync overload methods with modes for only disconnected interfaces or only specified interfaces
- - __Add:__ Additional events of instantiatable implementation
+ - __Add:__ RadioStateChanged, SignalQualityChanged events to instantiatable implementation
 
 Ver 2.7.1 2025-4-10
 
- - __Fix:__ WPA3 Enterprise is correctly assigned
+ - __Fix:__ WPA3 Enterprise is correctly assigned.
 
 Ver 2.7 2025-1-25
 
- - __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated
+ - __Add & Breaking change:__ WPA3 authentications are re-designated, and WPA3 is removed and superseded by WPA3 Enterprise 192-bit mode as WPA3 is deprecated.
 
   | Authentication               | AuthenticationAlgorithm | AuthenticationMethod |
   |------------------------------|-------------------------|----------------------|
@@ -305,12 +304,12 @@ Ver 2.6 2024-7-5
 
 Ver 2.5 2023-1-9
 
- - __Add:__ Setting property to throw an exception when any failure occurs; ThrowsOnAnyFailure
+ - __Add:__ ThrowsOnAnyFailure property to throw an exception when any failure occurs
 
 Ver 2.4 2022-11-24
 
  - __Add:__ Special event args for AvailabilityChanged, InterfaceChanged, ConnectionChanged, ProfileChanged events
- - __Breaking change:__ .NET 5.0 is no longer supported
+ - __Breaking change:__ .NET 5.0 is no longer supported.
 
 Ver 2.3 2022-8-1
 
@@ -319,13 +318,13 @@ Ver 2.3 2022-8-1
 
 Ver 2.2 2022-7-25
 
- - __Add:__ Method to set the EAP user credentials
- - __Add:__ PHY type in BSS network
+ - __Add:__ SetProfileEapXmlUserData method to set the EAP user credentials
+ - __Add:__ PHY type to BSS network
  - __Breaking change:__ .NET Framework 4.6 or older is no longer supported
 
 Ver 2.1 2021-3-30
 
- - __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information
+ - __Fix:__ GetInterfaceRadio is enabled to handle invalid capabilities information.
 
 Ver 2.0 2021-2-4
 
@@ -333,7 +332,7 @@ Ver 2.0 2021-2-4
 
 Ver 1.8 2020-12-20
 
- - __Breaking change:__ GetInterfaceAutoConfig is renamed to IsInterfaceAutoConfig
+ - __Breaking change:__ GetInterfaceAutoConfig method is renamed to IsInterfaceAutoConfig.
 
 Ver 1.7 2020-9-29
 
@@ -341,16 +340,16 @@ Ver 1.7 2020-9-29
 
 Ver 1.6 2020-8-4
 
- - __Add:__ Functionality to connect specific access point when connecting network
+ - __Add:__ Functionality to connect specific access point when connecting wireless LAN
 
 Ver 1.5 2019-12-1
 
- - __Add:__ Information obtained by EnumerateAvailableNetworks and EnumerateAvailableNetworkGroups include authentication/cipher algorithms
+ - __Add:__ Authentication/Cipher algorithms to information obtained by EnumerateAvailableNetworks & EnumerateAvailableNetworkGroups methods
 
 Ver 1.4 2018-9-2
 
- - __Add:__ Methods to provide additional information; EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios
- - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles
+ - __Add:__ EnumerateInterfaceConnections, EnumerateAvailableNetworkGroups, EnumerateProfileRadios methods
+ - __Breaking change:__ Radio information related to wireless profiles can be obtained by EnumerateProfileRadios instead of EnumerateProfiles.
 
 Ver 1.0 2015-1-30
 
