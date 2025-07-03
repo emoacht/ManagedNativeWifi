@@ -144,12 +144,12 @@ public class AvailableNetworkGroupPack : AvailableNetworkPack
 	public IReadOnlyCollection<BssNetworkPack> BssNetworks { get; }
 
 	/// <summary>
-	/// PHY type of associated BSS network which is the highest link quality
+	/// PHY type of associated BSS network which has the highest link quality
 	/// </summary>
 	public PhyType PhyType { get; }
 
 	/// <summary>
-	/// Link quality of associated BSS network which is the highest link quality
+	/// Link quality of associated BSS network which has the highest link quality
 	/// </summary>
 	public int LinkQuality { get; }
 

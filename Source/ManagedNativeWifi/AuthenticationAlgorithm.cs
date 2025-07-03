@@ -23,7 +23,8 @@ public enum AuthenticationAlgorithm
 	Open,
 
 	/// <summary>
-	/// 802.11 Shared Key authentication algorithm that uses pre-shared Wired Equivalent Privacy (WEP) key
+	/// 802.11 Shared Key authentication algorithm that uses pre-shared Wired Equivalent Privacy
+	/// (WEP) key
 	/// </summary>
 	Shared,
 
@@ -73,12 +74,14 @@ public enum AuthenticationAlgorithm
 	OWE,
 
 	/// <summary>
-	/// Indicates the start of the range that specifies proprietary authentication algorithms developed by an independent hardware vendor (IHV).
+	/// Start of the range that specifies proprietary authentication algorithms developed by
+	/// an independent hardware vendor (IHV).
 	/// </summary>
 	IHV_START,
 
 	/// <summary>
-	/// Indicates the end of the range that specifies proprietary authentication algorithms developed by an independent hardware vendor (IHV).
+	/// End of the range that specifies proprietary authentication algorithms developed by
+	/// an independent hardware vendor (IHV).
 	/// </summary>
 	IHV_END
 }
