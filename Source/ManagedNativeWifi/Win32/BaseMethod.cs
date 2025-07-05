@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -69,9 +67,16 @@ internal static class BaseMethod
 		public WlanNotificationClient() : base()
 		{ }
 
+		/// <summary>
+		/// Registers or appends notification source.
+		/// </summary>
+		/// <param name="notificationSource">Notification sources</param>
 		public void Register(WLAN_NOTIFICATION_SOURCE notificationSource)
 		{
-			_notificationSource = notificationSource;
+			var existingSource = _notificationSource;
+			_notificationSource |= notificationSource;
+			if (existingSource == _notificationSource)
+				return;
 
 			// Storing a delegate in class field is necessary to prevent garbage collector from collecting
 			// the delegate before it is called. Otherwise, CallbackOnCollectedDelegate may occur.
@@ -103,6 +108,9 @@ internal static class BaseMethod
 			CheckResult(nameof(WlanRegisterNotification), result, true);
 		}
 
+		/// <summary>
+		/// Unregister notification source.
+		/// </summary>
 		private void Unregister()
 		{
 			_notificationCallback = new WLAN_NOTIFICATION_CALLBACK((data, _) => { });
