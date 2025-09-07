@@ -477,12 +477,73 @@ public class NativeWifi
 				linkQuality: (int)bssEntry.uLinkQuality,
 				frequency: (int)bssEntry.ulChCenterFrequency,
 				band: band,
-				channel: channel);
+				channel: channel,
+				width: GetChannelWidth(bssEntry));
 			return true;
 		}
 		bssNetworkInfo = null;
 		return false;
 	}
+
+	/// <summary>
+	/// Extracts the channel width from the Information Element data of the bssEntry.
+	/// </summary>
+	/// <remarks>
+	///	This code is based on the Python code here:
+	///	https://github.com/opetryna/win32wifi/commit/35bc65df12ae8e3c579f4e867b3bfcadfb6e072a
+	/// </remarks>
+	private static int GetChannelWidth(WLAN_BSS_ENTRY bssEntry)
+	{
+		int result = 20;
+		InformationElement? ht_operation = null;
+		InformationElement? vht_operation = null;
+		InformationElement? extension_tag = null;
+
+		foreach(var field in bssEntry.GetInformationElements())
+		{
+			if (field.Id == 61)
+				ht_operation = field;
+			else if (field.Id == 192)
+				vht_operation = field;
+			else if (field.Id == 255)
+				extension_tag = field;
+		}
+		if (ht_operation != null)
+		{
+			int secondary_channel_offset = ht_operation[0] & ((1 << 1) | (1 << 0));
+			if (secondary_channel_offset != 0)
+				result = 40;
+		}
+
+		if (vht_operation != null)
+		{
+
+			byte vht_channel_width = vht_operation[0];
+
+			byte channel_center_frequency_segment_1 = vht_operation[2];
+
+			if (vht_channel_width == 1)
+				result = 80;
+
+			if (channel_center_frequency_segment_1 != 0)
+				result = 160;
+		}
+
+		if (extension_tag != null)
+		{
+			bool bw_40_80 = (extension_tag[7] & (1 << 2)) != 0;
+			bool bw_160 = (extension_tag[7] & (1 << 3)) != 0;
+			bool bw_160_80_p_80 = (extension_tag[7] & (1 << 4)) != 0;
+			if (bw_40_80)
+				result = 80;
+			if (bw_160 || bw_160_80_p_80)
+				result = 160;
+
+		}
+		// Convert from MHz to KHz
+		return result * 1000;
+	}
+	
 
 	#endregion
 
