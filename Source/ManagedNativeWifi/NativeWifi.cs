@@ -490,27 +490,25 @@ public class NativeWifi
 	/// </summary>
 	/// <remarks>
 	///	This code is based on the Python code here:
-	///	https://github.com/opetryna/win32wifi/commit/35bc65df12ae8e3c579f4e867b3bfcadfb6e072a
+	///	https://github.com/opetryna/win32wifi/blob/4f6bedab47c8506738e7a14b07714d032a74f8a7/win32wifi/Win32Wifi.py#L152
 	/// </remarks>
 	private static int GetChannelWidth(WLAN_BSS_ENTRY bssEntry)
 	{
 		int result = 20;
 		InformationElement? ht_operation = null;
 		InformationElement? vht_operation = null;
-		InformationElement? extension_tag = null;
-
+		
 		foreach(var field in bssEntry.GetInformationElements())
 		{
 			if (field.Id == 61)
 				ht_operation = field;
 			else if (field.Id == 192)
 				vht_operation = field;
-			else if (field.Id == 255)
-				extension_tag = field;
 		}
+
 		if (ht_operation != null)
 		{
-			int secondary_channel_offset = ht_operation[0] & ((1 << 1) | (1 << 0));
+			int secondary_channel_offset = ht_operation[1] & ((1 << 1) | (1 << 0));
 			if (secondary_channel_offset != 0)
 				result = 40;
 		}
@@ -529,17 +527,6 @@ public class NativeWifi
 				result = 160;
 		}
 
-		if (extension_tag != null)
-		{
-			bool bw_40_80 = (extension_tag[7] & (1 << 2)) != 0;
-			bool bw_160 = (extension_tag[7] & (1 << 3)) != 0;
-			bool bw_160_80_p_80 = (extension_tag[7] & (1 << 4)) != 0;
-			if (bw_40_80)
-				result = 80;
-			if (bw_160 || bw_160_80_p_80)
-				result = 160;
-
-		}
 		// Convert from MHz to KHz
 		return result * 1000;
 	}
