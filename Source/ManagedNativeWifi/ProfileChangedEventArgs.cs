@@ -1,56 +1,57 @@
 ﻿using System;
 
-namespace ManagedNativeWifi;
-
-/// <summary>
-/// Provides data for the ProfileChanged event.
-/// </summary>
-public class ProfileChangedEventArgs : EventArgs
+namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Associated wireless interface ID
+	/// Provides data for the ProfileChanged event.
 	/// </summary>
-	public Guid InterfaceId { get; }
-
-	/// <summary>
-	/// Profile changed state
-	/// </summary>
-	public ProfileChangedState ChangedState { get; }
-
-	internal ProfileChangedEventArgs(Guid interfaceId, ProfileChangedState changedState)
+	public class ProfileChangedEventArgs : EventArgs
 	{
-		this.InterfaceId = interfaceId;
-		this.ChangedState = changedState;
+		/// <summary>
+		/// Associated wireless interface ID
+		/// </summary>
+		public Guid InterfaceId { get; }
+
+		/// <summary>
+		/// Profile changed state
+		/// </summary>
+		public ProfileChangedState ChangedState { get; }
+
+		internal ProfileChangedEventArgs(Guid interfaceId, ProfileChangedState changedState)
+		{
+			this.InterfaceId = interfaceId;
+			this.ChangedState = changedState;
+		}
 	}
-}
-
-/// <summary>
-/// Wireless profile changed state
-/// </summary>
-public enum ProfileChangedState
-{
-	/// <summary>
-	/// Unknown (invalid value)
-	/// </summary>
-	Unknown = 0,
 
 	/// <summary>
-	/// A change in a profile or the profile list has occurred.
+	/// Wireless profile changed state
 	/// </summary>
-	Changed,
+	public enum ProfileChangedState
+	{
+		/// <summary>
+		/// Unknown (invalid value)
+		/// </summary>
+		Unknown = 0,
 
-	/// <summary>
-	/// A profile name has changed.
-	/// </summary>
-	NameChanged,
+		/// <summary>
+		/// A change in a profile or the profile list has occurred.
+		/// </summary>
+		Changed,
 
-	/// <summary>
-	/// A profile has been unblocked.
-	/// </summary>
-	Unblocked,
+		/// <summary>
+		/// A profile name has changed.
+		/// </summary>
+		NameChanged,
 
-	/// <summary>
-	/// A profile has been blocked.
-	/// </summary>
-	Blocked
+		/// <summary>
+		/// A profile has been unblocked.
+		/// </summary>
+		Unblocked,
+
+		/// <summary>
+		/// A profile has been blocked.
+		/// </summary>
+		Blocked
+	}
 }

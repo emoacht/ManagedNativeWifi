@@ -1,53 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagedNativeWifi.Common;
-
-/// <summary>
-/// Container of disposable object
-/// </summary>
-/// <typeparam name="T">Disposable object type</typeparam>
-/// <remarks>
-/// If a disposable object is given as content when this container is instantiated,
-/// the content object will not be disposed when this container is disposed.
-/// In contrast, if no disposable object is given (if it is default, in the case of class, null)
-/// as content when this container is instantiated, a new disposable object is instantiated
-/// instead and the content object will be disposed when this container is disposed.
-///	</remarks>
-internal class DisposableContainer<T> : IDisposable where T : IDisposable, new()
+namespace ManagedNativeWifi.Common
 {
-	private readonly bool _isDefault;
-	public T Content { get; }
-
-	public DisposableContainer(T content)
+	/// <summary>
+	/// Container of disposable object
+	/// </summary>
+	/// <typeparam name="T">Disposable object type</typeparam>
+	/// <remarks>
+	/// If a disposable object is given as content when this container is instantiated,
+	/// the content object will not be disposed when this container is disposed.
+	/// In contrast, if no disposable object is given (if it is default, in the case of class, null)
+	/// as content when this container is instantiated, a new disposable object is instantiated
+	/// instead and the content object will be disposed when this container is disposed.
+	///	</remarks>
+	internal class DisposableContainer<T> : IDisposable where T : IDisposable, new()
 	{
-		_isDefault = EqualityComparer<T>.Default.Equals(content, default);
-		this.Content = _isDefault ? new T() : content;
-	}
+		private readonly bool _isDefault;
+		public T Content { get; }
 
-	#region Dispose
-
-	bool _disposed = false;
-
-	public void Dispose()
-	{
-		Dispose(true);
-		GC.SuppressFinalize(this);
-	}
-
-	protected virtual void Dispose(bool disposing)
-	{
-		if (_disposed)
-			return;
-
-		if (disposing)
+		public DisposableContainer(T content)
 		{
-			if (_isDefault)
-				Content.Dispose();
+			if (content is null || EqualityComparer<T>.Default.Equals(content, default))
+			{
+				Content = new T();
+				_isDefault = true;
+			}
+			else
+			{
+				Content = content;
+			}
 		}
 
-		_disposed = true;
-	}
+		#region Dispose
 
-	#endregion
+		private bool _disposed;
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (_disposed)
+				return;
+
+			if (disposing)
+			{
+				if (_isDefault)
+					Content.Dispose();
+			}
+
+			_disposed = true;
+		}
+
+		#endregion
+	}
 }

@@ -1,25 +1,26 @@
 ﻿using System;
 
-namespace ManagedNativeWifi;
-
-/// <summary>
-/// Provides data for the SignalQualityChanged event.
-/// </summary>
-public class SignalQualityChangedEventArgs : EventArgs
+namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Associated wireless interface ID
+	/// Provides data for the SignalQualityChanged event.
 	/// </summary>
-	public Guid InterfaceId { get; }
-
-	/// <summary>
-	/// New signal quality (0-100)
-	/// </summary>
-	public int SignalQuality { get; }
-
-	internal SignalQualityChangedEventArgs(Guid interfaceId, int signalQuality)
+	public class SignalQualityChangedEventArgs : EventArgs
 	{
-		this.InterfaceId = interfaceId;
-		this.SignalQuality = signalQuality;
+		/// <summary>
+		/// Associated wireless interface ID
+		/// </summary>
+		public Guid InterfaceId { get; }
+
+		/// <summary>
+		/// New signal quality (0-100)
+		/// </summary>
+		public int SignalQuality { get; }
+
+		internal SignalQualityChangedEventArgs(Guid interfaceId, int signalQuality)
+		{
+			this.InterfaceId = interfaceId;
+			this.SignalQuality = signalQuality;
+		}
 	}
 }

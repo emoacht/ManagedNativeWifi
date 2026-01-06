@@ -1,25 +1,26 @@
 ﻿using System;
 
-namespace ManagedNativeWifi;
-
-/// <summary>
-/// Provides data for the RadioStateChanged event.
-/// </summary>
-public class RadioStateChangedEventArgs : EventArgs
+namespace ManagedNativeWifi
 {
 	/// <summary>
-	/// Associated wireless interface ID
+	/// Provides data for the RadioStateChanged event.
 	/// </summary>
-	public Guid InterfaceId { get; }
-
-	/// <summary>
-	/// Radio state information
-	/// </summary>
-	public RadioStateSet RadioState { get; }
-
-	internal RadioStateChangedEventArgs(Guid interfaceId, RadioStateSet radioState)
+	public class RadioStateChangedEventArgs : EventArgs
 	{
-		this.InterfaceId = interfaceId;
-		this.RadioState = radioState;
+		/// <summary>
+		/// Associated wireless interface ID
+		/// </summary>
+		public Guid InterfaceId { get; }
+
+		/// <summary>
+		/// Radio state information
+		/// </summary>
+		public RadioStateSet RadioState { get; }
+
+		internal RadioStateChangedEventArgs(Guid interfaceId, RadioStateSet radioState)
+		{
+			this.InterfaceId = interfaceId;
+			this.RadioState = radioState;
+		}
 	}
 }
