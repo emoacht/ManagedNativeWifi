@@ -2,6 +2,8 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using ManagedNativeWifi.Common;
+
 namespace ManagedNativeWifi.Test;
 
 [TestClass]
@@ -61,7 +63,7 @@ public class NativeWifiTest
 	<name>{profileName}</name>
 	<SSIDConfig>
 		<SSID>
-			<hex>{HexadecimalStringConverter.ToHexadecimalString(ssidString)}</hex>
+			<hex>{HexadecimalHelper.ToString(ssidString)}</hex>
 			<name>{ssidString}</name>
 		</SSID>
 	</SSIDConfig>
