@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace ManagedNativeWifi.Common;
 
@@ -40,4 +41,13 @@ internal static class HexadecimalHelper
 	/// <returns>Hexadecimal string</returns>
 	public static string ToString(byte[] source) =>
 		BitConverter.ToString(source).Replace("-", "");
+
+	/// <summary>
+	/// Converts a string to a string which represents the byte array in hexadecimal format.
+	/// </summary>
+	/// <param name="source">Original string</param>
+	/// <returns>Hexadecimal string</returns>
+	/// <remarks>This method is used in test project.</remarks>
+	public static string ToString(string source) =>
+		ToString(Encoding.UTF8.GetBytes(source));
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using ManagedNativeWifi.Common;
+
 namespace ManagedNativeWifi.Test;
 
 [TestClass]
@@ -77,7 +79,7 @@ public class ProfileDocumentTest
 	<name>{profileName}</name>
 	<SSIDConfig>
 		<SSID>
-			<hex>{HexadecimalStringConverter.ToHexadecimalString(ssidString)}</hex>
+			<hex>{HexadecimalHelper.ToString(ssidString)}</hex>
 			<name>{ssidString}</name>
 		</SSID>
 	</SSIDConfig>
@@ -100,7 +102,7 @@ public class ProfileDocumentTest
 	<name>{profileName}</name>
 	<SSIDConfig>
 		<SSID>
-			<hex>{HexadecimalStringConverter.ToHexadecimalString(ssidString)}</hex>
+			<hex>{HexadecimalHelper.ToString(ssidString)}</hex>
 			<name>{ssidString}</name>
 		</SSID>
 	</SSIDConfig>
@@ -124,7 +126,7 @@ $@"<?xml version=""1.0""?>
 	<name>{profileName}</name>
 	<SSIDConfig>
 		<SSID>
-			<hex>{HexadecimalStringConverter.ToHexadecimalString(ssidString)}</hex>
+			<hex>{HexadecimalHelper.ToString(ssidString)}</hex>
 			<name>{ssidString}</name>
 		</SSID>
 	</SSIDConfig>
