@@ -743,19 +743,30 @@ internal static class BaseMethod
 		{
 			message.Append($", ReasonCode: {reasonCode}");
 
-			buffer.Clear();
-
-			var result = WlanReasonCodeToString(
-				reasonCode,
-				buffer.Capacity,
-				buffer,
-				IntPtr.Zero);
-
-			if (result is ERROR_SUCCESS)
-				message.Append($", ReasonMessage: {buffer}");
+			if (TryGetReasonMeaning(reasonCode, out string meaning))
+				message.Append($", ReasonMeaning: {meaning}");
 		}
 
 		return message.ToString();
+	}
+
+	public static bool TryGetReasonMeaning(uint reasonCode, out string meaning)
+	{
+		var buffer = new StringBuilder(256);
+
+		var result = WlanReasonCodeToString(
+			reasonCode,
+			buffer.Capacity,
+			buffer,
+			IntPtr.Zero);
+
+		if (result is ERROR_SUCCESS)
+		{
+			meaning = buffer.ToString();
+			return true;
+		}
+		meaning = null;
+		return false;
 	}
 
 	#endregion
