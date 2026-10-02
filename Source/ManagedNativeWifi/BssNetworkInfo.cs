@@ -57,8 +57,13 @@ public class BssNetworkInfo
 	public int Channel { get; }
 
 	/// <summary>
-	/// Constructor
+	///  Width of the channel (KHz)
 	/// </summary>
+	public int Width { get; internal set; }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
 	public BssNetworkInfo(
 		NetworkIdentifier ssid,
 		BssType bssType,
@@ -68,7 +73,8 @@ public class BssNetworkInfo
 		int linkQuality,
 		int frequency,
 		float band,
-		int channel)
+		int channel,
+		int width)
 	{
 		this.Ssid = ssid;
 		this.BssType = bssType;
@@ -79,6 +85,7 @@ public class BssNetworkInfo
 		this.Frequency = frequency;
 		this.Band = band;
 		this.Channel = channel;
+		this.Width = width;
 	}
 }
 
@@ -111,7 +118,8 @@ public class BssNetworkPack : BssNetworkInfo
 		int linkQuality,
 		int frequency,
 		float band,
-		int channel) : base(
+		int channel,
+		int width) : base(
 			ssid: ssid,
 			bssType: bssType,
 			bssid: bssid,
@@ -120,7 +128,8 @@ public class BssNetworkPack : BssNetworkInfo
 			linkQuality: linkQuality,
 			frequency: frequency,
 			band: band,
-			channel: channel)
+			channel: channel,
+			width)
 	{
 		this.InterfaceInfo = interfaceInfo;
 	}
@@ -137,6 +146,7 @@ public class BssNetworkPack : BssNetworkInfo
 			linkQuality: bssNetworkInfo.LinkQuality,
 			frequency: bssNetworkInfo.Frequency,
 			band: bssNetworkInfo.Band,
-			channel: bssNetworkInfo.Channel)
+			channel: bssNetworkInfo.Channel,
+			width: bssNetworkInfo.Width)
 	{ }
 }

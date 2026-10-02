@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -368,8 +369,28 @@ internal static class NativeMethod
 		public ushort usCapabilityInformation;
 		public uint ulChCenterFrequency;
 		public WLAN_RATE_SET wlanRateSet;
-		public uint ulIeOffset;
-		public uint ulIeSize;
+
+		/// <summary>
+		/// Information Element data values.
+		/// </summary>
+		/// <remarks>
+		/// This array will contain 2 uint values when marshalled from unsafe memory
+		/// for these fields:
+		/// public uint ulIeOffset;
+		/// public uint ulIeSize;
+		/// The WLAN_AVAILABLE_NETWORK_LIST constructor will read the memory pointed to
+		/// by these values into the array so that the Information Entity values are available
+		/// to the caller.
+		/// See:
+		/// https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_bss_entry
+		/// </remarks>
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+		public byte[] informationElements;
+
+		public IEnumerable<InformationElement> GetInformationElements()
+		{
+			return InformationElement.Iterate(informationElements);
+		}
 	}
 
 	public struct WLAN_BSS_LIST
@@ -395,7 +416,71 @@ internal static class NativeMethod
 					+ (itemSize * i) /* Offset for preceding items */);
 
 				wlanBssEntries[i] = Marshal.PtrToStructure<WLAN_BSS_ENTRY>(wlanBssEntry);
+				// Copy the information Entity data
+				var ulIeOffset = BitConverter.ToUInt32(wlanBssEntries[i].informationElements, 0);
+				var ulIeSize = BitConverter.ToUInt32(wlanBssEntries[i].informationElements, 4);
+				var infoPtr = new IntPtr(wlanBssEntry.ToInt64()
+					+ ulIeOffset);
+				if (ulIeSize > 0)
+				{
+					var infoData = new byte[ulIeSize];
+					Marshal.Copy(infoPtr, infoData, 0, infoData.Length);
+					wlanBssEntries[i].informationElements = infoData;
+				}
+				else
+				{
+					wlanBssEntries[i].informationElements = Array.Empty<byte>();
+				}
 			}
+		}
+
+	}
+
+	/// <summary>
+	/// Information element fields look like this
+	/// {id: byte, length: byte, info: byte[lenth]}
+	/// </summary>
+	internal class InformationElement
+	{
+		private byte[] data;
+		private InformationElement(byte[] data, int offset = 0)
+		{
+			this.offset = offset;
+			this.data = data;
+		}
+
+		public static IEnumerable<InformationElement> Iterate(byte[] data)
+		{
+			var field = new InformationElement(data, 0);
+			while (!field.AtEnd())
+			{
+				yield return field.BookMark();
+				field.Next();
+			}
+		}
+
+		private int offset;
+		public byte Id { get => data[offset];  }
+		public byte Length { get => data[offset + 1]; }
+
+		public byte this[int idx]
+		{
+			get => data[offset + 2 + idx];
+		}
+
+		private void Next()
+		{
+			offset += Length + 2;
+		}
+
+		private bool AtEnd()
+		{
+			return data.Length == 0 || offset >= data.Length;
+		}
+
+	    private InformationElement BookMark()
+		{
+		    return new InformationElement (data, offset);
 		}
 	}
 

@@ -477,12 +477,60 @@ public class NativeWifi
 				linkQuality: (int)bssEntry.uLinkQuality,
 				frequency: (int)bssEntry.ulChCenterFrequency,
 				band: band,
-				channel: channel);
+				channel: channel,
+				width: GetChannelWidth(bssEntry));
 			return true;
 		}
 		bssNetworkInfo = null;
 		return false;
 	}
+
+	/// <summary>
+	/// Extracts the channel width from the Information Element data of the bssEntry.
+	/// </summary>
+	/// <remarks>
+	///	This code is based on the Python code here:
+	///	https://github.com/opetryna/win32wifi/blob/4f6bedab47c8506738e7a14b07714d032a74f8a7/win32wifi/Win32Wifi.py#L152
+	/// </remarks>
+	private static int GetChannelWidth(WLAN_BSS_ENTRY bssEntry)
+	{
+		int result = 20;
+		InformationElement? ht_operation = null;
+		InformationElement? vht_operation = null;
+		
+		foreach(var field in bssEntry.GetInformationElements())
+		{
+			if (field.Id == 61)
+				ht_operation = field;
+			else if (field.Id == 192)
+				vht_operation = field;
+		}
+
+		if (ht_operation != null)
+		{
+			int secondary_channel_offset = ht_operation[1] & ((1 << 1) | (1 << 0));
+			if (secondary_channel_offset != 0)
+				result = 40;
+		}
+
+		if (vht_operation != null)
+		{
+
+			byte vht_channel_width = vht_operation[0];
+
+			byte channel_center_frequency_segment_1 = vht_operation[2];
+
+			if (vht_channel_width == 1)
+				result = 80;
+
+			if (channel_center_frequency_segment_1 != 0)
+				result = 160;
+		}
+
+		// Convert from MHz to KHz
+		return result * 1000;
+	}
+	
 
 	#endregion
 
