@@ -1,6 +1,7 @@
 ﻿using System;
 
 using static ManagedNativeWifi.Win32.NativeMethod;
+using static ManagedNativeWifi.Win32.BaseMethod;
 
 namespace ManagedNativeWifi;
 
@@ -102,6 +103,16 @@ public class ConnectionNotificationData
 	/// </summary>
 	public bool IsSecurityEnabled { get; }
 
+	/// <summary>
+	/// Reason for an operation failure
+	/// </summary>
+	public ReasonCode ReasonCode { get; }
+
+	/// <summary>
+	/// Meaning of reason for an operation failure
+	/// </summary>
+	public string ReasonMeaning { get; }
+
 	internal ConnectionNotificationData(WLAN_CONNECTION_NOTIFICATION_DATA data)
 	{
 		ConnectionMode = ConnectionModeConverter.Convert(data.wlanConnectionMode);
@@ -112,5 +123,10 @@ public class ConnectionNotificationData
 			this.BssType = bssType;
 
 		IsSecurityEnabled = data.bSecurityEnabled;
+		ReasonCode = (ReasonCode)data.wlanReasonCode;
+
+		if ((ReasonCode is not ReasonCode.Success)
+			&& TryGetReasonMeaning(data.wlanReasonCode, out string meaning))
+			ReasonMeaning = meaning;
 	}
 }
