@@ -254,6 +254,10 @@ The returned Tuple has `result` member and if the wireless interface is not conn
 
 ## Release Notes
 
+Ver 3.1.0 2026-10-2
+
+ - __Add:__ ReasonCode and ReasonMeaning properties to ConnectionNotificationData - These supplement information for ConnectionChanged event.
+
 Ver 3.0.2 2025-7-5
 
  - __Fix:__ RadioStateChanged & SignalQualityChanged events are not prevented by ScanNetworksAsync, ConnectNetworkAsync or DisconnectNetworkAsync methods.
