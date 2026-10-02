@@ -1002,7 +1002,7 @@ public class NativeWifi
 			switch ((WLAN_NOTIFICATION_ACM)data.NotificationCode)
 			{
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_complete:
-					bool isSuccess = (connectionNotificationData.wlanReasonCode is WLAN_REASON_CODE_SUCCESS);
+					bool isSuccess = (connectionNotificationData.wlanReasonCode is (uint)WLAN_REASON_CODE.WLAN_REASON_CODE_SUCCESS);
 					Task.Run(() => tcs.TrySetResult(isSuccess));
 					break;
 				case WLAN_NOTIFICATION_ACM.wlan_notification_acm_connection_attempt_fail:
